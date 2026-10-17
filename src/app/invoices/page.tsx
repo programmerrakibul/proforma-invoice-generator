@@ -256,7 +256,7 @@ export default async function InvoicesPage({ searchParams }: PageParams) {
                   </div>
                 </CardContent>
                 <CardFooter className="pt-4">
-                  <Link href={`/dashboard/invoices/${invoice.id}`}>
+                  <Link href={`/invoices/${invoice.id}`}>
                     <Button variant="outline" size="sm" className="w-full">
                       Open invoice
                     </Button>

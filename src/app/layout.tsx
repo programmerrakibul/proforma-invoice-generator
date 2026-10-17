@@ -2,7 +2,7 @@ import { Providers } from "@/components/providers";
 import { cn } from "@/lib/utils";
 import { StoreProvider } from "@/store/provider";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter, Source_Serif_4 } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -15,12 +15,6 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
-
-const serif = Source_Serif_4({
-  variable: "--font-serif",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -41,10 +35,9 @@ export default function RootLayout({
         "antialiased",
         geistSans.variable,
         geistMono.variable,
-        serif.variable,
         "font-sans",
         inter.variable,
-        "scroll-smooth"
+        "scroll-smooth",
       )}
       suppressHydrationWarning
       data-scroll="smooth"

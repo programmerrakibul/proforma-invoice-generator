@@ -96,7 +96,7 @@ export default function Home() {
             >
               Sign in
             </Link>
-            <Link href="/dashboard/invoices/new" className="Button__root">
+            <Link href="/invoices/new">
               <Button size="sm">Create invoice</Button>
             </Link>
           </div>
@@ -122,7 +122,7 @@ export default function Home() {
                 draft persistence.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link href="/dashboard/invoices/new">
+                <Link href="/invoices/new">
                   <Button size="lg">Create your first invoice</Button>
                 </Link>
                 <Link href="#features">
@@ -253,7 +253,7 @@ export default function Home() {
                   Join M.M FABRICS and start generating professional proforma
                   invoices today.
                 </p>
-                <Link href="/dashboard/invoices/new">
+                <Link href="/invoices/new">
                   <Button
                     variant="outline"
                     size="lg"
