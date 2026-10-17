@@ -159,7 +159,8 @@ pnpm dev
 - **Session user fields:** `id`, `email`, `name`
 - **Route:** `/api/auth/[...all]`
 - **Client SDK:** `better-auth/client` (`signUp.email`, `signIn.email`)
-- **Server helpers:** `getCurrentUser()` (optional), `requireUser()` (throws when unauthenticated)
+- **Server helpers:** `getCurrentUser()` (optional), `requireUser()` (throws
+  when unauthenticated)
 - **Guest flow:** Unauthenticated users can preview/generate invoices
   client-side; persistence to MongoDB requires sign-in
 
@@ -168,8 +169,8 @@ pnpm dev
 ### User (Better Auth + custom profile)
 
 - Better Auth `user`, `account`, `session` collections
-- Custom `User` model adds `companyProfile`
-  (companyName, address, corporateOffice, contactNumber, email, logoUrl)
+- Custom `User` model adds `companyProfile` (companyName, address,
+  corporateOffice, contactNumber, email, logoUrl)
 - `createdAt`, `updatedAt`
 
 ### Invoice (belongs to User via `ownerId`)
