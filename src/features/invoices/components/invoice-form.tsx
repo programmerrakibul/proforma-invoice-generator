@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
-import { useFormContext, Controller } from "react-hook-form";
-import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -12,11 +15,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { InvoiceLineItems } from "@/features/invoices/components/invoice-line-items";
 import { InvoiceSummary } from "@/features/invoices/components/invoice-summary";
 import { type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
+import { useEffect } from "react";
+import { Controller, useFormContext } from "react-hook-form";
 
 type InvoiceFormValues = CreateInvoiceInput;
 
@@ -59,7 +62,9 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
               className="h-7 text-xs"
             />
             {errors.piNumber && (
-              <p className="text-xs text-destructive mt-1">{errors.piNumber.message}</p>
+              <p className="text-xs text-destructive mt-1">
+                {errors.piNumber.message}
+              </p>
             )}
           </div>
           <div className="col-span-1">
@@ -95,7 +100,9 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
               )}
             />
             {errors.issueDate && (
-              <p className="text-xs text-destructive mt-1">{errors.issueDate.message}</p>
+              <p className="text-xs text-destructive mt-1">
+                {errors.issueDate.message}
+              </p>
             )}
           </div>
           <div className="col-span-1">
@@ -119,7 +126,9 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
               )}
             />
             {errors.currency && (
-              <p className="text-xs text-destructive mt-1">{errors.currency.message}</p>
+              <p className="text-xs text-destructive mt-1">
+                {errors.currency.message}
+              </p>
             )}
           </div>
         </div>
