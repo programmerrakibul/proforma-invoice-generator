@@ -29,7 +29,7 @@ export async function deleteInvoiceAction(
       };
     }
 
-    revalidatePath("/dashboard/invoices");
+    revalidatePath("/invoices");
 
     return {
       ok: true,

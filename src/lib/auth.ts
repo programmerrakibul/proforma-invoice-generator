@@ -1,116 +1,38 @@
-import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import type { NextAuthOptions } from "next-auth";
-import bcrypt from "bcryptjs";
-import mongoose from "mongoose";
-
-import { connectToDatabase } from "@/lib/db/mongoose";
-import { UserModel } from "@/lib/db/models";
+import { betterAuth } from "better-auth";
+import { mongodbAdapter } from "@better-auth/mongo-adapter";
+import { MongoClient } from "mongodb";
 
 /**
- * NextAuth v4 configuration.
+ * Better Auth instance with MongoDB adapter.
  *
- * Uses the Credentials provider with bcrypt password verification against the
- * Mongoose User model. Sessions are JWT-based (self-contained, signed cookie),
- * so no database round-trip is required on every request while still keeping
- * password hashes out of the browser.
+ * Uses a cached MongoDB client to avoid creating new connections on every
+ * serverless invocation or Next.js dev hot reload.
  */
-export const authOptions: NextAuthOptions = {
-  providers: [
-    CredentialsProvider({
-      name: "credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        await connectToDatabase();
 
-        const email = credentials?.email?.toLowerCase().trim();
-        const password = credentials?.password;
+let client: MongoClient | null = null;
 
-        if (!email || !password) {
-          throw new Error("Invalid email or password.");
-        }
+function getClient(): MongoClient {
+  if (!client) {
+    client = new MongoClient(process.env.MONGODB_URI!);
+  }
+  return client;
+}
 
-        const user = await UserModel.findOne({ email })
-          .select("+passwordHash")
-          .lean<{
-            _id: mongoose.Types.ObjectId;
-            email: string;
-            name: string;
-            role: string;
-            passwordHash: string;
-          }>()
-          .exec();
+function getDb() {
+  return getClient().db("proforma-invoice");
+}
 
-        if (!user) {
-          throw new Error("Invalid email or password.");
-        }
-
-        const isValid = await bcrypt.compare(password, user.passwordHash);
-        if (!isValid) {
-          throw new Error("Invalid email or password.");
-        }
-
-        return {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
-      },
-    }),
-  ],
-
-  session: { strategy: "jwt" },
-
-  pages: {
-    signIn: "/auth/login",
-    error: "/auth/login",
+export const auth = betterAuth({
+  database: mongodbAdapter(getDb()),
+  baseURL: process.env.BETTER_AUTH_URL,
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: false,
   },
-
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        const authUser = user as {
-          id: string;
-          email?: string | null;
-          name?: string | null;
-          image?: string | null;
-          role?: string | null;
-        };
-        token.id = authUser.id;
-        token.email = authUser.email as string | undefined;
-        token.name = authUser.name as string | undefined;
-        token.role = authUser.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      const updatedSession = session as {
-        user: {
-          id: string;
-          name?: string | null;
-          email?: string | null;
-          image?: string | null;
-          role?: string | null;
-        };
-      };
-      if (updatedSession.user) {
-        updatedSession.user.id = token.id as string;
-        updatedSession.user.role = token.role as string | undefined;
-      }
-      return session;
-    },
+  session: {
+    expiresIn: 60 * 60 * 24 * 30, // 30 days
   },
+});
 
-  secret: process.env.AUTH_SECRET,
-};
-
-const nextAuthInstance = NextAuth(authOptions);
-
-export const { GET, POST } = nextAuthInstance;
-export const { auth, signIn, signOut } = nextAuthInstance;
-
-export type { NextAuthOptions };
+export type Session = typeof auth.$Infer.Session;
+export type User = Session["user"];

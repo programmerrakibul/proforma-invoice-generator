@@ -44,8 +44,8 @@ export async function createInvoiceAction(
         signatures: validated.signatures,
       });
 
-      revalidatePath("/dashboard/invoices");
-      revalidatePath(`/dashboard/invoices/${invoice._id}`);
+      revalidatePath("/invoices");
+      revalidatePath(`/invoices/${invoice._id}`);
 
       return {
         ok: true,

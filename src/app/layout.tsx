@@ -40,7 +40,7 @@ export default function RootLayout({
         "scroll-smooth",
       )}
       suppressHydrationWarning
-      data-scroll="smooth"
+      data-scroll-behavior="smooth"
     >
       <body className="min-h-full flex flex-col">
         <Providers>
