@@ -78,7 +78,7 @@ export default function Home() {
           >
             <span className="text-primary">M.M</span> FABRICS
           </Link>
-          <div className="flex items-center gap-8 hidden lg:flex">
+          <div className="flex items-center gap-8 lg:flex">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -134,7 +134,7 @@ export default function Home() {
             </div>
 
             {/* Hero preview card */}
-            <div className="mt-16 lg:mt-0 lg:absolute lg:right-0 lg:top-24 lg:w-[380px]">
+            <div className="mt-16 lg:mt-0 lg:absolute lg:right-0 lg:top-24 lg:w-95">
               <Card className="overflow-hidden shadow-xl ring-1 ring-border/50">
                 <CardHeader className="bg-muted p-4 border-b border-border">
                   <div className="flex items-center gap-2">

@@ -1,7 +1,8 @@
+import { Providers } from "@/components/providers";
 import { cn } from "@/lib/utils";
+import { StoreProvider } from "@/store/provider";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter, Source_Serif_4 } from "next/font/google";
-import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -27,7 +28,11 @@ export const metadata: Metadata = {
   description: "Create and manage proforma invoices.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
@@ -39,11 +44,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         serif.variable,
         "font-sans",
         inter.variable,
+        "scroll-smooth"
       )}
       suppressHydrationWarning
+      data-scroll="smooth"
     >
       <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
+        <Providers>
+          <StoreProvider>{children}</StoreProvider>
+        </Providers>
       </body>
     </html>
   );
