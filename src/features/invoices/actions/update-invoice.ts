@@ -36,8 +36,8 @@ export async function updateInvoiceAction(
 
     const updates: Record<string, unknown> = {};
 
-    if (validated.invoiceNumber !== undefined) {
-      updates.invoiceNumber = validated.invoiceNumber;
+    if (validated.piNumber !== undefined) {
+      updates.piNumber = validated.piNumber;
     }
     if (validated.issueDate !== undefined) {
       updates.issueDate = new Date(validated.issueDate);

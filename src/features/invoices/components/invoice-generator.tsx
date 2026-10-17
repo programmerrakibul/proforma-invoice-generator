@@ -10,7 +10,7 @@ import { createInvoiceAction } from "@/features/invoices/actions/create-invoice"
 import { InvoiceForm } from "@/features/invoices/components/invoice-form";
 import { InvoicePreview } from "@/features/invoices/components/invoice-preview";
 import { InvoiceToolbar } from "@/features/invoices/components/invoice-toolbar";
-import { setIsDirty, markSaved, setPreviewOpen, setIsExporting } from "@/features/invoices/store/invoice-ui.slice";
+import { setIsDirty, markSaved, setPreviewOpen } from "@/features/invoices/store/invoice-ui.slice";
 import { RootState } from "@/store/index";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -20,7 +20,7 @@ import { SaveIcon } from "lucide-react";
 type InvoiceFormValues = CreateInvoiceInput;
 
 const DEFAULT_VALUES: InvoiceFormValues = {
-  invoiceNumber: "",
+  piNumber: "",
   issueDate: "",
   currency: "USD",
   status: "draft",
@@ -55,10 +55,6 @@ export function InvoiceGenerator({
   const dispatch = useDispatch();
   const isPreviewOpen = useSelector((state: RootState) => state.invoiceUi.isPreviewOpen);
 
-  // Library-boundary cast: @hookform/resolvers/zod cannot infer field input
-  // types through Zod v4 `z.preprocess` (used for trimming/coercion), so the
-  // resolver is asserted to the concrete form value type. Runtime validation
-  // is unchanged and the form is strictly typed to CreateInvoiceInput.
   const methods = useForm<CreateInvoiceInput>({
     resolver: (zodResolver(createInvoiceSchema) as unknown) as Resolver<
       CreateInvoiceInput,
@@ -114,10 +110,6 @@ export function InvoiceGenerator({
         isDirty={formIsDirty}
         isPreviewOpen={isPreviewOpen}
         onSave={() => handleSubmit(onSave)()}
-        onExport={() => {
-          dispatch(setIsExporting(true));
-          toast.add({ title: "Export", description: "PDF export preparation." });
-        }}
         onTogglePreview={() => dispatch(setPreviewOpen(!isPreviewOpen))}
       />
       <div className="flex-1 min-w-0 overflow-y-auto p-6 lg:p-8">

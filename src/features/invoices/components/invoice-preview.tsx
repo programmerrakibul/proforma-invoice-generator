@@ -54,8 +54,8 @@ export function InvoicePreview({ zoom }: InvoicePreviewProps) {
         className="w-[210mm] min-h-[297mm] bg-paper border border-border p-8 text-ink overflow-hidden"
         style={{ ...(zoom === 100 ? { width: "100%", height: "auto" } : {}) } as React.CSSProperties}
       >
-        {/* Company name (serif display) */}
-        <div className="font-serif text-xl font-bold tracking-tight mb-1">
+        {/* Company name */}
+        <div className=" text-xl font-bold tracking-tight mb-1">
           {formValues.seller.companyName || "M.M FABRICS"}
         </div>
         {/* Seller contact details */}
@@ -70,7 +70,7 @@ export function InvoicePreview({ zoom }: InvoicePreviewProps) {
         {/* Blue rule */}
         <div className="h-1 bg-primary mb-4" />
         {/* Title */}
-        <div className="font-serif text-2xl font-bold text-primary tracking-wider mb-6">
+        <div className=" text-2xl font-bold text-primary tracking-wider mb-6">
           PROFORMA INVOICE
         </div>
         {/* Buyer and metadata */}
@@ -82,8 +82,8 @@ export function InvoicePreview({ zoom }: InvoicePreviewProps) {
             <div>{formValues.buyer.destinationCountry}</div>
           </div>
           <div className="space-y-1 text-right">
-            <div className="font-semibold">Invoice No.</div>
-            <div>{formValues.invoiceNumber}</div>
+            <div className="font-semibold">PI No.</div>
+            <div>{formValues.piNumber}</div>
             <div className="font-semibold">Issue date</div>
             <div>{new Date(formValues.issueDate).toLocaleDateString()}</div>
             <div className="font-semibold">Currency</div>
@@ -128,7 +128,7 @@ export function InvoicePreview({ zoom }: InvoicePreviewProps) {
         </div>
         {/* Totals */}
         <div className="flex justify-end mt-2">
-          <div className="text-right font-serif font-medium text-sm border-l-2 border-primary pl-2">
+          <div className="text-right font-medium text-sm border-l-2 border-primary pl-2">
             <div>
               Total {`${currency} ${totalAmount.toFixed(2)}`}
             </div>
@@ -138,7 +138,7 @@ export function InvoicePreview({ zoom }: InvoicePreviewProps) {
         {sayTotal && (
           <div className="mt-6 rounded-lg border border-accent bg-accent/50 p-3 text-xs">
             <span className="font-semibold text-ink">Say total: </span>
-            <span className="font-serif">{sayTotal}.</span>
+            <span className="">{sayTotal}.</span>
           </div>
         )}
         {/* Notes */}

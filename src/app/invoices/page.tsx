@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/pagination";
 import { Separator } from "@/components/ui/separator";
 import { listInvoicesAction } from "@/features/invoices/actions/list-invoices";
+import Container from "@/components/shared/container";
 import Link from "next/link";
 
 type BadgeVariant =
@@ -112,25 +113,25 @@ export default async function InvoicesPage({ searchParams }: PageParams) {
 
   if (!result.ok) {
     return (
-      <div className="px-6 py-24 lg:px-8 text-center">
+      <Container className="py-24 text-center">
         <div className="max-w-md mx-auto">
-          <h2 className="font-serif font-bold text-ink text-lg tracking-tight">
+          <h2 className=" font-bold text-ink text-lg tracking-tight">
             Could not load invoices
           </h2>
           <p className="text-muted-foreground mt-2">{result.message}</p>
         </div>
-      </div>
+      </Container>
     );
   }
 
   const { items, totalPages } = result.data;
 
   return (
-    <div className="px-6 py-20 lg:px-8 lg:py-24">
+    <Container className="py-20 lg:py-24">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
           <div>
-            <h1 className="font-serif font-bold text-ink text-3xl tracking-tight">
+            <h1 className=" font-bold text-ink text-3xl tracking-tight">
               Invoices
             </h1>
             <p className="text-muted-foreground">
@@ -216,7 +217,7 @@ export default async function InvoicesPage({ searchParams }: PageParams) {
               <Card key={invoice.id} className="overflow-hidden">
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="text-sm font-serif font-semibold">
+                    <CardTitle className="text-sm font-semibold">
                       {invoice.invoiceNumber}
                     </CardTitle>
                     <Badge
@@ -248,7 +249,7 @@ export default async function InvoicesPage({ searchParams }: PageParams) {
                       )}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm font-serif font-medium text-ink border-t border-border pt-3">
+                  <div className="flex justify-between text-sm font-medium text-ink border-t border-border pt-3">
                     <span>Total</span>
                     <span>
                       {invoice.currency} {invoice.totalAmount.toFixed(2)}
@@ -317,6 +318,6 @@ export default async function InvoicesPage({ searchParams }: PageParams) {
           </div>
         )}
       </div>
-    </div>
+    </Container>
   );
 }

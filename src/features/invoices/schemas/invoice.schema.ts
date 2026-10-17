@@ -57,7 +57,7 @@ export type InvoiceLineItem = z.infer<typeof invoiceLineItemSchema>;
 /* ------------------------------------------------------------------ */
 
 export const invoiceDetailsSchema = z.object({
-  invoiceNumber: trimmedString(50),
+  piNumber: trimmedString(50),
   issueDate: isoDateString,
   currency: currencyCode.default("USD"),
 });
@@ -69,14 +69,14 @@ export type InvoiceDetails = z.infer<typeof invoiceDetailsSchema>;
 /* ------------------------------------------------------------------ */
 
 const partySchema = z.object({
-  name: trimmedString(200),
-  address: trimmedString(300),
+  name: trimmedString(200).optional().default(""),
+  address: trimmedString(300).optional().default(""),
   destinationCountry: trimmedString(100).optional().default(""),
 });
 
 const sellerSchema = z.object({
-  companyName: trimmedString(200),
-  address: trimmedString(300),
+  companyName: trimmedString(200).optional().default(""),
+  address: trimmedString(300).optional().default(""),
   corporateOffice: trimmedString(200).optional().default(""),
   contactNumber: trimmedString(50).optional().default(""),
   email: z.string().email("Enter a valid email").optional().default(""),
@@ -108,7 +108,7 @@ const signaturesSchema = z.object({
 /* ------------------------------------------------------------------ */
 
 const baseInvoiceSchema = z.object({
-  invoiceNumber: trimmedString(50),
+  piNumber: trimmedString(50),
   issueDate: isoDateString,
   currency: currencyCode.default("USD"),
   status: z

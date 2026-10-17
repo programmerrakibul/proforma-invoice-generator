@@ -10,6 +10,18 @@ import { ActionResult, zodErrorToActionResult } from "@/lib/validations/action-r
 import { createInvoiceSchema, type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
 import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
 
+/**
+ * Generate a PI number in the format MMF/###/YY (e.g. MMF/001/26)
+ * based on the count of existing invoices for the user.
+ */
+export async function getNextPiNumber(ownerId: string): Promise<string> {
+  await connectToDatabase();
+  const count = await InvoiceModel.countDocuments({ ownerId });
+  const sequence = (count + 1).toString().padStart(3, "0");
+  const yy = new Date().getFullYear().toString().slice(-2);
+  return `MMF/${sequence}/${yy}`;
+}
+
 export async function createInvoiceAction(
   input: CreateInvoiceInput,
 ): Promise<ActionResult<{ invoiceId?: string; persisted: boolean }>> {
@@ -28,9 +40,11 @@ export async function createInvoiceAction(
     if (user) {
       await connectToDatabase();
 
+      const piNumber = await getNextPiNumber(user.id);
+
       const invoice = await InvoiceModel.create({
         ownerId: user.id,
-        invoiceNumber: validated.invoiceNumber,
+        piNumber,
         issueDate: new Date(validated.issueDate),
         currency: validated.currency,
         status: "draft",

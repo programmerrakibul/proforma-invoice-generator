@@ -8,6 +8,10 @@ import { auth } from "@/lib/auth";
  * @returns The authenticated user's safe profile, or null when no session is active.
  */
 export async function getCurrentUser() {
-  const session = await auth.api.getSession();
-  return session?.user ?? null;
+  try {
+    const session = await auth.api.getSession();
+    return session?.user ?? null;
+  } catch {
+    return null;
+  }
 }

@@ -50,7 +50,7 @@ export interface Buyer {
 export interface Invoice {
   _id: mongoose.Types.ObjectId;
   ownerId: mongoose.Types.ObjectId;
-  invoiceNumber: string;
+  piNumber: string;
   issueDate: Date;
   currency: string;
   status: "draft" | "ready" | "exported" | "archived";
@@ -87,7 +87,7 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
       required: true,
       index: true,
     },
-    invoiceNumber: { type: String, required: true, trim: true },
+    piNumber: { type: String, required: true, trim: true },
     issueDate: { type: Date, required: true },
     currency: { type: String, default: "USD" },
     status: {
@@ -137,7 +137,7 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
 
 invoiceSchema.index({ ownerId: 1, updatedAt: -1 });
 invoiceSchema.index({ ownerId: 1, status: 1, updatedAt: -1 });
-invoiceSchema.index({ ownerId: 1, invoiceNumber: 1 });
+invoiceSchema.index({ ownerId: 1, piNumber: 1 });
 
 invoiceSchema.set("toJSON", {
   virtuals: true,

@@ -50,8 +50,8 @@ export function AppSidebar() {
     >
       <div className="flex h-12 items-center justify-between px-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <span className="font-serif font-bold text-ink tracking-tight text-xs md:text-sm">M.M</span>
-          <span className="font-serif font-bold text-ink tracking-tight text-xs md:text-sm">FABRICS</span>
+          <span className=" font-bold text-ink tracking-tight text-xs md:text-sm">M.M</span>
+          <span className=" font-bold text-ink tracking-tight text-xs md:text-sm">FABRICS</span>
         </div>
         {isTablet && !isSidebarOpen && (
           <Button

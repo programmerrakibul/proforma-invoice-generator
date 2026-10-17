@@ -19,7 +19,7 @@ export function InvoiceSummary() {
         <span className="text-xs text-muted-foreground">Subtotal</span>
         <span className="text-xs font-medium">{`${currency} ${subtotal.toFixed(2)}`}</span>
       </div>
-      <div className="flex items-center justify-between pt-2 font-serif text-sm font-medium">
+      <div className="flex items-center justify-between pt-2 text-sm font-medium">
         <span>Total</span>
         <span>{`${currency} ${totalAmount.toFixed(2)}`}</span>
       </div>

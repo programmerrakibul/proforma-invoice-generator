@@ -39,22 +39,18 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
     <div className="space-y-6">
       {/* Invoice details */}
       <section className="rounded-lg border border-border bg-card p-5">
-        <h2 className="font-serif font-semibold text-ink text-sm mb-4 flex items-center gap-2">
+        <h2 className=" font-semibold text-ink text-sm mb-4 flex items-center gap-2">
           <span className="h-3 w-0.5 bg-primary rounded-full" /> Invoice details
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="col-span-1">
-            <Label htmlFor="invoiceNumber">Invoice number</Label>
+            <Label htmlFor="piNumber">PI number</Label>
             <Input
-              id="invoiceNumber"
-              {...register("invoiceNumber")}
-              className="h-7 text-xs"
+              id="piNumber"
+              {...register("piNumber")}
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
-            {errors.invoiceNumber && (
-              <p className="text-xs text-destructive mt-1">
-                {errors.invoiceNumber.message}
-              </p>
-            )}
           </div>
           <div className="col-span-1">
             <Label htmlFor="issueDate">Issue date</Label>
@@ -89,9 +85,7 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
               )}
             />
             {errors.issueDate && (
-              <p className="text-xs text-destructive mt-1">
-                {errors.issueDate.message}
-              </p>
+              <p className="text-xs text-destructive mt-1">{errors.issueDate.message}</p>
             )}
           </div>
           <div className="col-span-1">
@@ -123,53 +117,46 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
 
       <Separator />
 
-      {/* Seller details */}
+      {/* Seller details - static from company profile */}
       <section className="rounded-lg border border-border bg-card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-serif font-semibold text-ink text-sm flex items-center gap-2">
-            <span className="h-3 w-0.5 bg-primary rounded-full" /> Seller details
-          </h2>
-          <Button variant="outline" size="sm" onClick={() => {
-            setValue("seller.companyName", companyProfile.companyName);
-            setValue("seller.address", companyProfile.address);
-            setValue("seller.corporateOffice", companyProfile.corporateOffice);
-            setValue("seller.contactNumber", companyProfile.contactNumber);
-            setValue("seller.email", companyProfile.email);
-          }}>
-            Use company profile
-          </Button>
-        </div>
+        <h2 className=" font-semibold text-ink text-sm mb-4 flex items-center gap-2">
+          <span className="h-3 w-0.5 bg-primary rounded-full" /> Seller details
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="col-span-1">
             <Label htmlFor="sellerCompany">Company name</Label>
             <Input
               id="sellerCompany"
-              {...register("seller.companyName")}
-              className="h-7 text-xs"
+              defaultValue={companyProfile.companyName}
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
           <div className="col-span-2">
             <Label htmlFor="sellerAddress">Address</Label>
             <Input
               id="sellerAddress"
-              {...register("seller.address")}
-              className="h-7 text-xs"
+              defaultValue={companyProfile.address}
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
           <div className="col-span-1">
             <Label htmlFor="sellerOffice">Corporate office</Label>
             <Input
               id="sellerOffice"
-              {...register("seller.corporateOffice")}
-              className="h-7 text-xs"
+              defaultValue={companyProfile.corporateOffice}
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
           <div className="col-span-1">
             <Label htmlFor="sellerContact">Contact number</Label>
             <Input
               id="sellerContact"
-              {...register("seller.contactNumber")}
-              className="h-7 text-xs"
+              defaultValue={companyProfile.contactNumber}
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
           <div className="col-span-1">
@@ -177,8 +164,9 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
             <Input
               id="sellerEmail"
               type="email"
-              {...register("seller.email")}
-              className="h-7 text-xs"
+              defaultValue={companyProfile.email}
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
         </div>
@@ -186,32 +174,38 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
 
       <Separator />
 
-      {/* Buyer / consignee */}
+      {/* Buyer / consignee - static */}
       <section className="rounded-lg border border-border bg-card p-5">
-        <h2 className="font-serif font-semibold text-ink text-sm mb-4 flex items-center gap-2">
+        <h2 className=" font-semibold text-ink text-sm mb-4 flex items-center gap-2">
           <span className="h-3 w-0.5 bg-primary rounded-full" /> Buyer / consignee
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="col-span-2">
             <Label htmlFor="buyerName">Buyer name</Label>
-            <Input id="buyerName" {...register("buyer.name")} className="h-7 text-xs" />
-            {errors.buyer?.name && (
-              <p className="text-xs text-destructive mt-1">{errors.buyer.name.message}</p>
-            )}
+            <Input
+              id="buyerName"
+              defaultValue=""
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
+            />
           </div>
           <div className="col-span-2">
             <Label htmlFor="buyerAddress">Address</Label>
-            <Input id="buyerAddress" {...register("buyer.address")} className="h-7 text-xs" />
-            {errors.buyer?.address && (
-              <p className="text-xs text-destructive mt-1">{errors.buyer.address.message}</p>
-            )}
+            <Input
+              id="buyerAddress"
+              defaultValue=""
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
+            />
           </div>
           <div className="col-span-2">
             <Label htmlFor="buyerCountry">Destination country</Label>
-            <Input id="buyerCountry" {...register("buyer.destinationCountry")} className="h-7 text-xs" />
-            {errors.buyer?.destinationCountry && (
-              <p className="text-xs text-destructive mt-1">{errors.buyer.destinationCountry.message}</p>
-            )}
+            <Input
+              id="buyerCountry"
+              defaultValue=""
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
+            />
           </div>
         </div>
       </section>
@@ -220,7 +214,7 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
 
       {/* Products / line items */}
       <section className="rounded-lg border border-border bg-card p-5">
-        <h2 className="font-serif font-semibold text-ink text-sm mb-2">
+        <h2 className=" font-semibold text-ink text-sm mb-2">
           Products / line items
         </h2>
         <InvoiceLineItems currency="USD" onAdd={() => {}} />
@@ -228,9 +222,9 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
 
       <Separator />
 
-      {/* Notes and terms */}
+      {/* Notes and terms - static */}
       <section className="rounded-lg border border-border bg-card p-5">
-        <h2 className="font-serif font-semibold text-ink text-sm mb-4">
+        <h2 className=" font-semibold text-ink text-sm mb-4">
           Notes and terms
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -238,8 +232,9 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
             <Label htmlFor="sayTotal">Say total</Label>
             <Textarea
               id="sayTotal"
-              {...register("notes.sayTotal")}
-              className="h-24 text-xs"
+              defaultValue=""
+              className="h-24 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
           <div>
@@ -248,72 +243,81 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
             </Label>
             <Textarea
               id="goodsDeliveryDestination"
-              {...register("notes.goodsDeliveryDestination")}
-              className="h-24 text-xs"
+              defaultValue=""
+              className="h-24 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
           <div className="col-span-2">
             <Label htmlFor="goodsOrigin">Goods origin</Label>
             <Input
               id="goodsOrigin"
-              {...register("notes.goodsOrigin")}
-              className="h-7 text-xs"
+              defaultValue=""
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
           <div className="col-span-2">
             <Label htmlFor="advisingBank">Advising bank</Label>
             <Input
               id="advisingBank"
-              {...register("notes.advisingBank")}
-              className="h-7 text-xs"
+              defaultValue=""
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
           <div className="col-span-2">
             <Label htmlFor="allowance">Allowance</Label>
             <Input
               id="allowance"
-              {...register("notes.allowance")}
-              className="h-7 text-xs"
+              defaultValue=""
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
           <div className="col-span-2">
             <Label htmlFor="packing">Packing</Label>
             <Input
               id="packing"
-              {...register("notes.packing")}
-              className="h-7 text-xs"
+              defaultValue=""
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
           <div className="col-span-2">
             <Label htmlFor="shipmentDate">Shipment date</Label>
             <Input
               id="shipmentDate"
-              {...register("notes.shipmentDate")}
-              className="h-7 text-xs"
+              defaultValue=""
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
           <div className="col-span-2">
             <Label htmlFor="payment">Payment</Label>
             <Input
               id="payment"
-              {...register("notes.payment")}
-              className="h-7 text-xs"
+              defaultValue=""
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
           <div className="col-span-2">
             <Label htmlFor="partialShipment">Partial shipment</Label>
             <Input
               id="partialShipment"
-              {...register("notes.partialShipment")}
-              className="h-7 text-xs"
+              defaultValue=""
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
           <div className="col-span-2">
             <Label htmlFor="piValidity">PI validity</Label>
             <Input
               id="piValidity"
-              {...register("notes.piValidity")}
-              className="h-7 text-xs"
+              defaultValue=""
+              className="h-7 text-xs bg-muted text-ink"
+              readOnly
             />
           </div>
         </div>
@@ -321,38 +325,22 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
           <Label htmlFor="termsAndConditions">Terms and conditions</Label>
           <Textarea
             id="termsAndConditions"
-            {...register("termsAndConditions")}
-            className="h-32 text-xs"
+            defaultValue=""
+            className="h-32 text-xs bg-muted text-ink"
+            readOnly
             placeholder="Enter one term per line"
           />
-          {errors.termsAndConditions && (
-            <p className="text-xs text-destructive mt-1">
-              {errors.termsAndConditions.message}
-            </p>
-          )}
         </div>
       </section>
 
       <Separator />
 
-      {/* Signatures */}
+      {/* Signatures - only seller signature editable */}
       <section className="rounded-lg border border-border bg-card p-5">
-        <h2 className="font-serif font-semibold text-ink text-sm mb-4">
+        <h2 className=" font-semibold text-ink text-sm mb-4">
           Signatures
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="buyerLabel">Buyer authorized signature</Label>
-            <Input
-              id="buyerLabel"
-              {...register("signatures.buyerLabel")}
-              className="h-7 text-xs"
-            />
-            <label className="flex items-center gap-2 text-xs mt-3 cursor-pointer select-none">
-              <input type="checkbox" {...register("signatures.includeBuyerSignature")} />
-              <span>Include buyer signature</span>
-            </label>
-          </div>
           <div>
             <Label htmlFor="sellerLabel">Seller signature</Label>
             <Input

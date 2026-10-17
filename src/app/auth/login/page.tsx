@@ -47,11 +47,10 @@ export default function LoginPage() {
         title: "Welcome back",
         description: "You are now signed in.",
       });
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "Invalid email or password.";
+    } catch (e: unknown) {
       toast.add({
         title: "Login failed",
-        description: message,
+        description: (e as Error)?.message ?? "Invalid email or password.",
       });
     }
   };
@@ -60,7 +59,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 sm:px-6 lg:px-8 py-12">
       <div className="w-full max-w-md space-y-8">
         <div>
-          <h1 className="font-serif font-bold text-ink text-2xl tracking-tight">
+          <h1 className=" font-bold text-ink text-2xl tracking-tight">
             Sign in
           </h1>
           <p className="text-sm text-muted-foreground">

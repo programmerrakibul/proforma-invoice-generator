@@ -44,7 +44,7 @@ export function LineItemCard({
           </div>
           <div>
             <span className="text-xs text-muted-foreground block">Total</span>
-            <span className="text-sm font-medium font-serif">
+            <span className="text-sm font-medium ">
               {`${currency} ${total.toFixed(2)}`}
             </span>
           </div>

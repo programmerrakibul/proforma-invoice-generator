@@ -40,7 +40,7 @@ export function PageHeader({
             <span className="mx-1 text-foreground">{lastSegment}</span>
           )}
         </nav>
-        <h1 className="font-serif font-semibold text-ink text-sm md:text-base tracking-tight">
+        <h1 className=" font-semibold text-ink text-sm md:text-base tracking-tight">
           {title}
         </h1>
       </div>

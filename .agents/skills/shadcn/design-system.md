@@ -211,17 +211,15 @@ Override Tailwind's shadow scale in `@theme`, not `@theme inline`. Copy multi-la
 Brand fonts are usually licensed. Use the substitutes the DESIGN.md names, installed from Fontsource with the project's package manager, and import every face you reference at the top of the CSS file:
 
 ```bash
-npm install @fontsource-variable/inter @fontsource-variable/cormorant-garamond @fontsource-variable/jetbrains-mono
+npm install @fontsource-variable/inter @fontsource-variable/jetbrains-mono
 ```
 
 ```css
 @import "@fontsource-variable/inter";
-@import "@fontsource-variable/cormorant-garamond";
 @import "@fontsource-variable/jetbrains-mono";
 
 @theme inline {
   --font-sans: "Inter Variable", -apple-system, system-ui, sans-serif;
-  --font-serif: "Cormorant Garamond Variable", Garamond, serif;
   --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
   --font-heading: var(--font-sans);
 }
@@ -235,7 +233,7 @@ Turn every typography token into a `type-*` utility. Don't use `--text-*` theme 
 
 ```css
 @utility type-display-lg {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: clamp(34px, 3vw + 16px, 48px);
   font-weight: 500;
   line-height: 1.1;

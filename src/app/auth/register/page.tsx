@@ -1,27 +1,32 @@
 "use client";
 
-import Link from "next/link";
-import { createAuthClient } from "better-auth/client";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createAuthClient } from "better-auth/client";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-const registerSchema = z.object({
-  name: z.string().min(1, "Name is required.").trim(),
-  email: z.string().email("Please enter a valid email address.").trim().toLowerCase(),
-  password: z.string().min(8, "Password must be at least 8 characters."),
-  confirmPassword: z.string().min(1, "Please confirm your password."),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match.",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    name: z.string().min(1, "Name is required.").trim(),
+    email: z
+      .string()
+      .email("Please enter a valid email address.")
+      .trim()
+      .toLowerCase(),
+    password: z.string().min(8, "Password must be at least 8 characters."),
+    confirmPassword: z.string().min(1, "Please confirm your password."),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
@@ -34,7 +39,10 @@ export default function RegisterPage() {
     criteriaMode: "all",
   });
 
-  const { handleSubmit, formState: { errors, isSubmitting } } = methods;
+  const {
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = methods;
 
   const onSubmit = async (values: RegisterFormValues) => {
     try {
@@ -43,12 +51,14 @@ export default function RegisterPage() {
         email: values.email,
         password: values.password,
       });
-      toast.add({ title: "Account created", description: "Welcome to M.M FABRICS!" });
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to create account.";
+      toast.add({
+        title: "Account created",
+        description: "Welcome to M.M FABRICS!",
+      });
+    } catch (e: unknown) {
       toast.add({
         title: "Registration failed",
-        description: message,
+        description: (e as Error)?.message ?? "Failed to create account.",
       });
     }
   };
@@ -57,7 +67,9 @@ export default function RegisterPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 sm:px-6 lg:px-8 py-12">
       <div className="w-full max-w-md space-y-8">
         <div>
-          <h1 className="font-serif font-bold text-ink text-2xl tracking-tight">Create account</h1>
+          <h1 className=" font-bold text-ink text-2xl tracking-tight">
+            Create account
+          </h1>
           <p className="text-sm text-muted-foreground">
             Join M.M FABRICS to manage your proforma invoices.
           </p>
@@ -84,7 +96,9 @@ export default function RegisterPage() {
                 )}
               />
               {errors.name && (
-                <p className="text-xs text-destructive mt-1">{errors.name.message}</p>
+                <p className="text-xs text-destructive mt-1">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
@@ -101,7 +115,9 @@ export default function RegisterPage() {
                 )}
               />
               {errors.email && (
-                <p className="text-xs text-destructive mt-1">{errors.email.message}</p>
+                <p className="text-xs text-destructive mt-1">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -118,7 +134,9 @@ export default function RegisterPage() {
                 )}
               />
               {errors.password && (
-                <p className="text-xs text-destructive mt-1">{errors.password.message}</p>
+                <p className="text-xs text-destructive mt-1">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
@@ -135,11 +153,17 @@ export default function RegisterPage() {
                 )}
               />
               {errors.confirmPassword && (
-                <p className="text-xs text-destructive mt-1">{errors.confirmPassword.message}</p>
+                <p className="text-xs text-destructive mt-1">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
 
-            <Button type="submit" className="w-full h-10" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              className="w-full h-10"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? "Creating account…" : "Create account"}
             </Button>
           </div>

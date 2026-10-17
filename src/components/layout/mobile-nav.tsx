@@ -36,7 +36,7 @@ export function MobileNav() {
       </Button>
     )}
     <div className="flex items-center gap-1">
-      <span className="font-serif font-bold text-ink text-xs">M.M FABRICS</span>
+      <span className=" font-bold text-ink text-xs">M.M FABRICS</span>
     </div>
   </div>
   );

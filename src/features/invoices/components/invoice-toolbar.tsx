@@ -1,14 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Download, Save, Eye } from "lucide-react";
+import { MoreHorizontal, Save, Eye } from "lucide-react";
 
 export interface InvoiceToolbarProps {
   isSaving: boolean;
   isDirty: boolean;
   isPreviewOpen: boolean;
   onSave: () => void;
-  onExport: () => void;
+  onExport?: () => void;
   onTogglePreview: () => void;
 }
 
@@ -31,10 +31,6 @@ export function InvoiceToolbar({
         >
           <Save className="size-3.5 mr-2" />
           {isSaving ? "Saving…" : "Save draft"}
-        </Button>
-        <Button variant="outline" size="sm" onClick={onExport}>
-          <Download className="size-3.5 mr-2" />
-          Export PDF
         </Button>
       </div>
       <div className="flex items-center gap-2">

@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Container from "@/components/shared/container";
 import {
   Card,
   CardContent,
@@ -73,7 +74,7 @@ export default function Home() {
         <div className="flex items-center justify-between px-6 py-4 lg:px-8">
           <Link
             href="/"
-            className="flex items-center gap-2 font-serif font-bold text-ink text-lg tracking-tight"
+            className="flex items-center gap-2 font-bold text-ink text-lg tracking-tight"
             aria-label="M.M FABRICS home"
           >
             <span className="text-primary">M.M</span> FABRICS
@@ -105,13 +106,13 @@ export default function Home() {
 
       <main className="flex-1 relative overflow-hidden bg-background">
         {/* Hero section */}
-        <section className="relative px-6 py-24 lg:px-8 lg:py-32">
-          <div className="mx-auto max-w-7xl">
+        <section className="relative py-24 lg:py-32">
+          <Container>
             <div className="text-center lg:text-left lg:max-w-3xl">
               <Badge variant="outline" className="mb-6 text-xs">
                 Proforma invoice generator
               </Badge>
-              <h1 className="font-serif font-bold text-ink text-4xl lg:text-6xl tracking-tight leading-tight mb-6">
+              <h1 className=" font-bold text-ink text-4xl lg:text-6xl tracking-tight leading-tight mb-6">
                 Create professional proforma
                 <br />
                 invoices for M.M FABRICS
@@ -164,7 +165,7 @@ export default function Home() {
                         <span>USD 150.00</span>
                       </div>
                     </div>
-                    <div className="pt-2 border-t border-border flex justify-between font-serif font-semibold">
+                    <div className="pt-2 border-t border-border flex justify-between font-semibold">
                       <span>Total</span>
                       <span>USD 350.00</span>
                     </div>
@@ -172,17 +173,14 @@ export default function Home() {
                 </CardContent>
               </Card>
             </div>
-          </div>
+          </Container>
         </section>
 
         {/* Features section */}
-        <section
-          id="features"
-          className="px-6 py-24 lg:px-8 lg:py-32 bg-muted/30"
-        >
-          <div className="mx-auto max-w-7xl">
+        <section id="features" className="py-24 lg:py-32 bg-muted/30">
+          <Container>
             <div className="text-center mb-16">
-              <h2 className="font-serif font-bold text-ink text-3xl lg:text-4xl tracking-tight mb-4">
+              <h2 className=" font-bold text-ink text-3xl lg:text-4xl tracking-tight mb-4">
                 Everything you need to invoice
               </h2>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -197,7 +195,7 @@ export default function Home() {
                     <feature.icon className="size-5 text-primary" />
                   </CardHeader>
                   <CardContent className="p-5">
-                    <CardTitle className="font-serif font-semibold text-ink text-sm mb-2">
+                    <CardTitle className=" font-semibold text-ink text-sm mb-2">
                       {feature.title}
                     </CardTitle>
                     <CardDescription>{feature.description}</CardDescription>
@@ -205,14 +203,14 @@ export default function Home() {
                 </Card>
               ))}
             </div>
-          </div>
+          </Container>
         </section>
 
         {/* How it works */}
-        <section id="how-it-works" className="px-6 py-24 lg:px-8 lg:py-32">
-          <div className="mx-auto max-w-7xl">
+        <section id="how-it-works" className="py-24 lg:py-32">
+          <Container>
             <div className="text-center mb-16">
-              <h2 className="font-serif font-bold text-ink text-3xl lg:text-4xl tracking-tight mb-4">
+              <h2 className=" font-bold text-ink text-3xl lg:text-4xl tracking-tight mb-4">
                 How it works
               </h2>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -223,10 +221,10 @@ export default function Home() {
               {STEPS.map((step) => (
                 <Card key={step.step} className="overflow-hidden">
                   <CardHeader className="p-5">
-                    <div className="flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary mb-4 font-serif font-bold text-sm">
+                    <div className="flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary mb-4 font-bold text-sm">
                       {step.step}
                     </div>
-                    <CardTitle className="font-serif font-semibold text-ink text-sm">
+                    <CardTitle className=" font-semibold text-ink text-sm">
                       {step.title}
                     </CardTitle>
                   </CardHeader>
@@ -238,15 +236,15 @@ export default function Home() {
                 </Card>
               ))}
             </div>
-          </div>
+          </Container>
         </section>
 
         {/* CTA banner */}
-        <section className="px-6 py-20 lg:px-8 lg:py-24">
-          <div className="mx-auto max-w-3xl">
+        <section className="py-20 lg:py-24">
+          <Container>
             <Card className="bg-primary text-primary-foreground overflow-hidden">
               <div className="p-8 lg:p-12 text-center">
-                <h2 className="font-serif font-bold text-white text-3xl lg:text-4xl tracking-tight mb-4">
+                <h2 className=" font-bold text-white text-3xl lg:text-4xl tracking-tight mb-4">
                   Ready to create your first invoice?
                 </h2>
                 <p className="text-primary-foreground/80 text-lg mb-8 max-w-md mx-auto">
@@ -264,16 +262,16 @@ export default function Home() {
                 </Link>
               </div>
             </Card>
-          </div>
+          </Container>
         </section>
 
         {/* Footer */}
-        <footer className="border-t border-border bg-muted/30 px-6 py-12 lg:px-8">
-          <div className="mx-auto max-w-7xl">
+        <footer className="border-t border-border bg-muted/30 py-12">
+          <Container>
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <Link
                 href="/"
-                className="font-serif font-bold text-ink text-sm tracking-tight"
+                className=" font-bold text-ink text-sm tracking-tight"
               >
                 <span className="text-primary">M.M</span> FABRICS
               </Link>
@@ -305,7 +303,7 @@ export default function Home() {
               M.M FABRICS &mdash; Sobhan Super Market, South Birampur, Madhabdi,
               Narsingdi. Corporate Office: Uttara, Dhaka.
             </p>
-          </div>
+          </Container>
         </footer>
       </main>
     </div>
