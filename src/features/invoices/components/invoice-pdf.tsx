@@ -5,43 +5,62 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
-  Link as PDFLink,
 } from "@react-pdf/renderer";
 import { type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
 import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
 import { numberToWords } from "@/features/invoices/utils/number-to-words";
+import sealImageSrc from "@/assets/mm_fabrics_seal.png";
+
+const sealImage: any = sealImageSrc;
 
 const styles = StyleSheet.create({
   page: {
     flexDirection: "column",
     backgroundColor: "#ffffff",
-    padding: 40,
+    paddingTop: 40,
+    paddingRight: 50,
+    paddingBottom: 40,
+    paddingLeft: 50,
     fontSize: 9,
   },
-  companyName: {
-    fontFamily: "sans",
-    fontSize: 16,
-    fontWeight: "bold",
+  companyHeader: {
+    alignItems: "center",
     marginBottom: 4,
-    color: "#1a1a1a",
   },
-  sellerContact: {
-    fontSize: 8,
-    color: "#666666",
-    marginBottom: 12,
+  companyName: {
+    fontFamily: "serif",
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#1a2e6a",
+    textAlign: "center",
+    marginBottom: 2,
+  },
+  companyAddress: {
+    fontSize: 7.5,
+    color: "#1a1a1a",
+    textAlign: "center",
+    marginBottom: 1,
+  },
+  companyContact: {
+    fontSize: 7.5,
+    color: "#1a1a1a",
+    textAlign: "center",
+    marginBottom: 8,
   },
   blueRule: {
-    height: 1,
+    height: 2,
     backgroundColor: "#2563eb",
-    marginBottom: 12,
+    marginBottom: 10,
     width: "100%",
   },
-  title: {
-    fontFamily: "sans",
-    fontSize: 20,
+  invoiceTitle: {
+    fontFamily: "serif",
+    fontSize: 18,
     fontWeight: "bold",
     color: "#2563eb",
+    textAlign: "center",
     marginBottom: 12,
     textTransform: "uppercase",
   },
@@ -55,67 +74,174 @@ const styles = StyleSheet.create({
   },
   metaLabel: {
     fontWeight: "bold",
-    fontSize: 8,
+    fontSize: 8.5,
     color: "#1a1a1a",
   },
   metaValue: {
-    fontSize: 8,
+    fontSize: 8.5,
     color: "#1a1a1a",
     marginBottom: 2,
   },
+  metaSpacer: {
+    flex: 0.5,
+  },
   table: {
     width: "100%",
-    borderCollapse: "collapse",
     borderWidth: 1,
-    borderColor: "#666666",
+    borderColor: "#1a1a1a",
     marginBottom: 12,
   },
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: "#2563eb",
+    backgroundColor: "#1a2e6a",
     color: "#ffffff",
   },
   tableHeaderCell: {
-    padding: 4,
-    fontSize: 7,
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 3,
+    paddingRight: 3,
+    fontSize: 8,
     fontWeight: "bold",
-    borderWidth: 1,
-    borderColor: "#666666",
-    width: "14.28%",
+    borderWidth: 0.5,
+    borderColor: "#1a1a1a",
+    textAlign: "left",
+  },
+  tableHeaderCellRight: {
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 3,
+    paddingRight: 3,
+    fontSize: 8,
+    fontWeight: "bold",
+    borderWidth: 0.5,
+    borderColor: "#1a1a1a",
+    textAlign: "right",
   },
   tableRow: {
     flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#666666",
-    padding: 4,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#1a1a1a",
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 3,
+    paddingRight: 3,
   },
   tableCell: {
     fontSize: 8,
-    borderWidth: 1,
-    borderColor: "#666666",
-    width: "14.28%",
+    borderRightWidth: 0.5,
+    borderRightColor: "#1a1a1a",
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 3,
+    paddingRight: 3,
+    textAlign: "left",
   },
   tableCellRight: {
     fontSize: 8,
-    borderWidth: 1,
-    borderColor: "#666666",
-    width: "14.28%",
+    borderRightWidth: 0.5,
+    borderRightColor: "#1a1a1a",
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 3,
+    paddingRight: 3,
     textAlign: "right",
+  },
+  lastCell: {
+    borderRightWidth: 0,
   },
   totalsContainer: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    marginTop: 8,
+    marginTop: 4,
   },
-  totalsLabel: {
-    fontSize: 9,
+  totalsQuantity: {
+    width: "14.28%",
+    textAlign: "right",
+    borderRightWidth: 0.5,
+    borderRightColor: "#1a1a1a",
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 3,
+    paddingRight: 3,
+    fontSize: 8,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#1a1a1a",
+  },
+  totalsAmount: {
+    width: "14.28%",
+    textAlign: "right",
+    borderRightWidth: 0.5,
+    borderRightColor: "#1a1a1a",
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 3,
+    paddingRight: 3,
+    fontSize: 8,
     fontWeight: "bold",
-    fontFamily: "sans",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#1a1a1a",
+  },
+  totalsAmountLast: {
+    width: "14.28%",
+    textAlign: "right",
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 3,
+    paddingRight: 3,
+    fontSize: 8,
+    fontWeight: "bold",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#1a1a1a",
+  },
+  emptyRows: {
+    flexDirection: "row",
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 3,
+    paddingRight: 3,
+  },
+  emptyCell: {
+    width: "14.28%",
+    borderRightWidth: 0.5,
+    borderRightColor: "#1a1a1a",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#1a1a1a",
+  },
+  emptyCellRight: {
+    width: "14.28%",
+    borderRightWidth: 0,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#1a1a1a",
+  },
+  emptyCellRightLast: {
+    width: "14.28%",
+    borderRightWidth: 0,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#1a1a1a",
+  },
+  tableCellRightLast: {
+    fontSize: 8,
+    borderRightWidth: 0,
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 3,
+    paddingRight: 3,
     textAlign: "right",
   },
-  sayTotal: {
+  emptyRow: {
+    flexDirection: "row",
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 3,
+    paddingRight: 3,
+  },
+  sayTotalContainer: {
     marginTop: 16,
-    padding: 8,
+    paddingTop: 8,
+    paddingRight: 10,
+    paddingBottom: 8,
+    paddingLeft: 10,
     backgroundColor: "#fef3c7",
     borderWidth: 1,
     borderColor: "#d97706",
@@ -127,7 +253,7 @@ const styles = StyleSheet.create({
     color: "#1a1a1a",
   },
   sayTotalValue: {
-    fontFamily: "sans",
+    fontFamily: "serif",
     fontSize: 8,
     color: "#1a1a1a",
   },
@@ -172,24 +298,36 @@ const styles = StyleSheet.create({
   signaturesContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 16,
+    marginTop: 20,
   },
   signatureBlock: {
     width: "33%",
-    borderTopWidth: 1,
-    borderColor: "#666666",
-    paddingTop: 8,
+    paddingTop: 20,
     fontSize: 8,
-    color: "#666666",
+    color: "#1a1a1a",
+  },
+  signatureLine: {
+    borderTopWidth: 1,
+    borderColor: "#1a1a1a",
+    marginBottom: 4,
+  },
+  signatureName: {
+    fontSize: 8,
+    color: "#1a1a1a",
+  },
+  sealImage: {
+    width: 55,
+    height: 55,
+    marginTop: 4,
   },
   footer: {
-    marginTop: 16,
+    marginTop: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     fontSize: 7,
     color: "#666666",
     borderTopWidth: 1,
-    borderColor: "#666666",
+    borderColor: "#1a1a1a",
     paddingTop: 8,
   },
 });
@@ -260,36 +398,43 @@ export function InvoicePdfDocument({
     calculateInvoiceTotals(lineItems);
   const sayTotal = numberToWords(calculatedTotal, currency);
 
-  const terms = termsAndConditions.length > 0 ? termsAndConditions : [
-    "1. All prices are in USD.",
-    "2. Payment terms: As agreed between buyer and seller.",
-    "3. Goods once sold will not be taken back.",
-    "4. Interest @ 18% p.a. will be charged if payment is not made within due date.",
-    "5. Subject to Dhaka jurisdiction.",
-    "6. E & OE.",
-    "7. Negotiable.",
+  const totalQuantity = calculatedItems.reduce(
+    (sum, item) => sum + (item.quantity ?? 0),
+    0,
+  );
+
+  const defaultTerms = [
+    "1. Negotiable; any Bank in Bangladesh",
+    "2. L/C amendment charge are on L/C applicant account.",
+    "3. Maturity date must be calculated from the date of delivery.",
+    "4. After signature the delivery challan or discrepancy won’t be acceptable.",
+    "5. Overdue interest (if any) should be pay by opener.",
+    "6. Payment to be made on maturity date in US Dollar.",
+    "7. All apparent errors/discrepancy (if any) would be acceptable by opener.",
   ];
+
+  const terms = termsAndConditions.length > 0 ? termsAndConditions : defaultTerms;
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Company name */}
-        <Text style={styles.companyName}>
-          {seller?.companyName || "M.M FABRICS"}
-        </Text>
-        {/* Seller contact details */}
-        <View style={styles.sellerContact}>
-          <Text>{seller?.address || ""}</Text>
-          <Text>
-            {seller?.corporateOffice} • {seller?.contactNumber} •{" "}
-            {seller?.email}
-          </Text>
+        {/* Company Header */}
+        <View style={styles.companyHeader}>
+          <Text style={styles.companyName}>M.M FABRICS</Text>
         </View>
-        {/* Blue rule */}
+        <Text style={styles.companyAddress}>
+          Address: Sobhan Super Market, South Birampur, Madhabdi, Narsingdi, Bangladesh
+        </Text>
+        <Text style={styles.companyContact}>
+          Corporate Office: House#16, B-Road, 16, Sector: 13, Uttara, Dhaka-1230, Bangladesh
+        </Text>
+        <Text style={styles.companyContact}>
+          Contact Number: 01777589989 | Email: jewel@mmfabrics-bd.com
+        </Text>
         <View style={styles.blueRule} />
-        {/* Title */}
-        <Text style={styles.title}>PROFORMA INVOICE</Text>
-        {/* Buyer and metadata */}
+        {/* Invoice Title */}
+        <Text style={styles.invoiceTitle}>PROFORMA INVOICE</Text>
+        {/* Buyer and Meta */}
         <View style={styles.metaContainer}>
           <View style={styles.metaColumn}>
             <Text style={styles.metaLabel}>Buyer / Consignee</Text>
@@ -300,24 +445,22 @@ export function InvoicePdfDocument({
           <View style={styles.metaColumn}>
             <Text style={styles.metaLabel}>PI No.</Text>
             <Text style={styles.metaValue}>{piNumber}</Text>
-            <Text style={styles.metaLabel}>Issue date</Text>
+            <Text style={styles.metaLabel}>Date</Text>
             <Text style={styles.metaValue}>
-              {issueDate ? new Date(issueDate).toLocaleDateString() : ""}
+              {issueDate ? new Date(issueDate).toLocaleDateString("en-GB") : ""}
             </Text>
-            <Text style={styles.metaLabel}>Currency</Text>
-            <Text style={styles.metaValue}>{currency}</Text>
           </View>
+          <View style={styles.metaSpacer} />
         </View>
         {/* Line-item table */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={styles.tableHeaderCell}>Description</Text>
+            <Text style={styles.tableHeaderCell}>Description of Goods</Text>
             <Text style={styles.tableHeaderCell}>Style</Text>
             <Text style={styles.tableHeaderCell}>Color</Text>
-            <Text style={styles.tableHeaderCell}>Qty</Text>
-            <Text style={styles.tableHeaderCell}>Unit</Text>
-            <Text style={styles.tableHeaderCell}>Unit price</Text>
-            <Text style={styles.tableHeaderCell}>Total</Text>
+            <Text style={styles.tableHeaderCellRight}>Quantity (Yds)</Text>
+            <Text style={styles.tableHeaderCellRight}>Unit Price (USD)</Text>
+            <Text style={styles.tableHeaderCellRight}>Total Amount (USD)</Text>
           </View>
           {calculatedItems.map((item, i) => (
             <View key={i} style={styles.tableRow}>
@@ -325,35 +468,59 @@ export function InvoicePdfDocument({
               <Text style={styles.tableCell}>{item.style}</Text>
               <Text style={styles.tableCell}>{item.color}</Text>
               <Text style={styles.tableCellRight}>{item.quantity}</Text>
-              <Text style={styles.tableCellRight}>{item.unit}</Text>
               <Text style={styles.tableCellRight}>
-                {currency} {Number(item.unitPrice ?? 0).toFixed(2)}
+                {Number(item.unitPrice ?? 0).toFixed(2)}
               </Text>
-              <Text style={styles.tableCellRight}>
-                {currency} {Number(item.totalAmount).toFixed(2)}
+              <Text style={styles.tableCellRightLast}>
+                {Number(item.totalAmount).toFixed(2)}
               </Text>
             </View>
           ))}
+          {/* Empty rows to match screenshot */}
+          <View style={styles.emptyRow}>
+            <Text style={styles.emptyCell} />
+            <Text style={styles.emptyCell} />
+            <Text style={styles.emptyCell} />
+            <Text style={styles.emptyCellRight} />
+            <Text style={styles.emptyCellRight} />
+            <Text style={styles.emptyCellRightLast} />
+          </View>
+          <View style={styles.emptyRow}>
+            <Text style={styles.emptyCell} />
+            <Text style={styles.emptyCell} />
+            <Text style={styles.emptyCell} />
+            <Text style={styles.emptyCellRight} />
+            <Text style={styles.emptyCellRight} />
+            <Text style={styles.emptyCellRightLast} />
+          </View>
+          {/* Totals row */}
+          <View style={styles.tableRow}>
+            <Text style={{ ...styles.tableCell, borderRightWidth: 0 }} />
+            <Text style={styles.emptyCell} />
+            <Text style={styles.emptyCell} />
+            <Text style={styles.totalsQuantity}>
+              {totalQuantity}
+            </Text>
+            <Text style={styles.emptyCellRight} />
+            <Text style={styles.totalsAmountLast}>
+              {calculatedTotal.toFixed(2)}
+            </Text>
+          </View>
         </View>
-        {/* Totals */}
-        <View style={styles.totalsContainer}>
-          <Text style={styles.totalsLabel}>
-            Total {currency} {calculatedTotal.toFixed(2)}
+        {/* Say-total */}
+        <View style={styles.sayTotalContainer}>
+          <Text style={styles.sayTotalLabel}>Say total:</Text>
+          <Text style={styles.sayTotalValue}>
+            {sayTotal}.
           </Text>
-        </View>
-        {/* Say-total callout */}
-        <View style={styles.sayTotal}>
-          <Text style={styles.sayTotalLabel}>Say total: </Text>
-          <Text style={styles.sayTotalValue}>{sayTotal}.</Text>
         </View>
         {/* Notes */}
         <View style={styles.notesSection}>
           <Text style={styles.notesLabel}>Notes</Text>
           {[
-            { label: "Say total", value: notes.sayTotal },
-            { label: "Goods delivery destination", value: notes.goodsDeliveryDestination },
-            { label: "Goods origin", value: notes.goodsOrigin },
-            { label: "Advising bank", value: notes.advisingBank },
+            { label: "Goods Delivery Destination", value: notes.goodsDeliveryDestination },
+            { label: "Goods Origin", value: notes.goodsOrigin },
+            { label: "Advising Bank", value: notes.advisingBank },
             { label: "Allowance", value: notes.allowance },
             { label: "Packing", value: notes.packing },
             { label: "Shipment date", value: notes.shipmentDate },
@@ -365,35 +532,37 @@ export function InvoicePdfDocument({
             .map((note, i) => (
               <View key={i} style={styles.notesItem}>
                 <Text style={styles.notesItemNumber}>{i + 1}.</Text>
-                <Text style={{ ...styles.notesItem, width: "auto" }}>
+                <Text style={{ ...styles.notesItem, width: "auto", marginLeft: 2 }}>
                   {note.label}: {note.value}
                 </Text>
               </View>
             ))}
         </View>
-        {/* Terms and conditions */}
+        {/* Terms */}
         <View style={styles.termsSection}>
-          <Text style={styles.termsLabel}>Terms and conditions</Text>
+          <Text style={styles.termsLabel}>Terms &amp; Conditions:</Text>
           {terms.map((term, i) => (
             <View key={i} style={styles.termsItem}>
               <Text style={styles.termsItemNumber}>{i + 1}.</Text>
-              <Text style={{ ...styles.notesItem, width: "auto" }}>{term}</Text>
+              <Text style={{ ...styles.notesItem, width: "auto", marginLeft: 2 }}>
+                {term}
+              </Text>
             </View>
           ))}
         </View>
         {/* Signatures */}
         <View style={styles.signaturesContainer}>
           <View style={styles.signatureBlock}>
-            <Text>Buyer authorized signature</Text>
-            {signatures.buyerLabel && (
-              <Text style={{ fontWeight: "bold" }}>{signatures.buyerLabel}</Text>
-            )}
+            <View style={styles.signatureLine} />
+            <Text style={styles.signatureName}>Buyer Authorized Signature</Text>
           </View>
           <View style={styles.signatureBlock}>
-            <Text>Seller signature</Text>
-            {signatures.sellerLabel && (
-              <Text style={{ fontWeight: "bold" }}>{signatures.sellerLabel}</Text>
+            <View style={styles.signatureLine} />
+            <Text style={styles.signatureName}>For M.M FABRICS</Text>
+            {signatures.stampUrl && (
+              <Image src={signatures.stampUrl} style={styles.sealImage} />
             )}
+            {!signatures.stampUrl && <Image src={sealImage} style={styles.sealImage} />}
           </View>
         </View>
         {/* Footer */}

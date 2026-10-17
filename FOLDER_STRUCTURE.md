@@ -3,7 +3,7 @@
 Source-of-truth layout for the Proforma Invoice Generator (M.M FABRICS).
 Referenced by AGENTS.md and README.md.
 
-```
+```plaintext
 src/
 ├── app/
 │   ├── globals.css
@@ -90,13 +90,13 @@ src/
 
 ## Root config files
 
-| File | Purpose |
-| ---- | ------- |
-| `package.json` | Dependencies, scripts (pnpm 12.14.0) |
-| `next.config.ts` | Next.js config (Turbopack Tailwind CSS v4) |
-| `tsconfig.json` | TypeScript strict config (`@/*` path alias) |
-| `components.json` | shadcn/ui config (style: base-mira, lucide) |
-| `eslint.config.mjs` | ESLint config |
-| `AGENTS.md` | Agent roles & engineering guidelines |
-| `README.md` | Project overview & setup |
+| File                  | Purpose                                       |
+| --------------------- | --------------------------------------------- |
+| `package.json`        | Dependencies, scripts (pnpm 12.14.0)          |
+| `next.config.ts`      | Next.js config (Turbopack Tailwind CSS v4)    |
+| `tsconfig.json`       | TypeScript strict config (`@/*` path alias)   |
+| `components.json`     | shadcn/ui config (style: base-mira, lucide)   |
+| `eslint.config.mjs`   | ESLint config                                 |
+| `AGENTS.md`           | Agent roles & engineering guidelines          |
+| `README.md`           | Project overview & setup                      |
 | `FOLDER_STRUCTURE.md` | This file (single source of truth for layout) |

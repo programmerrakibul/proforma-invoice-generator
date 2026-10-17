@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import dynamic from "next/dynamic";
 import { useForm, FormProvider, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "@/components/ui/toast";
@@ -16,6 +17,14 @@ import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { SaveIcon } from "lucide-react";
+
+const PdfExportButton = dynamic(
+  () =>
+    import("@/features/invoices/components/pdf-export-button").then(
+      (mod) => mod.PdfExportButton,
+    ),
+  { ssr: false },
+);
 
 type InvoiceFormValues = CreateInvoiceInput;
 
@@ -71,6 +80,7 @@ export function InvoiceGenerator({
   });
 
   const { handleSubmit, formState: { isSubmitting, isDirty: formIsDirty } } = methods;
+  const formValues = methods.getValues();
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   const onSave = async (values: InvoiceFormValues) => {
@@ -136,6 +146,11 @@ export function InvoiceGenerator({
               >
                 {isSubmitting ? "Saving…" : (<> <SaveIcon className="size-3.5 mr-2" /> Save draft</>)}
               </Button>
+              <PdfExportButton
+                formValues={formValues}
+                isSubmitting={isSubmitting}
+                isDirty={formIsDirty}
+              />
             </div>
           </form>
         </FormProvider>
