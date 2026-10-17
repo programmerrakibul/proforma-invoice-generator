@@ -44,10 +44,11 @@ export default function RegisterPage() {
         password: values.password,
       });
       toast.add({ title: "Account created", description: "Welcome to M.M FABRICS!" });
-    } catch (e: any) {
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to create account.";
       toast.add({
         title: "Registration failed",
-        description: e?.message ?? "Failed to create account.",
+        description: message,
       });
     }
   };

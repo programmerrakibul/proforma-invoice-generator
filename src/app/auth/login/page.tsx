@@ -47,10 +47,11 @@ export default function LoginPage() {
         title: "Welcome back",
         description: "You are now signed in.",
       });
-    } catch (e: unknown) {
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Invalid email or password.";
       toast.add({
         title: "Login failed",
-        description: (e as Error)?.message ?? "Invalid email or password.",
+        description: message,
       });
     }
   };
