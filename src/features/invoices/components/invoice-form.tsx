@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,6 @@ import {
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Separator } from "@/components/ui/separator";
 import { InvoiceLineItems } from "@/features/invoices/components/invoice-line-items";
 import { InvoiceSummary } from "@/features/invoices/components/invoice-summary";
 import { type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
@@ -33,6 +33,15 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
   } = useFormContext<InvoiceFormValues>();
 
   const currencyOptions = ["USD", "EUR", "GBP", "BDT"];
+
+  // Prefill form with company profile defaults (static - not shown in form, used in PDF)
+  useEffect(() => {
+    setValue("seller.companyName", companyProfile.companyName);
+    setValue("seller.address", companyProfile.address);
+    setValue("seller.corporateOffice", companyProfile.corporateOffice);
+    setValue("seller.contactNumber", companyProfile.contactNumber);
+    setValue("seller.email", companyProfile.email);
+  }, [companyProfile, setValue]);
 
   return (
     <div className="space-y-6">
@@ -116,17 +125,15 @@ export function InvoiceForm({ companyProfile }: InvoiceFormProps) {
         </div>
       </section>
 
-      <Separator />
-
       {/* Products / line items */}
       <section className="rounded-lg border border-border bg-card p-5">
         <h2 className="font-serif font-semibold text-ink text-sm mb-2">
           Products / line items
         </h2>
-        <InvoiceLineItems currency="USD" onAdd={() => {}} />
+        <div className="rounded-lg border border-border bg-card p-3">
+          <InvoiceLineItems currency="USD" onAdd={() => {}} />
+        </div>
       </section>
-
-      <Separator />
 
       {/* Totals summary */}
       <InvoiceSummary />
