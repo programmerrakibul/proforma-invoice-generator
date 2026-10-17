@@ -2,19 +2,19 @@
 
 A premium, responsive B2B proforma invoice generator for **M.M FABRICS** built
 with Next.js 16 App Router, React 19, Tailwind CSS v4, shadcn/ui, Mongoose, and
-NextAuth v4.
+Better Auth.
 
 ## Tech Stack
 
-- **Framework:** Next.js 16.4 (App Router, Turbopack)
+- **Framework:** Next.js 16.4.0 (App Router, Turbopack)
 - **React:** 19.3
-- **Styling:** Tailwind CSS v4, shadcn/ui (base-mira), Base UI primitives
+- **Styling:** Tailwind CSS v4, shadcn/ui (base-mira), lucide-react icons
 - **Forms:** React Hook Form v7 + @hookform/resolvers/zod + Zod v4
 - **Database:** MongoDB + Mongoose v9 (cached connection)
-- **Authentication:** NextAuth v4 (Credentials provider, bcryptjs, JWT sessions)
+- **Authentication:** Better Auth (emailAndPassword provider,
+  `@better-auth/mongo-adapter`, 30-day sessions)
 - **State:** Redux Toolkit (client UI state only)
 - **PDF:** @react-pdf/renderer
-- **File Upload:** Next Cloudinary, multer
 - **Theme:** next-themes (light/dark/system)
 - **Package Manager:** pnpm 12.14.0
 
@@ -23,77 +23,77 @@ NextAuth v4.
 ```
 src/
 ├── app/
+│   ├── globals.css
+│   ├── layout.tsx              # Root layout (Providers + StoreProvider, fonts, metadata)
+│   ├── page.tsx                # Landing page
 │   ├── auth/
-│   │   ├── login/page.tsx          # Sign-in page (credentials)
-│   │   └── register/page.tsx       # Sign-up page (password hashed with bcrypt)
+│   │   ├── login/page.tsx      # Sign-in page (Better Auth email/password)
+│   │   └── register/page.tsx   # Sign-up page (Better Auth email/password)
 │   ├── api/
-│   │   └── auth/[...all]/route.ts  # NextAuth v4 handlers
-│   ├── dashboard/
-│   │   ├── layout.tsx              # Protected dashboard layout (Redux + Sidebar)
-│   │   └── invoices/
-│   │       └── new/page.tsx        # Invoice generator (split form + preview)
-│   ├── layout.tsx                  # Root layout (SessionProvider, fonts, metadata)
-│   └── page.tsx                    # Landing page
+│   │   └── auth/[...all]/route.ts  # Better Auth Next.js handler
+│   └── invoices/
+│       ├── page.tsx            # Invoice listing (search, status filter, sort, pagination; auth required)
+│       └── new/page.tsx        # Invoice generator (split form + preview; optional auth)
 ├── components/
-│   ├── providers.tsx               # NextAuth SessionProvider wrapper
+│   ├── providers.tsx           # BetterAuth AuthProvider + SessionProvider wrapper
 │   ├── layout/
-│   │   ├── app-sidebar.tsx         # Responsive navigation sidebar
-│   │   ├── mobile-nav.tsx          # Mobile top navigation
-│   │   └── page-header.tsx         # Breadcrumb + page title
+│   │   ├── app-sidebar.tsx     # Responsive navigation sidebar
+│   │   ├── mobile-nav.tsx      # Mobile top navigation
+│   │   └── page-header.tsx     # Breadcrumb + page title
 │   ├── shared/
-│   │   ├── confirm-dialog.tsx      # Reusable confirmation dialog
-│   │   ├── empty-state.tsx         # Empty state placeholder
-│   │   ├── error-state.tsx         # Error state placeholder
-│   │   └── loading-state.tsx       # Loading state placeholder
-│   └── ui/                         # shadcn/ui components (button, input, select, etc.)
+│   │   ├── container.tsx
+│   │   ├── confirm-dialog.tsx  # Reusable confirmation dialog
+│   │   ├── empty-state.tsx     # Empty state placeholder
+│   │   ├── error-state.tsx     # Error state placeholder
+│   │   └── loading-state.tsx   # Loading state placeholder
+│   └── ui/                     # shadcn/ui components (button, input, select, etc.)
 ├── features/
-│   ├── auth/
-│   │   └── actions/
-│   │       └register.ts            # Register server action (bcrypt hash + User create)
 │   └── invoices/
 │       ├── actions/
 │       │   ├── create-invoice.ts   # Create invoice server action (guest + auth)
 │       │   ├── update-invoice.ts   # Update invoice server action (ownership enforced)
-│       │   └── delete-invoice.ts   # Delete invoice server action (ownership enforced)
+│       │   ├── delete-invoice.ts   # Delete invoice server action (ownership enforced)
+│       │   └── list-invoices.ts    # List invoices server action (paginated, auth required)
 │       ├── components/
-│       │   ├── invoice-form.tsx    # Multi-section invoice form (RHF + Zod)
+│       │   ├── invoice-form.tsx      # Multi-section invoice form (RHF + Zod)
 │       │   ├── invoice-generator.tsx # Page-level form orchestration + save/export
-│       │   ├── invoice-line-items.tsx # Line-item CRUD with combobox description
-│       │   ├── invoice-line-item.tsx # Mobile stacked line-item card
+│       │   ├── invoice-line-items.tsx# Line-item CRUD with combobox description
+│       │   ├── line-item-card.tsx    # Mobile stacked line-item card
 │       │   ├── invoice-preview.tsx   # Read-only A4 live preview
 │       │   ├── invoice-summary.tsx   # Subtotal/total summary
-│       │   └── invoice-toolbar.tsx   # Save/export/preview toolbar
+│       │   ├── invoice-toolbar.tsx   # Save/export/preview toolbar
+│       │   └── invoice-pdf.tsx       # @react-pdf/renderer A4 document
 │       ├── schemas/
-│       │   └── invoice.schema.ts   # Shared Zod schemas (client + server)
+│       │   └── invoice.schema.ts     # Shared Zod schemas (client + server)
 │       ├── store/
-│       │   └── invoice-ui.slice.ts # Redux UI slice (preview, dirty, zoom, etc.)
+│       │   └── invoice-ui.slice.ts   # Redux UI slice (preview, dirty, zoom, etc.)
 │       ├── types.ts                # Invoice line-item view type
 │       └── utils/
 │           ├── calculate-invoice-total.ts   # Decimal-safe money math
-│           ├── format-invoice-number.ts     # PI-YYYYMMDD-### numbering
+│           ├── format-invoice-number.ts     # MMF/###/YY numbering
 │           ├── number-to-words.ts           # "Say total" verbal amount
 │           ├── products.ts                  # Searchable description options
 │           └── __tests__/                   # Unit tests for calc utils
 ├── lib/
-│   ├── auth.ts                     # NextAuth v4 config (credentials + JWT)
+│   ├── auth.ts                 # Better Auth config (mongodbAdapter, cached MongoClient)
 │   ├── auth/
-│   │   ├── get-current-user.ts     # Session-based user resolution (server)
-│   │   └── require-user.ts         # Requires authenticated user (server)
+│   │   ├── get-current-user.ts   # Session-based user resolution (server)
+│   │   └── require-user.ts       # Requires authenticated user (server)
 │   ├── cache/
-│   │   ├── cache-tags.ts           # User-scoped cache tag helpers
-│   │   └── cache-policy.ts         # Revalidation policy constants
+│   │   ├── cache-tags.ts         # User-scoped cache tag helpers
+│   │   └── cache-policy.ts       # Revalidation policy constants
 │   ├── db/
-│   │   ├── mongoose.ts             # Cached Mongoose connection (globalThis)
-│   │   ├── model-helpers.ts        # Safe model registration (no OverwriteModelError)
+│   │   ├── mongoose.ts           # Cached Mongoose connection (globalThis)
+│   │   ├── model-helpers.ts      # Safe model registration (no OverwriteModelError)
 │   │   └── models/
 │   │       ├── index.ts            # Model barrel exports
-│   │       ├── user.model.ts       # User (NextAuth + companyProfile)
+│   │       ├── user.model.ts       # User (better-auth User + companyProfile)
 │   │       ├── invoice.model.ts    # Invoice (ownerId relation, embedded line items)
-│   │       ├── account.model.ts    # NextAuth Account collection
-│   │       └── session.model.ts    # NextAuth Session collection
+│   │       ├── account.model.ts    # Better Auth Account collection
+│   │       └── session.model.ts    # Better Auth Session collection
 │   ├── validations/
-│   │   └── action-result.ts        # Typed ActionResult + ZodError serializer
-│   └── utils.ts                    # cn() utility
+│   │   └── action-result.ts      # Typed ActionResult + ZodError serializer
+│   └── utils.ts                  # cn() utility
 ├── hooks/
 │   ├── use-media-query.ts          # Client media query hook
 │   └── use-unsaved-changes.ts      # beforeunload unsaved-changes guard
@@ -102,8 +102,7 @@ src/
 │   └── provider.tsx                # Redux Provider client component
 └── types/
     ├── common.ts                   # Currency, InvoiceStatus, ZoomLevel types
-    ├── database.ts                 # Document type re-exports
-    └── next-auth.d.ts              # NextAuth type augmentation (role on User/JWT/Session)
+    └── database.ts                 # Document type re-exports
 ```
 
 ## Environment Setup
@@ -118,6 +117,7 @@ cp .env.example .env
 
 ```env
 MONGODB_URI="mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/<db>"
+BETTER_AUTH_URL=http://localhost:3000
 AUTH_SECRET="<random-32-byte-base64-string>"
 ```
 
@@ -153,28 +153,30 @@ pnpm dev
 
 ## Authentication
 
-- **Provider:** NextAuth v4 Credentials provider
-- **Password hashing:** bcryptjs (12 salt rounds)
-- **Session strategy:** JWT (self-contained signed cookie)
-- **Session user fields:** `id`, `email`, `name`, `role`
-- **Route:** `POST /api/auth/[...all]`
+- **Provider:** Better Auth (`emailAndPassword`)
+- **Password hashing:** handled by Better Auth (bcrypt under the hood)
+- **Session strategy:** Better Auth sessions (30 days)
+- **Session user fields:** `id`, `email`, `name`
+- **Route:** `/api/auth/[...all]`
+- **Client SDK:** `better-auth/client` (`signUp.email`, `signIn.email`)
+- **Server helpers:** `getCurrentUser()` (optional), `requireUser()` (throws when unauthenticated)
 - **Guest flow:** Unauthenticated users can preview/generate invoices
   client-side; persistence to MongoDB requires sign-in
 
 ## Database Models
 
-### User
+### User (Better Auth + custom profile)
 
-- `name`, `email` (unique, indexed), `passwordHash` (never selected by default),
-  `role` (`admin` \| `member`)
-- `companyProfile` (companyName, address, corporateOffice, contactNumber, email,
-  logoUrl)
+- Better Auth `user`, `account`, `session` collections
+- Custom `User` model adds `companyProfile`
+  (companyName, address, corporateOffice, contactNumber, email, logoUrl)
 - `createdAt`, `updatedAt`
 
 ### Invoice (belongs to User via `ownerId`)
 
 - `ownerId` (ObjectId ref User, required, indexed)
-- `invoiceNumber`, `issueDate`, `currency` (default `USD`)
+- `piNumber` (`MMF/###/YY` format, e.g. `MMF/001/26`)
+- `issueDate`, `currency` (default `USD`)
 - `status` (`draft` \| `ready` \| `exported` \| `archived`, indexed)
 - `seller`, `buyer` (embedded contact info)
 - `lineItems[]` (description, style, color, quantity, unitPrice, totalAmount,
@@ -185,7 +187,7 @@ pnpm dev
 - `termsAndConditions[]`, `signatures` (buyerLabel, sellerLabel, stampUrl,
   include flags)
 - Indexes: `{ownerId, updatedAt}`, `{ownerId, status, updatedAt}`,
-  `{ownerId, invoiceNumber}`
+  `{ownerId, piNumber}`
 
 ## Server Actions
 
@@ -196,7 +198,7 @@ All invoice mutations go through Next.js Server Actions:
 | `createInvoiceAction` | `features/invoices/actions/create-invoice.ts` | Optional (guest allowed) | Derived from session when authenticated |
 | `updateInvoiceAction` | `features/invoices/actions/update-invoice.ts` | Required                 | Query by `_id` + `ownerId`              |
 | `deleteInvoiceAction` | `features/invoices/actions/delete-invoice.ts` | Required                 | Query by `_id` + `ownerId`              |
-| `registerUserAction`  | `features/auth/actions/register.ts`           | None                     | N/A                                     |
+| `listInvoicesAction`  | `features/invoices/actions/list-invoices.ts`  | Required                 | Filter by `ownerId`                     |
 
 **Security rules enforced:**
 
@@ -217,13 +219,13 @@ All invoice mutations go through Next.js Server Actions:
   module import
 - Cache tags follow `user:${userId}:invoices` and
   `user:${userId}:invoice:${invoiceId}` convention
-- `revalidatePath` is called after mutations for `/dashboard/invoices` and
-  detail paths
+- `revalidatePath` is called after mutations for `/invoices` and detail paths
 
 ## Features
 
-- User authentication (login/register with NextAuth v4 + bcrypt)
-- Dashboard with protected layout and responsive sidebar
+- User authentication (sign-in/sign-up with Better Auth email/password)
+- Landing page and protected invoice listing with search, status filter, sort,
+  and server-side pagination
 - Invoice generator with live A4 preview
 - Multi-line-item support with searchable description combobox
 - Decimal-safe money calculations (integer-cent arithmetic)
@@ -233,8 +235,7 @@ All invoice mutations go through Next.js Server Actions:
 - Unsaved-changes navigation guard (`beforeunload`)
 - Responsive design: desktop sidebar + sticky preview, tablet collapsible
   sidebar, mobile stacked cards
-- PDF export preparation (via @react-pdf/renderer)
-- Cloudinary integration for avatar/logo uploads
+- PDF export (via @react-pdf/renderer)
 - Light/dark/system theme support (next-themes)
 
 ## Verification Order
