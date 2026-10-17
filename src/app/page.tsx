@@ -1,14 +1,15 @@
-import Link from "next/link";
-import {
-  LayoutDashboard,
-  FileText,
-  Send,
-  ShieldCheck,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { FileText, LayoutDashboard, Send, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 
 const NAV_LINKS = [
   { href: "#features", label: "Features" },
@@ -21,22 +22,26 @@ const FEATURES = [
   {
     icon: LayoutDashboard,
     title: "Dashboard overview",
-    description: "Track all your proforma invoices in one place with status filters, search, and sorting.",
+    description:
+      "Track all your proforma invoices in one place with status filters, search, and sorting.",
   },
   {
     icon: FileText,
     title: "Live invoice preview",
-    description: "See your invoice render in real time as you fill out the form, with A4 print-safe layout.",
+    description:
+      "See your invoice render in real time as you fill out the form, with A4 print-safe layout.",
   },
   {
     icon: Send,
     title: "Draft saving",
-    description: "Save invoices as drafts and come back to finish them later. Nothing is lost.",
+    description:
+      "Save invoices as drafts and come back to finish them later. Nothing is lost.",
   },
   {
     icon: ShieldCheck,
     title: "Secure by default",
-    description: "Every invoice is tied to the authenticated user. Ownership is enforced on every mutation.",
+    description:
+      "Every invoice is tied to the authenticated user. Ownership is enforced on every mutation.",
   },
 ];
 
@@ -44,17 +49,20 @@ const STEPS = [
   {
     step: "1",
     title: "Enter buyer details",
-    description: "Fill in the buyer name, address, and destination country for your shipment.",
+    description:
+      "Fill in the buyer name, address, and destination country for your shipment.",
   },
   {
     step: "2",
     title: "Add line items",
-    description: "Add products with description, style, color, quantity, unit price, and unit.",
+    description:
+      "Add products with description, style, color, quantity, unit price, and unit.",
   },
   {
     step: "3",
     title: "Save and preview",
-    description: "Save as a draft or export a print-ready A4 proforma invoice PDF.",
+    description:
+      "Save as a draft or export a print-ready A4 proforma invoice PDF.",
   },
 ];
 
@@ -82,7 +90,10 @@ export default function Home() {
             ))}
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/auth/login" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              href="/auth/login"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
               Sign in
             </Link>
             <Link href="/dashboard/invoices/new" className="Button__root">
@@ -101,12 +112,14 @@ export default function Home() {
                 Proforma invoice generator
               </Badge>
               <h1 className="font-serif font-bold text-ink text-4xl lg:text-6xl tracking-tight leading-tight mb-6">
-                Create professional proforma<br />
+                Create professional proforma
+                <br />
                 invoices for M.M FABRICS
               </h1>
               <p className="text-muted-foreground text-lg lg:text-xl max-w-2xl mb-10 leading-relaxed">
-                Generate, preview, and export A4 proforma invoices with line-item
-                calculations, buyer and seller details, and secure draft persistence.
+                Generate, preview, and export A4 proforma invoices with
+                line-item calculations, buyer and seller details, and secure
+                draft persistence.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link href="/dashboard/invoices/new">
@@ -163,7 +176,10 @@ export default function Home() {
         </section>
 
         {/* Features section */}
-        <section id="features" className="px-6 py-24 lg:px-8 lg:py-32 bg-muted/30">
+        <section
+          id="features"
+          className="px-6 py-24 lg:px-8 lg:py-32 bg-muted/30"
+        >
           <div className="mx-auto max-w-7xl">
             <div className="text-center mb-16">
               <h2 className="font-serif font-bold text-ink text-3xl lg:text-4xl tracking-tight mb-4">
@@ -210,7 +226,9 @@ export default function Home() {
                     <div className="flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary mb-4 font-serif font-bold text-sm">
                       {step.step}
                     </div>
-                    <CardTitle className="font-serif font-semibold text-ink text-sm">{step.title}</CardTitle>
+                    <CardTitle className="font-serif font-semibold text-ink text-sm">
+                      {step.title}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="p-5">
                     <p className="text-xs text-muted-foreground leading-relaxed">
@@ -236,7 +254,11 @@ export default function Home() {
                   invoices today.
                 </p>
                 <Link href="/dashboard/invoices/new">
-                  <Button variant="outline" size="lg" className="text-primary bg-white">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="text-primary bg-white"
+                  >
                     Create invoice
                   </Button>
                 </Link>
@@ -256,10 +278,16 @@ export default function Home() {
                 <span className="text-primary">M.M</span> FABRICS
               </Link>
               <div className="flex gap-6 text-xs text-muted-foreground">
-                <Link href="/auth/login" className="hover:text-foreground transition-colors">
+                <Link
+                  href="/auth/login"
+                  className="hover:text-foreground transition-colors"
+                >
                   Sign in
                 </Link>
-                <Link href="/auth/register" className="hover:text-foreground transition-colors">
+                <Link
+                  href="/auth/register"
+                  className="hover:text-foreground transition-colors"
+                >
                   Create account
                 </Link>
               </div>
