@@ -1,5 +1,5 @@
-import mongoose, { type InferSchemaType, type Model, type Schema } from "mongoose";
 import { getModel } from "@/lib/db/model-helpers";
+import mongoose, { type InferSchemaType, type Model } from "mongoose";
 
 /**
  * NextAuth v4 Account collection.

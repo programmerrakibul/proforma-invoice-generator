@@ -1,6 +1,8 @@
 # Proforma Invoice Generator
 
-A premium, responsive B2B proforma invoice generator for **M.M FABRICS** built with Next.js 16 App Router, React 19, Tailwind CSS v4, shadcn/ui, Mongoose, and NextAuth v4.
+A premium, responsive B2B proforma invoice generator for **M.M FABRICS** built
+with Next.js 16 App Router, React 19, Tailwind CSS v4, shadcn/ui, Mongoose, and
+NextAuth v4.
 
 ## Tech Stack
 
@@ -141,13 +143,13 @@ pnpm dev
 
 ## Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| `pnpm dev` | Start dev server (Turbopack) |
-| `pnpm build` | Production build |
-| `pnpm start` | Start production server |
-| `pnpm lint` | Run ESLint |
-| `pnpm exec tsc --noEmit` | TypeScript typecheck |
+| Script                   | Description                  |
+| ------------------------ | ---------------------------- |
+| `pnpm dev`               | Start dev server (Turbopack) |
+| `pnpm build`             | Production build             |
+| `pnpm start`             | Start production server      |
+| `pnpm lint`              | Run ESLint                   |
+| `pnpm exec tsc --noEmit` | TypeScript typecheck         |
 
 ## Authentication
 
@@ -156,50 +158,67 @@ pnpm dev
 - **Session strategy:** JWT (self-contained signed cookie)
 - **Session user fields:** `id`, `email`, `name`, `role`
 - **Route:** `POST /api/auth/[...all]`
-- **Guest flow:** Unauthenticated users can preview/generate invoices client-side; persistence to MongoDB requires sign-in
+- **Guest flow:** Unauthenticated users can preview/generate invoices
+  client-side; persistence to MongoDB requires sign-in
 
 ## Database Models
 
 ### User
-- `name`, `email` (unique, indexed), `passwordHash` (never selected by default), `role` (`admin` \| `member`)
-- `companyProfile` (companyName, address, corporateOffice, contactNumber, email, logoUrl)
+
+- `name`, `email` (unique, indexed), `passwordHash` (never selected by default),
+  `role` (`admin` \| `member`)
+- `companyProfile` (companyName, address, corporateOffice, contactNumber, email,
+  logoUrl)
 - `createdAt`, `updatedAt`
 
 ### Invoice (belongs to User via `ownerId`)
+
 - `ownerId` (ObjectId ref User, required, indexed)
 - `invoiceNumber`, `issueDate`, `currency` (default `USD`)
 - `status` (`draft` \| `ready` \| `exported` \| `archived`, indexed)
 - `seller`, `buyer` (embedded contact info)
-- `lineItems[]` (description, style, color, quantity, unitPrice, totalAmount, unit)
+- `lineItems[]` (description, style, color, quantity, unitPrice, totalAmount,
+  unit)
 - `subtotal`, `totalAmount` (calculated server-side)
-- `notes` (sayTotal, goodsDeliveryDestination, goodsOrigin, advisingBank, allowance, packing, shipmentDate, payment, partialShipment, piValidity)
-- `termsAndConditions[]`, `signatures` (buyerLabel, sellerLabel, stampUrl, include flags)
-- Indexes: `{ownerId, updatedAt}`, `{ownerId, status, updatedAt}`, `{ownerId, invoiceNumber}`
+- `notes` (sayTotal, goodsDeliveryDestination, goodsOrigin, advisingBank,
+  allowance, packing, shipmentDate, payment, partialShipment, piValidity)
+- `termsAndConditions[]`, `signatures` (buyerLabel, sellerLabel, stampUrl,
+  include flags)
+- Indexes: `{ownerId, updatedAt}`, `{ownerId, status, updatedAt}`,
+  `{ownerId, invoiceNumber}`
 
 ## Server Actions
 
 All invoice mutations go through Next.js Server Actions:
 
-| Action | File | Auth | Ownership |
-|--------|------|------|-----------|
+| Action                | File                                          | Auth                     | Ownership                               |
+| --------------------- | --------------------------------------------- | ------------------------ | --------------------------------------- |
 | `createInvoiceAction` | `features/invoices/actions/create-invoice.ts` | Optional (guest allowed) | Derived from session when authenticated |
-| `updateInvoiceAction` | `features/invoices/actions/update-invoice.ts` | Required | Query by `_id` + `ownerId` |
-| `deleteInvoiceAction` | `features/invoices/actions/delete-invoice.ts` | Required | Query by `_id` + `ownerId` |
-| `registerUserAction` | `features/auth/actions/register.ts` | None | N/A |
+| `updateInvoiceAction` | `features/invoices/actions/update-invoice.ts` | Required                 | Query by `_id` + `ownerId`              |
+| `deleteInvoiceAction` | `features/invoices/actions/delete-invoice.ts` | Required                 | Query by `_id` + `ownerId`              |
+| `registerUserAction`  | `features/auth/actions/register.ts`           | None                     | N/A                                     |
 
 **Security rules enforced:**
-- `ownerId` is always derived from the authenticated session, never from client input
-- `totalAmount` and `subtotal` are recalculated server-side; client values are ignored
+
+- `ownerId` is always derived from the authenticated session, never from client
+  input
+- `totalAmount` and `subtotal` are recalculated server-side; client values are
+  ignored
 - Update/delete queries always filter by `_id` and `ownerId` together
 - Non-ownership returns a generic "not found" result (no information leakage)
-- Zod validation runs on both client (React Hook Form) and server (Server Action)
+- Zod validation runs on both client (React Hook Form) and server (Server
+  Action)
 
 ## Caching Strategy
 
-- Mongoose connection is cached on `globalThis.mongooseCache` to prevent unbounded connections during dev hot reload and serverless reuse
-- Connection is established lazily inside Server Actions/loaders, never at module import
-- Cache tags follow `user:${userId}:invoices` and `user:${userId}:invoice:${invoiceId}` convention
-- `revalidatePath` is called after mutations for `/dashboard/invoices` and detail paths
+- Mongoose connection is cached on `globalThis.mongooseCache` to prevent
+  unbounded connections during dev hot reload and serverless reuse
+- Connection is established lazily inside Server Actions/loaders, never at
+  module import
+- Cache tags follow `user:${userId}:invoices` and
+  `user:${userId}:invoice:${invoiceId}` convention
+- `revalidatePath` is called after mutations for `/dashboard/invoices` and
+  detail paths
 
 ## Features
 
@@ -212,7 +231,8 @@ All invoice mutations go through Next.js Server Actions:
 - Draft saving with Server Actions
 - Save/saved/error states with toast notifications
 - Unsaved-changes navigation guard (`beforeunload`)
-- Responsive design: desktop sidebar + sticky preview, tablet collapsible sidebar, mobile stacked cards
+- Responsive design: desktop sidebar + sticky preview, tablet collapsible
+  sidebar, mobile stacked cards
 - PDF export preparation (via @react-pdf/renderer)
 - Cloudinary integration for avatar/logo uploads
 - Light/dark/system theme support (next-themes)

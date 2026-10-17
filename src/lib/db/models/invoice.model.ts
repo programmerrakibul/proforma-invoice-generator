@@ -1,5 +1,5 @@
-import mongoose, { type InferSchemaType, type Model } from "mongoose";
 import { getModel } from "@/lib/db/model-helpers";
+import mongoose, { type InferSchemaType, type Model } from "mongoose";
 
 export interface LineItem {
   _id?: mongoose.Types.ObjectId;
@@ -81,7 +81,12 @@ const lineItemSchema = new mongoose.Schema<LineItem>(
 
 const invoiceSchema = new mongoose.Schema<Invoice>(
   {
-    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
     invoiceNumber: { type: String, required: true, trim: true },
     issueDate: { type: Date, required: true },
     currency: { type: String, default: "USD" },
