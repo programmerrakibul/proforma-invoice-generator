@@ -1,20 +1,24 @@
 "use client";
 
-import Link from "next/link";
-import { createAuthClient } from "better-auth/client";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createAuthClient } from "better-auth/client";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address.").trim().toLowerCase(),
+  email: z
+    .string()
+    .email("Please enter a valid email address.")
+    .trim()
+    .toLowerCase(),
   password: z.string().min(1, "Password is required."),
 });
 
@@ -29,7 +33,10 @@ export default function LoginPage() {
     criteriaMode: "all",
   });
 
-  const { handleSubmit, formState: { errors, isSubmitting } } = methods;
+  const {
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = methods;
 
   const onSubmit = async (values: LoginFormValues) => {
     try {
@@ -37,11 +44,14 @@ export default function LoginPage() {
         email: values.email,
         password: values.password,
       });
-      toast.add({ title: "Welcome back", description: "You are now signed in." });
-    } catch (e: any) {
+      toast.add({
+        title: "Welcome back",
+        description: "You are now signed in.",
+      });
+    } catch (e: unknown) {
       toast.add({
         title: "Login failed",
-        description: e?.message ?? "Invalid email or password.",
+        description: (e as Error)?.message ?? "Invalid email or password.",
       });
     }
   };
@@ -50,7 +60,9 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 sm:px-6 lg:px-8 py-12">
       <div className="w-full max-w-md space-y-8">
         <div>
-          <h1 className="font-serif font-bold text-ink text-2xl tracking-tight">Sign in</h1>
+          <h1 className="font-serif font-bold text-ink text-2xl tracking-tight">
+            Sign in
+          </h1>
           <p className="text-sm text-muted-foreground">
             Access your M.M FABRICS invoice dashboard.
           </p>
@@ -78,7 +90,9 @@ export default function LoginPage() {
                 )}
               />
               {errors.email && (
-                <p className="text-xs text-destructive mt-1">{errors.email.message}</p>
+                <p className="text-xs text-destructive mt-1">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -94,7 +108,9 @@ export default function LoginPage() {
                 )}
               />
               {errors.password && (
-                <p className="text-xs text-destructive mt-1">{errors.password.message}</p>
+                <p className="text-xs text-destructive mt-1">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
@@ -107,9 +123,7 @@ export default function LoginPage() {
             </Button>
           </div>
 
-          <Separator className="my-4">
-            Or continue with
-          </Separator>
+          <Separator className="my-4">Or continue with</Separator>
 
           <p className="text-xs text-center text-muted-foreground">
             Don&apos;t have an account?{" "}
