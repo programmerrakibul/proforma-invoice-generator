@@ -53,105 +53,17 @@ server-side execution performance.
 
 ## This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may
-all differ from your training data. Read the relevant guide in
-`node_modules/next/dist/docs/` (resolved from this file's directory; in
-monorepos the `next` package may not be visible from the repo root) before
-writing any code. Heed deprecation notices.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
-This block is written and re-added by `next dev` — verify at
-`node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a
-diff only re-creates the uncommitted change; committing it with your work keeps
-the tree clean.
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
 
 ## Source-of-truth folder structure
 
-```text
-src/
-├── app/
-│   ├── globals.css
-│   ├── layout.tsx              # Root layout (Providers + StoreProvider, fonts, metadata)
-│   ├── page.tsx                # Landing page
-│   ├── auth/
-│   │   ├── login/page.tsx      # Sign-in (better-auth client, signIn.email)
-│   │   └── register/page.tsx   # Sign-up (better-auth client, signUp.email)
-│   ├── api/
-│   │   └── auth/[...all]/route.ts  # Better Auth Next.js handler (toNextJsHandler)
-│   └── invoices/
-│       ├── page.tsx            # Invoice listing (search, status filter, sort, pagination; auth required)
-│       └── new/page.tsx        # Invoice generator (optional auth; guest preview allowed)
-├── components/
-│   ├── providers.tsx           # BetterAuth AuthProvider + SessionProvider wrapper
-│   ├── layout/
-│   │   ├── app-sidebar.tsx     # Responsive navigation sidebar
-│   │   ├── mobile-nav.tsx      # Mobile top navigation
-│   │   └── page-header.tsx     # Breadcrumb + page title
-│   ├── shared/
-│   │   ├── container.tsx
-│   │   ├── confirm-dialog.tsx  # Reusable confirmation dialog
-│   │   ├── empty-state.tsx     # Empty state placeholder
-│   │   ├── error-state.tsx     # Error state placeholder
-│   │   └── loading-state.tsx   # Loading state placeholder
-│   └── ui/                     # shadcn/ui components (button, input, select, etc.)
-├── features/
-│   └── invoices/
-│       ├── actions/
-│       │   ├── create-invoice.ts   # createInvoiceAction + getNextPiNumber (optional auth)
-│       │   ├── update-invoice.ts   # updateInvoiceAction (ownership: _id + ownerId)
-│       │   ├── delete-invoice.ts   # deleteInvoiceAction (ownership: _id + ownerId)
-│       │   └── list-invoices.ts    # listInvoicesAction (paginated, auth required)
-│       ├── components/
-│       │   ├── invoice-form.tsx        # Multi-section invoice form (RHF + Zod)
-│       │   ├── invoice-generator.tsx   # Page-level form orchestration + save/export
-│       │   ├── invoice-line-items.tsx  # Line-item CRUD with combobox description
-│       │   ├── line-item-card.tsx      # Mobile stacked line-item card
-│       │   ├── invoice-preview.tsx     # Read-only A4 live preview
-│       │   ├── invoice-summary.tsx     # Subtotal/total summary
-│       │   ├── invoice-toolbar.tsx     # Save/export/preview toolbar
-│       │   └── invoice-pdf.tsx         # @react-pdf/renderer A4 document
-│       ├── schemas/
-│       │   └── invoice.schema.ts       # Shared Zod schemas (client + server)
-│       ├── store/
-│       │   └── invoice-ui.slice.ts     # Redux UI slice (preview, dirty, zoom, etc.)
-│       ├── types.ts                # Invoice line-item view type
-│       ├── utils/
-│       │   ├── calculate-invoice-total.ts   # Decimal-safe money math
-│       │   ├── format-invoice-number.ts     # MMF/###/YY numbering
-│       │   ├── number-to-words.ts           # "Say total" verbal amount
-│       │   ├── products.ts                  # Searchable description options
-│       │   └── __tests__/                   # Unit tests for calc utils
-├── lib/
-│   ├── auth.ts                 # Better Auth instance (mongodbAdapter, cached MongoClient)
-│   ├── auth/
-│   │   ├── get-current-user.ts   # Session-based user resolution (server)
-│   │   └── require-user.ts       # Requires authenticated user (server)
-│   ├── cache/
-│   │   ├── cache-tags.ts         # user:${userId}:invoices / user:${userId}:invoice:${invoiceId}
-│   │   └── cache-policy.ts       # Revalidation policy constants
-│   ├── db/
-│   │   ├── mongoose.ts           # Cached Mongoose connection (globalThis)
-│   │   ├── model-helpers.ts      # Safe model registration (no OverwriteModelError)
-│   │   └── models/
-│   │       ├── index.ts            # Model barrel exports
-│   │       ├── user.model.ts       # User (better-auth User + companyProfile)
-│   │       ├── invoice.model.ts    # Invoice (ownerId relation, embedded line items)
-│   │       ├── account.model.ts    # better-auth Account collection
-│   │       └── session.model.ts    # better-auth Session collection
-│   ├── validations/
-│   │   └── action-result.ts        # Typed ActionResult + ZodError serializer
-│   └── utils.ts                    # cn() utility
-├── hooks/
-│   ├── use-media-query.ts          # Client media query hook
-│   └── use-unsaved-changes.ts      # beforeunload unsaved-changes guard
-├── store/
-│   ├── index.ts                    # Redux Toolkit store (invoiceUi slice only)
-│   └── provider.tsx                # Redux Provider client component
-└── types/
-    ├── common.ts                   # Currency, InvoiceStatus, ZoomLevel types
-    └── database.ts                 # Document type re-exports
-```
+See [FOLDER_STRUCTURE.md](./FOLDER_STRUCTURE.md) for the complete directory tree
+and per-file descriptions. AGENTS.md and README.md reference this file to avoid
+duplication (DRY).
 
 ## Authentication
 
