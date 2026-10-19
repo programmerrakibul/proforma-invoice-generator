@@ -122,8 +122,9 @@ All invoice mutations go through Next.js Server Actions:
   until editable terms are requested. The initial product row uses editable
   values from the supplied invoice sample; calculate all totals from quantity
   and unit price rather than trusting the client-provided total.
-- Money values in the invoice preview, list, and PDF use the `en-ES` number
-  format; the seller seal asset is served from `public/mm-fabrics-seal.png`.
+- Currency values in the invoice preview, list, and PDF use the `en-US` number
+  format; invoice-list quantities use `en-ES`. The seller seal asset is served
+  from `public/mm-fabrics-seal.png`.
 - Preview and PDF share the same mapped document model via
   `buildInvoiceDocument()`.
 - `pdfkit` is listed in `serverExternalPackages` so Next.js does not bundle it

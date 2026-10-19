@@ -32,7 +32,8 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
           Corporate Office: {data.seller.corporateOffice}
         </p>
         <p className="text-[7.5pt] leading-snug">
-          Contact Number: {data.seller.contactNumber} | Email: {data.seller.email}
+          Contact Number: {data.seller.contactNumber} | Email:{" "}
+          {data.seller.email}
         </p>
       </header>
 
@@ -157,7 +158,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
         ))}
       </section>
 
-      <footer className="mt-auto grid grid-cols-2 gap-16 pt-8 text-[8pt]">
+      <footer className="mt-auto grid grid-cols-2 gap-16 pt-8 text-[8pt] text-center">
         <div>
           <div className="mb-1 h-14 border-b border-[#1a1a1a]" />
           <p>Buyer Authorized Signature</p>

@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       footerHref="/auth/register"
       footerLinkText="Create an account"
     >
-      <LoginForm redirectTo={getSafeAuthRedirect(redirect)} />
+      <LoginForm redirectTo={getSafeAuthRedirect(redirect ?? "/invoices")} />
     </AuthPage>
   );
 }

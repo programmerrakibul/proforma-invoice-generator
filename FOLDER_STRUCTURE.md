@@ -70,7 +70,7 @@ src/
 │           ├── build-invoice-document.ts    # Shared preview/PDF document mapping
 │           ├── calculate-invoice-total.ts   # Decimal-safe money math
 │           ├── download-pdf.ts              # Client download helper for PDFKit output
-│           ├── format-invoice-money.ts      # en-ES currency formatting
+│           ├── format-invoice-money.ts      # en-US currency formatting
 │           ├── format-invoice-number.ts     # MMF/###/YY numbering
 │           ├── number-to-words.ts           # "Say total" verbal amount
 │           ├── products.ts                  # Searchable description options

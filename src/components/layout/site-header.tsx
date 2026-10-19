@@ -3,6 +3,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import Container from "../shared/container";
 
 interface SiteHeaderProps {
   backToHome?: boolean;
@@ -19,7 +20,7 @@ export function SiteHeader({
 }: SiteHeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <Container className="flex h-16 items-center justify-between">
         <Link
           href="/"
           className="flex items-center gap-3"
@@ -80,7 +81,7 @@ export function SiteHeader({
             </div>
           </>
         )}
-      </div>
+      </Container>
     </header>
   );
 }

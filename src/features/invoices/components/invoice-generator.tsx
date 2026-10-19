@@ -25,7 +25,10 @@ interface InvoiceGeneratorProps {
   canSaveDraft: boolean;
 }
 
-export function InvoiceGenerator({ initValues, canSaveDraft }: InvoiceGeneratorProps) {
+export function InvoiceGenerator({
+  initValues,
+  canSaveDraft,
+}: InvoiceGeneratorProps) {
   const methods = useForm<CreateInvoiceInput>({
     defaultValues: {
       piNumber: "MMF/001/26",
@@ -34,14 +37,17 @@ export function InvoiceGenerator({ initValues, canSaveDraft }: InvoiceGeneratorP
       buyer: buyerProfile,
       notes: defaultNotes,
       termsAndConditions: defaultTermsAndConditions,
-      lineItems: [{
-        description: '35% Cotton 65% Polyester TC\nConstruction: 45x45/90x60\nWidth: 55/56"',
-        style: "Buyer: MAX DUBAI - B27MCSFEWB250B",
-        color: "Navy",
-        quantity: 1958,
-        unitPrice: 0.7,
-        totalPrice: 1370.6,
-      }],
+      lineItems: [
+        {
+          description:
+            '35% Cotton 65% Polyester TC\nConstruction: 45x45/90x60\nWidth: 55/56"',
+          style: "Buyer: MAX DUBAI - B27MCSFEWB250B",
+          color: "Navy",
+          quantity: 1958,
+          unitPrice: 0.7,
+          totalPrice: 1370.6,
+        },
+      ],
       ...initValues,
     },
     mode: "onChange" as const,
@@ -71,7 +77,9 @@ export function InvoiceGenerator({ initValues, canSaveDraft }: InvoiceGeneratorP
   const [exportStatus, setExportStatus] = useState<
     "idle" | "exporting" | "error"
   >("idle");
-  const [persistedInvoiceId, setPersistedInvoiceId] = useState<string | undefined>();
+  const [persistedInvoiceId, setPersistedInvoiceId] = useState<
+    string | undefined
+  >();
 
   const onSave = async (values: CreateInvoiceInput): Promise<void> => {
     setSaveStatus("saving");
@@ -82,9 +90,13 @@ export function InvoiceGenerator({ initValues, canSaveDraft }: InvoiceGeneratorP
         if (result.data.persisted) {
           setPersistedInvoiceId(result.data.invoiceId);
           methods.reset(values);
-          toast.success("Draft saved", { description: "Your invoice is safely stored." });
+          toast.success("Draft saved", {
+            description: "Your invoice is safely stored.",
+          });
         } else {
-          toast.info("Invoice is ready", { description: "Sign in to save this draft to your account." });
+          toast.info("Invoice is ready", {
+            description: "Sign in to save this draft to your account.",
+          });
         }
         setTimeout(() => setSaveStatus("idle"), 1500);
       } else {
@@ -109,7 +121,10 @@ export function InvoiceGenerator({ initValues, canSaveDraft }: InvoiceGeneratorP
     }
     setExportStatus("exporting");
     try {
-      const result = await exportInvoicePdfAction(getValues(), persistedInvoiceId);
+      const result = await exportInvoicePdfAction(
+        getValues(),
+        persistedInvoiceId,
+      );
       if (!result.ok) {
         setExportStatus("error");
         toast.error("PDF export failed", { description: result.message });
@@ -141,7 +156,10 @@ export function InvoiceGenerator({ initValues, canSaveDraft }: InvoiceGeneratorP
         <Card className="overflow-hidden rounded-2xl border-border/70 shadow-sm">
           <CardContent className="p-4 sm:p-6">
             <FormProvider {...methods}>
-              <form onSubmit={handleSubmit(onSave)} className="flex flex-col gap-6">
+              <form
+                onSubmit={handleSubmit(onSave)}
+                className="flex flex-col gap-6"
+              >
                 <InvoiceForm />
                 <div className="sticky bottom-0 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border/70 bg-card/95 px-4 pb-2 pt-4 backdrop-blur sm:-mx-6 sm:px-6">
                   {canSaveDraft ? (
@@ -152,7 +170,11 @@ export function InvoiceGenerator({ initValues, canSaveDraft }: InvoiceGeneratorP
                       disabled={isSubmitting || saveStatus === "saving"}
                     >
                       <SaveIcon data-icon="inline-start" />
-                      {saveStatus === "saving" ? "Saving…" : saveStatus === "saved" ? "Saved" : "Save draft"}
+                      {saveStatus === "saving"
+                        ? "Saving…"
+                        : saveStatus === "saved"
+                          ? "Saved"
+                          : "Save draft"}
                     </Button>
                   ) : null}
                   <Button
@@ -178,11 +200,16 @@ export function InvoiceGenerator({ initValues, canSaveDraft }: InvoiceGeneratorP
             <div className="flex items-center justify-between border-b border-border/70 bg-card px-5 py-4">
               <div>
                 <p className="text-sm font-semibold">Live preview</p>
-                <p className="mt-1 text-xs text-muted-foreground">A4 · Updates as you type</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  A4 · Updates as you type
+                </p>
               </div>
-              <span className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-[11px] font-medium text-primary"><span className="size-1.5 animate-pulse rounded-full bg-primary" /> Live</span>
+              <span className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-[11px] font-medium text-primary">
+                <span className="size-1.5 animate-pulse rounded-full bg-primary" />{" "}
+                Live
+              </span>
             </div>
-            <div className="min-h-[38rem] overflow-auto bg-muted/40 p-3 sm:p-5">
+            <div className="min-h-152 overflow-auto bg-muted/40 p-3 sm:p-5">
               <InvoicePreview data={previewData} />
             </div>
           </CardContent>

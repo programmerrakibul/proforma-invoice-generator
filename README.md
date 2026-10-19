@@ -177,7 +177,8 @@ All invoice mutations go through Next.js Server Actions:
   sidebar, mobile stacked cards
 - PDF export (PDFKit, generated on the server; authenticated exports are saved)
 - Invoice totals show aggregate quantity, unit-price total, and total amount
-- Locale-aware `en-ES` money formatting and M.M FABRICS seal/signature footer
+- Locale-aware `en-US` currency formatting, `en-ES` quantity formatting, and
+  M.M FABRICS seal/signature footer
 - Light/dark/system theme support (next-themes)
 
 ## Verification Order
