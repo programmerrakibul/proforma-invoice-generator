@@ -1,170 +1,151 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import dynamic from "next/dynamic";
-import { useForm, FormProvider, type Resolver } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "@/components/ui/toast";
-import { createInvoiceSchema, type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
+import { useForm, FormProvider } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { createInvoiceAction } from "@/features/invoices/actions/create-invoice";
 import { InvoiceForm } from "@/features/invoices/components/invoice-form";
-import { InvoicePreview } from "@/features/invoices/components/invoice-preview";
-import { InvoiceToolbar } from "@/features/invoices/components/invoice-toolbar";
-import { setIsDirty, markSaved, setPreviewOpen } from "@/features/invoices/store/invoice-ui.slice";
-import { RootState } from "@/store/index";
-import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { SaveIcon } from "lucide-react";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { CreateInvoiceInput } from "../schemas/invoice.schema";
 
-const PdfExportButton = dynamic(
+const InvoicePdfDocument = dynamic(
   () =>
-    import("@/features/invoices/components/pdf-export-button").then(
-      (mod) => mod.PdfExportButton,
+    import("@/features/invoices/components/invoice-pdf").then(
+      (mod) => mod.InvoicePdfDocument,
     ),
   { ssr: false },
 );
 
-type InvoiceFormValues = CreateInvoiceInput;
+const PDFViewer = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFViewer),
+  { ssr: false },
+);
 
-const DEFAULT_VALUES: InvoiceFormValues = {
-  piNumber: "",
-  issueDate: "",
-  currency: "USD",
-  status: "draft",
-  seller: { companyName: "", address: "", corporateOffice: "", contactNumber: "", email: "" },
-  buyer: { name: "", address: "", destinationCountry: "" },
-  lineItems: [],
-  subtotal: 0,
-  totalAmount: 0,
-  notes: {
-    sayTotal: "",
-    goodsDeliveryDestination: "",
-    goodsOrigin: "",
-    advisingBank: "",
-    allowance: "",
-    packing: "",
-    shipmentDate: "",
-    payment: "",
-    partialShipment: "",
-    piValidity: "",
-  },
-  termsAndConditions: [],
-  signatures: { buyerLabel: "", sellerLabel: "", stampUrl: "", includeBuyerSignature: false, includeSellerSignature: false },
-};
+const PDFDownloadLink = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
+  { ssr: false },
+);
+
+interface InvoiceGeneratorProps {
+  initValues?: Partial<CreateInvoiceInput>;
+}
 
 export function InvoiceGenerator({
-  initialValues,
-  companyProfile,
-}: {
-  initialValues?: Partial<InvoiceFormValues>;
-  companyProfile: InvoiceFormValues["seller"];
-}) {
-  const dispatch = useDispatch();
-  const isPreviewOpen = useSelector((state: RootState) => state.invoiceUi.isPreviewOpen);
-
+  initValues,
+}: InvoiceGeneratorProps) {
   const methods = useForm<CreateInvoiceInput>({
-    resolver: (zodResolver(createInvoiceSchema) as unknown) as Resolver<
-      CreateInvoiceInput,
-      undefined,
-      CreateInvoiceInput
-    >,
-    defaultValues: {
-      ...DEFAULT_VALUES,
-      ...initialValues,
-      seller: companyProfile,
+    defaultValues: initValues ?? {
+      piNumber: "",
+      issueDate: new Date().toISOString().split("T")[0],
     },
-    mode: "onBlur",
-    criteriaMode: "all",
+    mode: "onChange" as const,
   });
 
-  const { handleSubmit, formState: { isSubmitting, isDirty: formIsDirty } } = methods;
-  const formValues = methods.getValues();
+  const {
+    handleSubmit,
+    formState: { isSubmitting, isDirty },
+  } = methods
+
+  useUnsavedChanges(isDirty, (event) => {
+    event.preventDefault();
+    event.returnValue = "";
+  });
+
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
-  const onSave = async (values: InvoiceFormValues) => {
+  const onSave = async (values: CreateInvoiceInput) => {
+
+
+    console.log("Saving values:", values);
+    return
+
     setSaveStatus("saving");
     try {
       const result = await createInvoiceAction(values);
       if (result.ok) {
         setSaveStatus("saved");
-        dispatch(markSaved());
-        toast.add({ title: "Saved", description: "Invoice draft saved." });
         setTimeout(() => setSaveStatus("idle"), 1500);
       } else {
         setSaveStatus("error");
-        toast.add({ title: "Could not save", description: result.message });
+        setTimeout(() => setSaveStatus("idle"), 2000);
       }
     } catch {
       setSaveStatus("error");
-      toast.add({ title: "Could not save", description: "An unexpected error occurred." });
+      setTimeout(() => setSaveStatus("idle"), 2000);
     }
   };
 
-  useEffect(() => {
-    dispatch(setIsDirty(formIsDirty));
-  }, [dispatch, formIsDirty]);
-
-  useUnsavedChanges(
-    formIsDirty,
-    (event) => {
-      event.preventDefault();
-    },
-  );
+  // const pdfDocument = (
+  //   <InvoicePdfDocument
+  //     piNumber={formValues.piNumber || "PI-XXXX-001"}
+  //     issueDate={formValues.issueDate}
+  //     currency={formValues.currency}
+  //     seller={formValues.seller}
+  //     buyer={formValues.buyer}
+  //     lineItems={formValues.lineItems}
+  //     subtotal={formValues.subtotal ?? 0}
+  //     totalAmount={formValues.totalAmount ?? 0}
+  //     notes={formValues.notes}
+  //     termsAndConditions={formValues.termsAndConditions}
+  //     signatures={formValues.signatures}
+  //   />
+  // );
 
   return (
-    <div className="flex flex-col h-full">
-      <InvoiceToolbar
-        isSaving={isSubmitting || saveStatus === "saving"}
-        isDirty={formIsDirty}
-        isPreviewOpen={isPreviewOpen}
-        onSave={() => handleSubmit(onSave)()}
-        onTogglePreview={() => dispatch(setPreviewOpen(!isPreviewOpen))}
-      />
-      <div className="flex-1 min-w-0 overflow-y-auto p-6 lg:p-8">
-        {saveStatus === "error" && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertDescription>Could not save. Please fix the errors and try again.</AlertDescription>
-          </Alert>
-        )}
-        <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSave)} className="space-y-6">
-            <InvoiceForm companyProfile={companyProfile} />
-            <div className="flex justify-end gap-3 pt-6">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isSubmitting || !formIsDirty}
-                onClick={() => handleSubmit(onSave)()}
-              >
-                <SaveIcon className="size-3.5 mr-2" /> Save draft
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Saving…" : (<> <SaveIcon className="size-3.5 mr-2" /> Save draft</>)}
-              </Button>
-              <PdfExportButton
-                formValues={formValues}
-                isSubmitting={isSubmitting}
-                isDirty={formIsDirty}
-              />
-            </div>
-          </form>
-        </FormProvider>
+    <div className="flex h-full flex-col gap-4 lg:flex-row">
+      <div className="flex h-full w-full flex-col overflow-hidden lg:w-1/2">
+        <Card className="flex h-full flex-col overflow-hidden">
+          <CardContent className="flex flex-1 flex-col overflow-y-auto p-6">
+            <FormProvider {...methods}>
+              <form onSubmit={handleSubmit(onSave)} className="space-y-6">
+                <InvoiceForm />
+                <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-6">
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    size="sm"
+                    disabled={isSubmitting || saveStatus === "saving"}
+                  >
+                    <SaveIcon className="mr-2 size-3.5" />
+                    {saveStatus === "saving" ? "Saving..." : "Save Draft"}
+                  </Button>
+                  {/* <PDFDownloadLink
+                    document={pdfDocument}
+                    fileName={`proforma-invoice-${formValues.piNumber || "draft"}.pdf`}
+                  >
+                    {({ loading }: { loading: boolean }) => (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={loading}
+                      >
+                        <SaveIcon className="mr-2 size-3.5" />
+                        {loading ? "Exporting..." : "Export PDF"}
+                      </Button>
+                    )}
+                  </PDFDownloadLink> */}
+                </div>
+              </form>
+            </FormProvider>
+          </CardContent>
+        </Card>
       </div>
-      {isPreviewOpen && (
-        <aside className="lg:w-96 border-l border-border bg-background hidden lg:block flex flex-col">
-          <div className="p-4 border-b border-border">
-            <h2 className="text-xs font-semibold text-ink uppercase tracking-wider">Preview</h2>
-          </div>
-          <div className="flex-1 overflow-auto p-4">
-            <InvoicePreview zoom="fit" />
-          </div>
-        </aside>
-      )}
+
+      <div className="flex h-full w-full flex-col lg:w-1/2">
+        <Card className="flex h-full flex-col overflow-hidden">
+          <CardContent className="flex flex-1 flex-col overflow-hidden p-0">
+            <div className="flex h-full min-h-150 w-full flex-col">
+              {/* <PDFViewer className="h-full w-full border-0">
+                {pdfDocument}
+              </PDFViewer> */}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

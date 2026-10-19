@@ -7,18 +7,18 @@ import { connectToDatabase } from "@/lib/db/mongoose";
 import { requireUser } from "@/lib/auth/require-user";
 import { InvoiceModel } from "@/lib/db/models";
 import { ActionResult, zodErrorToActionResult } from "@/lib/validations/action-result";
-import { updateInvoiceSchema, type UpdateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
+import { createInvoiceSchema, type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
 import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
 
 export async function updateInvoiceAction(
   invoiceId: string,
-  input: UpdateInvoiceInput,
+  input: CreateInvoiceInput,
 ): Promise<ActionResult<{ invoiceId: string }>> {
   "use server";
 
   try {
     const user = await requireUser();
-    const validated = updateInvoiceSchema.parse(input);
+    const validated = createInvoiceSchema.parse(input);
 
     await connectToDatabase();
 
@@ -41,27 +41,6 @@ export async function updateInvoiceAction(
     }
     if (validated.issueDate !== undefined) {
       updates.issueDate = new Date(validated.issueDate);
-    }
-    if (validated.currency !== undefined) {
-      updates.currency = validated.currency;
-    }
-    if (validated.status !== undefined) {
-      updates.status = validated.status;
-    }
-    if (validated.seller !== undefined) {
-      updates.seller = validated.seller;
-    }
-    if (validated.buyer !== undefined) {
-      updates.buyer = validated.buyer;
-    }
-    if (validated.notes !== undefined) {
-      updates.notes = validated.notes;
-    }
-    if (validated.termsAndConditions !== undefined) {
-      updates.termsAndConditions = validated.termsAndConditions;
-    }
-    if (validated.signatures !== undefined) {
-      updates.signatures = validated.signatures;
     }
 
     // Recalculate totals server-side when line items change.

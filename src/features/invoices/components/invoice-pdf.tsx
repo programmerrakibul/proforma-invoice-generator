@@ -1,19 +1,67 @@
 "use client";
 
+import sealImageSrc from "@/assets/mm_fabrics_seal.png";
+import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
+import { numberToWords } from "@/features/invoices/utils/number-to-words";
 import {
   Document,
   Page,
+  Image as PDFImage,
+  StyleSheet,
   Text,
   View,
-  Image,
-  StyleSheet,
 } from "@react-pdf/renderer";
-import { type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
-import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
-import { numberToWords } from "@/features/invoices/utils/number-to-words";
-import sealImageSrc from "@/assets/mm_fabrics_seal.png";
 
-const sealImage: any = sealImageSrc;
+type InvoicePdfData = {
+  piNumber: string;
+  issueDate?: string | null;
+  currency: string;
+  seller: {
+    companyName: string;
+    address: string;
+    corporateOffice: string;
+    contactNumber: string;
+    email: string;
+  };
+  buyer: {
+    name: string;
+    address: string;
+    destinationCountry: string;
+  };
+  lineItems: Array<{
+    description: string;
+    style: string;
+    color: string;
+    quantity?: number | null;
+    unitPrice?: number | null;
+    totalAmount?: number;
+    unit: string;
+  }>;
+  subtotal: number;
+  totalAmount: number;
+  notes: {
+    sayTotal?: string;
+    goodsDeliveryDestination?: string;
+    goodsOrigin?: string;
+    advisingBank?: string;
+    allowance?: string;
+    packing?: string;
+    shipmentDate?: string;
+    payment?: string;
+    partialShipment?: string;
+    piValidity?: string;
+  };
+  termsAndConditions: string[];
+  signatures: {
+    buyerLabel?: string;
+    sellerLabel?: string;
+    stampUrl?: string;
+    includeBuyerSignature?: boolean;
+    includeSellerSignature?: boolean;
+  };
+};
+
+const sealImage = sealImageSrc as unknown as string;
 
 const styles = StyleSheet.create({
   page: {
@@ -30,7 +78,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   companyName: {
-    fontFamily: "serif",
     fontSize: 22,
     fontWeight: "bold",
     color: "#1a2e6a",
@@ -56,7 +103,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   invoiceTitle: {
-    fontFamily: "serif",
     fontSize: 18,
     fontWeight: "bold",
     color: "#2563eb",
@@ -147,16 +193,17 @@ const styles = StyleSheet.create({
     paddingRight: 3,
     textAlign: "right",
   },
-  lastCell: {
+  tableCellRightLast: {
+    fontSize: 8,
     borderRightWidth: 0,
-  },
-  totalsContainer: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: 4,
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 3,
+    paddingRight: 3,
+    textAlign: "right",
   },
   totalsQuantity: {
-    width: "14.28%",
+    width: "16.66%",
     textAlign: "right",
     borderRightWidth: 0.5,
     borderRightColor: "#1a1a1a",
@@ -169,7 +216,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#1a1a1a",
   },
   totalsAmount: {
-    width: "14.28%",
+    width: "16.66%",
     textAlign: "right",
     borderRightWidth: 0.5,
     borderRightColor: "#1a1a1a",
@@ -183,7 +230,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#1a1a1a",
   },
   totalsAmountLast: {
-    width: "14.28%",
+    width: "16.66%",
     textAlign: "right",
     paddingTop: 4,
     paddingBottom: 4,
@@ -194,7 +241,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: "#1a1a1a",
   },
-  emptyRows: {
+  emptyRow: {
     flexDirection: "row",
     paddingTop: 3,
     paddingBottom: 3,
@@ -202,39 +249,17 @@ const styles = StyleSheet.create({
     paddingRight: 3,
   },
   emptyCell: {
-    width: "14.28%",
+    width: "16.66%",
     borderRightWidth: 0.5,
     borderRightColor: "#1a1a1a",
     borderBottomWidth: 0.5,
     borderBottomColor: "#1a1a1a",
   },
-  emptyCellRight: {
-    width: "14.28%",
-    borderRightWidth: 0,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#1a1a1a",
-  },
   emptyCellRightLast: {
-    width: "14.28%",
+    width: "16.66%",
     borderRightWidth: 0,
     borderBottomWidth: 0.5,
     borderBottomColor: "#1a1a1a",
-  },
-  tableCellRightLast: {
-    fontSize: 8,
-    borderRightWidth: 0,
-    paddingTop: 3,
-    paddingBottom: 3,
-    paddingLeft: 3,
-    paddingRight: 3,
-    textAlign: "right",
-  },
-  emptyRow: {
-    flexDirection: "row",
-    paddingTop: 3,
-    paddingBottom: 3,
-    paddingLeft: 3,
-    paddingRight: 3,
   },
   sayTotalContainer: {
     marginTop: 16,
@@ -253,9 +278,9 @@ const styles = StyleSheet.create({
     color: "#1a1a1a",
   },
   sayTotalValue: {
-    fontFamily: "serif",
     fontSize: 8,
     color: "#1a1a1a",
+    marginTop: 2,
   },
   notesSection: {
     marginTop: 16,
@@ -332,93 +357,32 @@ const styles = StyleSheet.create({
   },
 });
 
-type InvoicePdfDocumentProps = {
-  piNumber?: string;
-  issueDate?: string;
-  currency?: string;
-  seller?: {
-    companyName?: string;
-    address?: string;
-    corporateOffice?: string;
-    contactNumber?: string;
-    email?: string;
-  };
-  buyer?: {
-    name?: string;
-    address?: string;
-    destinationCountry?: string;
-  };
-  lineItems?: Array<{
-    description?: string;
-    style?: string;
-    color?: string;
-    quantity?: number;
-    unitPrice?: number;
-    totalAmount?: number;
-    unit?: string;
-  }>;
-  subtotal?: number;
-  totalAmount?: number;
-  notes?: {
-    sayTotal?: string;
-    goodsDeliveryDestination?: string;
-    goodsOrigin?: string;
-    advisingBank?: string;
-    allowance?: string;
-    packing?: string;
-    shipmentDate?: string;
-    payment?: string;
-    partialShipment?: string;
-    piValidity?: string;
-  };
-  termsAndConditions?: string[];
-  signatures?: {
-    buyerLabel?: string;
-    sellerLabel?: string;
-    stampUrl?: string;
-    includeBuyerSignature?: boolean;
-    includeSellerSignature?: boolean;
-  };
-};
+const defaultTerms = [
+  "1. Negotiable; any Bank in Bangladesh",
+  "2. L/C amendment charge are on L/C applicant account.",
+  "3. Maturity date must be calculated from the date of delivery.",
+  "4. After signature the delivery challan or discrepancy won't be acceptable.",
+  "5. Overdue interest (if any) should be pay by opener.",
+  "6. Payment to be made on maturity date in US Dollar.",
+  "7. All apparent errors/discrepancy (if any) would be acceptable by opener.",
+];
 
-export function InvoicePdfDocument({
-  piNumber = "MMF/001/26",
-  issueDate,
-  currency = "USD",
-  seller,
-  buyer,
-  lineItems = [],
-  subtotal = 0,
-  totalAmount = 0,
-  notes = {},
-  termsAndConditions = [],
-  signatures = {},
-}: InvoicePdfDocumentProps) {
+export function InvoicePdfDocument(data: InvoicePdfData) {
   const { lineItems: calculatedItems, totalAmount: calculatedTotal } =
-    calculateInvoiceTotals(lineItems);
-  const sayTotal = numberToWords(calculatedTotal, currency);
+    calculateInvoiceTotals(data.lineItems);
+  const sayTotal = numberToWords(calculatedTotal, data.currency);
 
   const totalQuantity = calculatedItems.reduce(
     (sum, item) => sum + (item.quantity ?? 0),
     0,
   );
 
-  const defaultTerms = [
-    "1. Negotiable; any Bank in Bangladesh",
-    "2. L/C amendment charge are on L/C applicant account.",
-    "3. Maturity date must be calculated from the date of delivery.",
-    "4. After signature the delivery challan or discrepancy won’t be acceptable.",
-    "5. Overdue interest (if any) should be pay by opener.",
-    "6. Payment to be made on maturity date in US Dollar.",
-    "7. All apparent errors/discrepancy (if any) would be acceptable by opener.",
-  ];
-
-  const terms = termsAndConditions.length > 0 ? termsAndConditions : defaultTerms;
+  const terms = data.termsAndConditions.length > 0 ? data.termsAndConditions : defaultTerms;
+  const notes = data.notes;
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Company Header */}
         <View style={styles.companyHeader}>
           <Text style={styles.companyName}>M.M FABRICS</Text>
         </View>
@@ -432,89 +396,70 @@ export function InvoicePdfDocument({
           Contact Number: 01777589989 | Email: jewel@mmfabrics-bd.com
         </Text>
         <View style={styles.blueRule} />
-        {/* Invoice Title */}
         <Text style={styles.invoiceTitle}>PROFORMA INVOICE</Text>
-        {/* Buyer and Meta */}
+
         <View style={styles.metaContainer}>
           <View style={styles.metaColumn}>
             <Text style={styles.metaLabel}>Buyer / Consignee</Text>
-            <Text style={styles.metaValue}>{buyer?.name}</Text>
-            <Text style={styles.metaValue}>{buyer?.address}</Text>
-            <Text style={styles.metaValue}>{buyer?.destinationCountry}</Text>
+            <Text style={styles.metaValue}>{data.buyer.name}</Text>
+            <Text style={styles.metaValue}>{data.buyer.address}</Text>
+            <Text style={styles.metaValue}>{data.buyer.destinationCountry}</Text>
           </View>
           <View style={styles.metaColumn}>
             <Text style={styles.metaLabel}>PI No.</Text>
-            <Text style={styles.metaValue}>{piNumber}</Text>
+            <Text style={styles.metaValue}>{data.piNumber}</Text>
             <Text style={styles.metaLabel}>Date</Text>
             <Text style={styles.metaValue}>
-              {issueDate ? new Date(issueDate).toLocaleDateString("en-GB") : ""}
+              {data.issueDate ? new Date(data.issueDate).toLocaleDateString("en-GB") : ""}
             </Text>
           </View>
           <View style={styles.metaSpacer} />
         </View>
-        {/* Line-item table */}
+
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={styles.tableHeaderCell}>Description of Goods</Text>
-            <Text style={styles.tableHeaderCell}>Style</Text>
-            <Text style={styles.tableHeaderCell}>Color</Text>
-            <Text style={styles.tableHeaderCellRight}>Quantity (Yds)</Text>
-            <Text style={styles.tableHeaderCellRight}>Unit Price (USD)</Text>
-            <Text style={styles.tableHeaderCellRight}>Total Amount (USD)</Text>
+            <Text style={{ ...styles.tableHeaderCell, width: "30%" }}>Description of Goods</Text>
+            <Text style={{ ...styles.tableHeaderCell, width: "14%" }}>Style</Text>
+            <Text style={{ ...styles.tableHeaderCell, width: "14%" }}>Color</Text>
+            <Text style={{ ...styles.tableHeaderCellRight, width: "14%" }}>Quantity (Yds)</Text>
+            <Text style={{ ...styles.tableHeaderCellRight, width: "14%" }}>Unit Price ({data.currency})</Text>
+            <Text style={{ ...styles.tableHeaderCellRight, width: "14%" }}>Total Amount ({data.currency})</Text>
           </View>
           {calculatedItems.map((item, i) => (
             <View key={i} style={styles.tableRow}>
-              <Text style={styles.tableCell}>{item.description}</Text>
-              <Text style={styles.tableCell}>{item.style}</Text>
-              <Text style={styles.tableCell}>{item.color}</Text>
-              <Text style={styles.tableCellRight}>{item.quantity}</Text>
-              <Text style={styles.tableCellRight}>
-                {Number(item.unitPrice ?? 0).toFixed(2)}
-              </Text>
-              <Text style={styles.tableCellRightLast}>
-                {Number(item.totalAmount).toFixed(2)}
-              </Text>
+              <Text style={{ ...styles.tableCell, width: "30%" }}>{item.description}</Text>
+              <Text style={{ ...styles.tableCell, width: "14%" }}>{item.style}</Text>
+              <Text style={{ ...styles.tableCell, width: "14%" }}>{item.color}</Text>
+              <Text style={{ ...styles.tableCellRight, width: "14%" }}>{Number(item.quantity ?? 0).toLocaleString()}</Text>
+              <Text style={{ ...styles.tableCellRight, width: "14%" }}>{Number(item.unitPrice ?? 0).toFixed(2)}</Text>
+              <Text style={{ ...styles.tableCellRightLast, width: "14%" }}>{Number(item.totalAmount).toFixed(2)}</Text>
             </View>
           ))}
-          {/* Empty rows to match screenshot */}
-          <View style={styles.emptyRow}>
-            <Text style={styles.emptyCell} />
-            <Text style={styles.emptyCell} />
-            <Text style={styles.emptyCell} />
-            <Text style={styles.emptyCellRight} />
-            <Text style={styles.emptyCellRight} />
-            <Text style={styles.emptyCellRightLast} />
-          </View>
-          <View style={styles.emptyRow}>
-            <Text style={styles.emptyCell} />
-            <Text style={styles.emptyCell} />
-            <Text style={styles.emptyCell} />
-            <Text style={styles.emptyCellRight} />
-            <Text style={styles.emptyCellRight} />
-            <Text style={styles.emptyCellRightLast} />
-          </View>
-          {/* Totals row */}
+          {[...Array(2)].map((_, i) => (
+            <View key={`empty-${i}`} style={styles.emptyRow}>
+              <Text style={{ ...styles.emptyCell, width: "30%" }} />
+              <Text style={{ ...styles.emptyCell, width: "14%" }} />
+              <Text style={{ ...styles.emptyCell, width: "14%" }} />
+              <Text style={{ ...styles.emptyCell, width: "14%" }} />
+              <Text style={{ ...styles.emptyCell, width: "14%" }} />
+              <Text style={{ ...styles.emptyCellRightLast, width: "14%" }} />
+            </View>
+          ))}
           <View style={styles.tableRow}>
-            <Text style={{ ...styles.tableCell, borderRightWidth: 0 }} />
-            <Text style={styles.emptyCell} />
-            <Text style={styles.emptyCell} />
-            <Text style={styles.totalsQuantity}>
-              {totalQuantity}
-            </Text>
-            <Text style={styles.emptyCellRight} />
-            <Text style={styles.totalsAmountLast}>
-              {calculatedTotal.toFixed(2)}
-            </Text>
+            <Text style={{ ...styles.tableCell, width: "30%", borderRightWidth: 0 }} />
+            <Text style={{ ...styles.emptyCell, width: "14%" }} />
+            <Text style={{ ...styles.emptyCell, width: "14%" }} />
+            <Text style={{ ...styles.totalsQuantity, width: "14%" }}>{totalQuantity.toLocaleString()}</Text>
+            <Text style={{ ...styles.emptyCell, width: "14%" }} />
+            <Text style={{ ...styles.totalsAmountLast, width: "14%" }}>{calculatedTotal.toFixed(2)}</Text>
           </View>
         </View>
-        {/* Say-total */}
+
         <View style={styles.sayTotalContainer}>
           <Text style={styles.sayTotalLabel}>Say total:</Text>
-          <Text style={styles.sayTotalValue}>
-            {sayTotal}.
-          </Text>
+          <Text style={styles.sayTotalValue}>{sayTotal}.</Text>
         </View>
-        {/* Notes */}
+
         <View style={styles.notesSection}>
           <Text style={styles.notesLabel}>Notes</Text>
           {[
@@ -532,25 +477,21 @@ export function InvoicePdfDocument({
             .map((note, i) => (
               <View key={i} style={styles.notesItem}>
                 <Text style={styles.notesItemNumber}>{i + 1}.</Text>
-                <Text style={{ ...styles.notesItem, width: "auto", marginLeft: 2 }}>
-                  {note.label}: {note.value}
-                </Text>
+                <Text>{note.label}: {note.value}</Text>
               </View>
             ))}
         </View>
-        {/* Terms */}
+
         <View style={styles.termsSection}>
           <Text style={styles.termsLabel}>Terms &amp; Conditions:</Text>
           {terms.map((term, i) => (
             <View key={i} style={styles.termsItem}>
-              <Text style={styles.termsItemNumber}>{i + 1}.</Text>
-              <Text style={{ ...styles.notesItem, width: "auto", marginLeft: 2 }}>
-                {term}
-              </Text>
+              <Text style={styles.notesItemNumber}>{i + 1}.</Text>
+              <Text>{term.replace(/^\d+\.\s*/, "")}</Text>
             </View>
           ))}
         </View>
-        {/* Signatures */}
+
         <View style={styles.signaturesContainer}>
           <View style={styles.signatureBlock}>
             <View style={styles.signatureLine} />
@@ -559,13 +500,10 @@ export function InvoicePdfDocument({
           <View style={styles.signatureBlock}>
             <View style={styles.signatureLine} />
             <Text style={styles.signatureName}>For M.M FABRICS</Text>
-            {signatures.stampUrl && (
-              <Image src={signatures.stampUrl} style={styles.sealImage} />
-            )}
-            {!signatures.stampUrl && <Image src={sealImage} style={styles.sealImage} />}
+            <PDFImage src={sealImage} style={styles.sealImage}  />
           </View>
         </View>
-        {/* Footer */}
+
         <View style={styles.footer}>
           <Text>M.M FABRICS — Proforma Invoice</Text>
           <Text>Page 1 of 1</Text>
@@ -574,3 +512,5 @@ export function InvoicePdfDocument({
     </Document>
   );
 }
+
+export type { InvoicePdfData };
