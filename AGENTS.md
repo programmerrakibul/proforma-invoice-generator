@@ -115,7 +115,8 @@ All invoice mutations go through Next.js Server Actions:
   `exportInvoicePdfAction`. Guests can export without persisting; authenticated
   exports are persisted with `exported` status.
 - The invoice workspace validates the full payload with Zod, presents database
-  records in an owner-scoped table, and requires confirmation before deletion.
+  records in an owner-scoped table, supports preview and PDF export, and
+  requires confirmation before deletion.
 - Goods delivery/banking/shipping notes and terms use application defaults in
   the invoice payload; keep these static details out of the user-facing form
   until editable terms are requested. The initial product row uses editable

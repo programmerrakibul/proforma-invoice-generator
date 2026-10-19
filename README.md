@@ -159,6 +159,7 @@ All invoice mutations go through Next.js Server Actions:
 - Auth success feedback with toast notifications and destination navigation
 - Landing page and protected invoice table with search, status filter, sorting,
   pagination, preview, and confirmed deletion
+- Invoice list rows can export saved invoices to PDF and mark them exported
 - Invoice generator with live A4 JSX preview (HTML, updates as the form changes)
 - Multi-line-item support with required-field validation and guarded add-item flow
 - Buyer/consignee details and invoice line items; delivery, banking, shipment,
