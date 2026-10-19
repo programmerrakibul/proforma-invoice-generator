@@ -82,6 +82,8 @@ pnpm dev
   when unauthenticated)
 - **Server session lookup:** Both helpers forward `await headers()` to
   `auth.api.getSession()` so Better Auth can read the incoming session cookie
+- **Redirect behavior:** Login and registration accept a validated same-site
+  `redirect` query value and fall back to `/invoices`
 - **Guest flow:** Unauthenticated users can preview/generate invoices
   client-side; persistence to MongoDB requires sign-in
 
@@ -130,6 +132,8 @@ All invoice mutations go through Next.js Server Actions:
 - `totalAmount` and `subtotal` are recalculated server-side; client values are
   ignored
 - Update/delete queries always filter by `_id` and `ownerId` together
+- Exporting an invoice from the list updates that existing record to `exported`
+  only when both its id and the authenticated owner match
 - Non-ownership returns a generic "not found" result (no information leakage)
 - Zod validation runs on both client (React Hook Form) and server (Server
   Action)

@@ -18,13 +18,14 @@ src/
 │       ├── page.tsx            # Invoice table (filters, pagination; auth required; async searchParams)
 │       └── new/page.tsx        # Invoice studio (draft save for signed-in users; guest PDF export)
 ├── assets/
-│   └── logo.png                 # M.M FABRICS mark used by the shared site header
+│   ├── logo.png                 # M.M FABRICS mark used by the shared site header
+│   └── mm_fabrics_seal.png      # Original seller seal asset
 ├── components/
-│   ├── providers.tsx           # BetterAuth AuthProvider + SessionProvider wrapper
+│   ├── providers.tsx           # Global Sonner toast provider
 │   ├── layout/
 │   │   ├── app-sidebar.tsx     # Responsive navigation sidebar
 │   │   ├── mobile-nav.tsx      # Mobile top navigation
-│   │   └── page-header.tsx     # Breadcrumb + page title
+│   │   ├── page-header.tsx     # Breadcrumb + page title
 │   │   └── site-header.tsx     # Shared marketing/auth navigation header
 │   ├── shared/
 │   │   ├── container.tsx
@@ -33,6 +34,10 @@ src/
 │   │   ├── error-state.tsx     # Error state placeholder
 │   │   └── loading-state.tsx   # Loading state placeholder
 │   └── ui/                     # shadcn/ui components (button, input, select, etc.)
+├── data/
+│   ├── buyer.ts                # Default buyer / consignee details
+│   ├── company.ts              # M.M FABRICS seller profile
+│   └── invoice-static.ts       # Default invoice notes and terms
 ├── features/
 │   ├── auth/
 │   │   ├── components/
@@ -54,8 +59,8 @@ src/
 │       ├── components/
 │       │   ├── invoice-form.tsx        # PI metadata and buyer form (RHF + Zod)
 │       │   ├── invoice-generator.tsx   # Page-level form orchestration + save/export
-│       │   ├── invoice-line-items.tsx  # Line-item CRUD with combobox description
-│       │   ├── invoice-list-table.tsx  # Invoice table with preview and confirmed delete
+│       │   ├── invoice-line-items.tsx  # Editable items with guarded add-item flow
+│       │   ├── invoice-list-table.tsx  # Table with preview, PDF export, confirmed delete
 │       │   └── invoice-preview.tsx     # JSX A4 live preview (HTML, not PDF)
 │       ├── services/
 │       │   └── persist-invoice.ts      # Shared owner-scoped draft/export persistence

@@ -102,6 +102,9 @@ All invoice mutations go through Next.js Server Actions:
 - Buyer, invoice notes, line totals, subtotal, total quantity, and status are
   validated and persisted together for authenticated invoices
 - Update/delete queries always filter by `_id` and `ownerId` together
+- When exporting a saved invoice, pass its id through the existing export
+  action so persistence updates that owner-scoped record rather than creating
+  a new invoice
 - Non-ownership returns a generic "not found" result (no information leakage)
 - Zod validation runs on both client (React Hook Form) and server (Server
   Action)
