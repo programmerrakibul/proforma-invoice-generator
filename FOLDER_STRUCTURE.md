@@ -52,7 +52,7 @@ src/
 │       │   ├── list-invoices.ts        # listInvoicesAction (paginated, auth required)
 │       │   └── export-invoice-pdf.ts   # Export PDF; persist as exported when signed in
 │       ├── components/
-│       │   ├── invoice-form.tsx        # Multi-section invoice form (RHF + Zod)
+│       │   ├── invoice-form.tsx        # PI metadata and buyer form (RHF + Zod)
 │       │   ├── invoice-generator.tsx   # Page-level form orchestration + save/export
 │       │   ├── invoice-line-items.tsx  # Line-item CRUD with combobox description
 │       │   ├── invoice-list-table.tsx  # Invoice table with preview and confirmed delete

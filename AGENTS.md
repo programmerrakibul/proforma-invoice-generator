@@ -114,6 +114,10 @@ All invoice mutations go through Next.js Server Actions:
   exports are persisted with `exported` status.
 - The invoice workspace validates the full payload with Zod, presents database
   records in an owner-scoped table, and requires confirmation before deletion.
+- Goods delivery/banking/shipping notes and terms use application defaults in
+  the invoice payload; keep these static details out of the user-facing form
+  until editable terms are requested. The initial product row uses editable
+  starter text and quantity defaults, while unit price remains zero until set.
 - Money values in the invoice preview, list, and PDF use the `en-ES` number
   format; the seller seal asset is served from `public/mm-fabrics-seal.png`.
 - Preview and PDF share the same mapped document model via

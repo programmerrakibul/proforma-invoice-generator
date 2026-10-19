@@ -5,17 +5,12 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { InvoiceLineItems } from "@/features/invoices/components/invoice-line-items";
-import { INVOICE_NOTE_FIELDS } from "@/features/invoices/utils/build-invoice-document";
 import type { CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
 import { Building2, CalendarDays, Hash, MapPin } from "lucide-react";
-import { Controller, useFormContext } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 
 export function InvoiceForm() {
-  const {
-    control,
-    register,
-    formState: { errors },
-  } = useFormContext<CreateInvoiceInput>();
+  const { register, formState: { errors } } = useFormContext<CreateInvoiceInput>();
 
   return (
     <div className="flex flex-col gap-6">
@@ -79,39 +74,6 @@ export function InvoiceForm() {
 
       <InvoiceLineItems />
 
-      <Card className="overflow-hidden rounded-2xl border-border/70 shadow-sm">
-        <CardHeader className="border-b border-border/60 bg-muted/25 px-5 py-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">Step 03</p>
-          <CardTitle className="text-base">Notes and shipping terms</CardTitle>
-          <FieldDescription>Banking, delivery, payment, and validity details.</FieldDescription>
-        </CardHeader>
-        <CardContent className="p-5">
-          <FieldGroup className="grid grid-cols-1 gap-4">
-            {INVOICE_NOTE_FIELDS.map((note) => {
-              const error = errors.notes?.[note.key]?.message;
-              const isLongField = note.key === "advisingBank" || note.key === "goodsDeliveryDestination";
-              return (
-                <Controller
-                  key={note.key}
-                  control={control}
-                  name={`notes.${note.key}`}
-                  render={({ field }) => (
-                    <Field data-invalid={Boolean(error)}>
-                      <FieldLabel htmlFor={`notes.${note.key}`}>{note.label}</FieldLabel>
-                      {isLongField ? (
-                        <Textarea id={`notes.${note.key}`} aria-invalid={Boolean(error)} className="min-h-16 rounded-xl bg-background" {...field} />
-                      ) : (
-                        <Input id={`notes.${note.key}`} aria-invalid={Boolean(error)} className="h-10 rounded-xl bg-background" {...field} />
-                      )}
-                      {error ? <p className="text-xs text-destructive">{error}</p> : null}
-                    </Field>
-                  )}
-                />
-              );
-            })}
-          </FieldGroup>
-        </CardContent>
-      </Card>
     </div>
   );
 }

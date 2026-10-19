@@ -159,7 +159,12 @@ All invoice mutations go through Next.js Server Actions:
   pagination, preview, and confirmed deletion
 - Invoice generator with live A4 JSX preview (HTML, updates as the form changes)
 - Multi-line-item support with required-field validation and guarded add-item flow
-- Buyer/consignee details and editable delivery, banking, shipment, and payment notes
+- Buyer/consignee details and invoice line items; delivery, banking, shipment,
+  payment notes, and terms are populated from application defaults in the
+  background rather than exposed as form fields
+- The first line item starts with editable starter values (Fabric, Standard,
+  As specified, and quantity 1); unit price starts at 0 and must be set before
+  saving or exporting
 - Decimal-safe money calculations (integer-cent arithmetic)
 - "Say total" verbal amount rendering
 - Draft saving with Server Actions
