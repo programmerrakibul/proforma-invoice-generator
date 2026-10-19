@@ -80,6 +80,8 @@ pnpm dev
 - **Client SDK:** `better-auth/client` (`signUp.email`, `signIn.email`)
 - **Server helpers:** `getCurrentUser()` (optional), `requireUser()` (throws
   when unauthenticated)
+- **Server session lookup:** Both helpers forward `await headers()` to
+  `auth.api.getSession()` so Better Auth can read the incoming session cookie
 - **Guest flow:** Unauthenticated users can preview/generate invoices
   client-side; persistence to MongoDB requires sign-in
 

@@ -74,7 +74,9 @@ duplication (DRY).
 - **Provider:** Better Auth (`emailAndPassword`, `@better-auth/mongo-adapter`)
 - **Password hashing:** handled by Better Auth (bcrypt under the hood)
 - **Session strategy:** Better Auth sessions (30 days), resolved via
-  `auth.api.getSession()`
+  `auth.api.getSession({ headers: await headers() })`; server helpers must
+  forward the incoming request headers so Better Auth can read the session
+  cookie
 - **Route:** `GET/POST/PUT/PATCH/DELETE /api/auth/[...all]`
 - **Guest flow:** Unauthenticated users can preview/generate invoices
   client-side; persistence to MongoDB requires sign-in
