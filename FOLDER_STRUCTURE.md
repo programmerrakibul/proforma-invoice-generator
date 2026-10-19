@@ -23,6 +23,7 @@ src/
 │   │   ├── app-sidebar.tsx     # Responsive navigation sidebar
 │   │   ├── mobile-nav.tsx      # Mobile top navigation
 │   │   └── page-header.tsx     # Breadcrumb + page title
+│   │   └── site-header.tsx     # Shared marketing/auth navigation header
 │   ├── shared/
 │   │   ├── container.tsx
 │   │   ├── confirm-dialog.tsx  # Reusable confirmation dialog
@@ -31,28 +32,39 @@ src/
 │   │   └── loading-state.tsx   # Loading state placeholder
 │   └── ui/                     # shadcn/ui components (button, input, select, etc.)
 ├── features/
+│   ├── auth/
+│   │   ├── components/
+│   │   │   ├── auth-field.tsx      # Shared labeled auth input and error state
+│   │   │   ├── auth-page.tsx       # Shared premium auth page frame
+│   │   │   ├── login-form.tsx      # Validated Better Auth sign-in flow
+│   │   │   └── register-form.tsx   # Validated Better Auth registration flow
+│   │   ├── schemas/
+│   │   │   └── auth.schema.ts      # Shared Zod schemas and auth form types
+│   │   └── utils/
+│   │       └── auth-redirect.ts    # Same-site auth redirect validation
 │   └── invoices/
 │       ├── actions/
-│       │   ├── create-invoice.ts   # createInvoiceAction + getNextPiNumber (optional auth)
-│       │   ├── update-invoice.ts   # updateInvoiceAction (ownership: _id + ownerId)
-│       │   ├── delete-invoice.ts   # deleteInvoiceAction (ownership: _id + ownerId)
-│       │   └── list-invoices.ts    # listInvoicesAction (paginated, auth required)
+│       │   ├── create-invoice.ts       # createInvoiceAction + getNextPiNumber (optional auth)
+│       │   ├── update-invoice.ts       # updateInvoiceAction (ownership: _id + ownerId)
+│       │   ├── delete-invoice.ts       # deleteInvoiceAction (ownership: _id + ownerId)
+│       │   ├── list-invoices.ts        # listInvoicesAction (paginated, auth required)
+│       │   └── export-invoice-pdf.ts   # exportInvoicePdfAction (PDFKit buffer, guest allowed)
 │       ├── components/
 │       │   ├── invoice-form.tsx        # Multi-section invoice form (RHF + Zod)
 │       │   ├── invoice-generator.tsx   # Page-level form orchestration + save/export
 │       │   ├── invoice-line-items.tsx  # Line-item CRUD with combobox description
-│       │   ├── line-item-card.tsx      # Mobile stacked line-item card
-│       │   ├── invoice-preview.tsx     # Read-only A4 live preview
-│       │   ├── invoice-summary.tsx     # Subtotal/total summary
-│       │   ├── invoice-toolbar.tsx     # Save/export/preview toolbar
-│       │   └── invoice-pdf.tsx         # @react-pdf/renderer A4 document
+│       │   └── invoice-preview.tsx     # JSX A4 live preview (HTML, not PDF)
+│       ├── pdf/
+│       │   └── generate-invoice-pdf.ts # PDFKit A4 generator (server-only)
 │       ├── schemas/
 │       │   └── invoice.schema.ts       # Shared Zod schemas (client + server)
 │       ├── store/
 │       │   └── invoice-ui.slice.ts     # Redux UI slice (preview, dirty, zoom, etc.)
-│       ├── types.ts                # Invoice line-item view type
+│       ├── types.ts                # Invoice line-item view + PDF document types
 │       └── utils/
+│           ├── build-invoice-document.ts    # Shared preview/PDF document mapping
 │           ├── calculate-invoice-total.ts   # Decimal-safe money math
+│           ├── download-pdf.ts              # Client download helper for PDFKit output
 │           ├── format-invoice-number.ts     # MMF/###/YY numbering
 │           ├── number-to-words.ts           # "Say total" verbal amount
 │           ├── products.ts                  # Searchable description options

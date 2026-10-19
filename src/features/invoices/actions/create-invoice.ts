@@ -38,10 +38,12 @@ export async function createInvoiceAction(
 
     // Server-calculated totals are authoritative; never trust client totals.
     const { lineItems, totalAmount } = calculateInvoiceTotals(
-      validated.lineItems,
+      validated.lineItems
     );
 
     const user = await getCurrentUser();
+
+    console.log(user);
 
     if (user) {
       await connectToDatabase();

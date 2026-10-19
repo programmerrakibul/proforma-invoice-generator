@@ -22,77 +22,91 @@ export function InvoiceLineItems() {
       description: "",
       style: "",
       color: "",
-      quantity: 0,
+      quantity: 1,
       unitPrice: 0,
       totalPrice: 0,
     });
   };
 
   return (
-    <div className="space-y-4">
+    <section className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h3 className="text-sm font-semibold">Line Items</h3>
+        <div className="flex flex-col gap-1">
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">Step 02</p>
+          <h3 className="text-base font-semibold tracking-tight">Goods and pricing</h3>
           <p className="text-xs text-muted-foreground">
-            Add product details with description, style, color, quantity and
-            unit price
+            Add each product, then set quantity and unit price.
           </p>
         </div>
-        <Button type="button" size="sm" onClick={handleAdd}>
-          <PlusIcon className="mr-2 size-3.5" />
-          Add Line Item
+        <Button type="button" size="sm" className="rounded-full px-3" onClick={handleAdd}>
+          <PlusIcon data-icon="inline-start" /> Add item
         </Button>
       </div>
 
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         {fields.map((field, index) => (
           <div
             key={field.id}
-            className="rounded-lg border border-border bg-card p-4"
+            className="animate-in fade-in slide-in-from-bottom-1 rounded-xl border border-border/70 bg-muted/20 p-4 duration-300"
           >
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-7">
-              <div className="md:col-span-2 space-y-2">
-                <Label htmlFor={`lineItems.${index}.description`}>
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-xs font-semibold text-muted-foreground">ITEM {String(index + 1).padStart(2, "0")}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`Remove item ${index + 1}`}
+                onClick={() => remove(index)}
+                disabled={fields.length === 1}
+              ><Trash2Icon /></Button>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
+              <div className="flex flex-col gap-2 md:col-span-3">
+                <Label htmlFor={`lineItems.${index}.description`} className="text-xs text-muted-foreground">
                   Description of goods
                 </Label>
                 <Input
                   id={`lineItems.${index}.description`}
                   {...register(`lineItems.${index}.description`)}
-                  placeholder="Enter description of goods"
+                  className="h-10 rounded-lg bg-background"
+                  placeholder="e.g. 100% cotton woven fabric"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor={`lineItems.${index}.style`}>Style</Label>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor={`lineItems.${index}.style`} className="text-xs text-muted-foreground">Style</Label>
                 <Input
                   id={`lineItems.${index}.style`}
                   {...register(`lineItems.${index}.style`)}
+                  className="h-10 rounded-lg bg-background"
                   placeholder="Style"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor={`lineItems.${index}.color`}>Color</Label>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor={`lineItems.${index}.color`} className="text-xs text-muted-foreground">Color</Label>
                 <Input
                   id={`lineItems.${index}.color`}
                   {...register(`lineItems.${index}.color`)}
+                  className="h-10 rounded-lg bg-background"
                   placeholder="Color"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor={`lineItems.${index}.quantity`}>Quantity</Label>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor={`lineItems.${index}.quantity`} className="text-xs text-muted-foreground">Quantity</Label>
                 <Input
                   id={`lineItems.${index}.quantity`}
                   type="number"
-                  min="0"
+                  min="1"
                   {...register(`lineItems.${index}.quantity`)}
-                  placeholder="0"
+                  className="h-10 rounded-lg bg-background"
+                  placeholder="1"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor={`lineItems.${index}.unitPrice`}>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor={`lineItems.${index}.unitPrice`} className="text-xs text-muted-foreground">
                   Unit Price
                 </Label>
                 <Input
@@ -101,20 +115,9 @@ export function InvoiceLineItems() {
                   step="0.01"
                   min="0"
                   {...register(`lineItems.${index}.unitPrice`)}
+                  className="h-10 rounded-lg bg-background"
                   placeholder="0.00"
                 />
-              </div>
-
-              <div className="flex items-center justify-end">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  onClick={() => remove(index)}
-                  disabled={fields.length === 1}
-                >
-                  <Trash2Icon />
-                </Button>
               </div>
             </div>
           </div>
@@ -122,10 +125,11 @@ export function InvoiceLineItems() {
       </div>
 
       {fields.length === 0 && (
-        <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          No line items added. Click &quot;Add Line Item&quot; to start.
+        <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          No products yet. Add an item to begin your invoice.
         </div>
-      )}
-    </div>
+      )
+      }
+    </section>
   );
 }

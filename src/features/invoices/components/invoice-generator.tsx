@@ -1,133 +1,138 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { createInvoiceAction } from "@/features/invoices/actions/create-invoice";
+import { exportInvoicePdfAction } from "@/features/invoices/actions/export-invoice-pdf";
 import { InvoiceForm } from "@/features/invoices/components/invoice-form";
-import { SaveIcon } from "lucide-react";
+import { InvoicePreview } from "@/features/invoices/components/invoice-preview";
+import {
+  buildInvoiceDocument,
+  toInvoiceDocumentInput,
+} from "@/features/invoices/utils/build-invoice-document";
+import { downloadPdfFromBase64 } from "@/features/invoices/utils/download-pdf";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
-import { CreateInvoiceInput } from "../schemas/invoice.schema";
-
-const InvoicePdfDocument = dynamic(
-  () =>
-    import("@/features/invoices/components/invoice-pdf").then(
-      (mod) => mod.InvoicePdfDocument,
-    ),
-  { ssr: false },
-);
-
-const PDFViewer = dynamic(
-  () => import("@react-pdf/renderer").then((mod) => mod.PDFViewer),
-  { ssr: false },
-);
-
-const PDFDownloadLink = dynamic(
-  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
-  { ssr: false },
-);
+import { DownloadIcon, SaveIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
+import type { CreateInvoiceInput } from "../schemas/invoice.schema";
 
 interface InvoiceGeneratorProps {
   initValues?: Partial<CreateInvoiceInput>;
 }
 
-export function InvoiceGenerator({
-  initValues,
-}: InvoiceGeneratorProps) {
+export function InvoiceGenerator({ initValues }: InvoiceGeneratorProps) {
   const methods = useForm<CreateInvoiceInput>({
-    defaultValues: initValues ?? {
+    defaultValues: {
       piNumber: "",
       issueDate: new Date().toISOString().split("T")[0],
+      lineItems: [],
+      ...initValues,
     },
     mode: "onChange" as const,
   });
 
   const {
     handleSubmit,
+    control,
+    getValues,
     formState: { isSubmitting, isDirty },
-  } = methods
+  } = methods;
+
+  const watchedValues = useWatch({ control });
+  const previewData = useMemo(
+    () => buildInvoiceDocument(toInvoiceDocumentInput(watchedValues)),
+    [watchedValues],
+  );
 
   useUnsavedChanges(isDirty, (event) => {
     event.preventDefault();
     event.returnValue = "";
   });
 
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const [exportStatus, setExportStatus] = useState<
+    "idle" | "exporting" | "error"
+  >("idle");
 
-  const onSave = async (values: CreateInvoiceInput) => {
-
-
-    console.log("Saving values:", values);
-    return
-
+  const onSave = async (values: CreateInvoiceInput): Promise<void> => {
     setSaveStatus("saving");
     try {
       const result = await createInvoiceAction(values);
       if (result.ok) {
         setSaveStatus("saved");
+        if (result.data.persisted) {
+          toast.success("Draft saved", { description: "Your invoice is safely stored." });
+        } else {
+          toast.info("Invoice is ready", { description: "Sign in to save this draft to your account." });
+        }
         setTimeout(() => setSaveStatus("idle"), 1500);
       } else {
         setSaveStatus("error");
+        toast.error("Couldn’t save draft", { description: result.message });
         setTimeout(() => setSaveStatus("idle"), 2000);
       }
     } catch {
       setSaveStatus("error");
+      toast.error("Couldn’t save draft", { description: "Please try again." });
       setTimeout(() => setSaveStatus("idle"), 2000);
     }
   };
 
-  // const pdfDocument = (
-  //   <InvoicePdfDocument
-  //     piNumber={formValues.piNumber || "PI-XXXX-001"}
-  //     issueDate={formValues.issueDate}
-  //     currency={formValues.currency}
-  //     seller={formValues.seller}
-  //     buyer={formValues.buyer}
-  //     lineItems={formValues.lineItems}
-  //     subtotal={formValues.subtotal ?? 0}
-  //     totalAmount={formValues.totalAmount ?? 0}
-  //     notes={formValues.notes}
-  //     termsAndConditions={formValues.termsAndConditions}
-  //     signatures={formValues.signatures}
-  //   />
-  // );
+  const onExportPdf = async (): Promise<void> => {
+    setExportStatus("exporting");
+    try {
+      const result = await exportInvoicePdfAction(
+        toInvoiceDocumentInput(getValues()),
+      );
+      if (!result.ok) {
+        setExportStatus("error");
+        toast.error("PDF export failed", { description: result.message });
+        setTimeout(() => setExportStatus("idle"), 2000);
+        return;
+      }
+
+      downloadPdfFromBase64(result.data.pdfBase64, result.data.fileName);
+      toast.success("Invoice exported", { description: "Your PDF is ready to share." });
+      setExportStatus("idle");
+    } catch {
+      setExportStatus("error");
+      toast.error("PDF export failed", { description: "Please try again." });
+      setTimeout(() => setExportStatus("idle"), 2000);
+    }
+  };
 
   return (
-    <div className="flex h-full flex-col gap-4 lg:flex-row">
-      <div className="flex h-full w-full flex-col overflow-hidden lg:w-1/2">
-        <Card className="flex h-full flex-col overflow-hidden">
-          <CardContent className="flex flex-1 flex-col overflow-y-auto p-6">
+    <div className="grid min-h-[calc(100vh-13rem)] grid-cols-1 items-start gap-5 lg:grid-cols-2">
+      <div className="min-w-0">
+        <Card className="overflow-hidden rounded-2xl border-border/70 shadow-sm">
+          <CardContent className="p-4 sm:p-6">
             <FormProvider {...methods}>
-              <form onSubmit={handleSubmit(onSave)} className="space-y-6">
+              <form onSubmit={handleSubmit(onSave)} className="flex flex-col gap-6">
                 <InvoiceForm />
-                <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-6">
+                <div className="sticky bottom-0 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border/70 bg-card/95 px-4 pb-2 pt-4 backdrop-blur sm:-mx-6 sm:px-6">
                   <Button
                     type="submit"
                     variant="outline"
                     size="sm"
                     disabled={isSubmitting || saveStatus === "saving"}
                   >
-                    <SaveIcon className="mr-2 size-3.5" />
-                    {saveStatus === "saving" ? "Saving..." : "Save Draft"}
+                    <SaveIcon data-icon="inline-start" />
+                    {saveStatus === "saving" ? "Saving…" : saveStatus === "saved" ? "Saved" : "Save draft"}
                   </Button>
-                  {/* <PDFDownloadLink
-                    document={pdfDocument}
-                    fileName={`proforma-invoice-${formValues.piNumber || "draft"}.pdf`}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={exportStatus === "exporting"}
+                    onClick={onExportPdf}
                   >
-                    {({ loading }: { loading: boolean }) => (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={loading}
-                      >
-                        <SaveIcon className="mr-2 size-3.5" />
-                        {loading ? "Exporting..." : "Export PDF"}
-                      </Button>
-                    )}
-                  </PDFDownloadLink> */}
+                    <DownloadIcon data-icon="inline-start" />
+                    {exportStatus === "exporting" ? "Exporting…" : "Export PDF"}
+                  </Button>
                 </div>
               </form>
             </FormProvider>
@@ -135,13 +140,18 @@ export function InvoiceGenerator({
         </Card>
       </div>
 
-      <div className="flex h-full w-full flex-col lg:w-1/2">
-        <Card className="flex h-full flex-col overflow-hidden">
-          <CardContent className="flex flex-1 flex-col overflow-hidden p-0">
-            <div className="flex h-full min-h-150 w-full flex-col">
-              {/* <PDFViewer className="h-full w-full border-0">
-                {pdfDocument}
-              </PDFViewer> */}
+      <div className="min-w-0 lg:sticky lg:top-20">
+        <Card className="overflow-hidden rounded-2xl border-border/70 shadow-sm">
+          <CardContent className="flex flex-col overflow-hidden p-0">
+            <div className="flex items-center justify-between border-b border-border/70 bg-card px-5 py-4">
+              <div>
+                <p className="text-sm font-semibold">Live preview</p>
+                <p className="mt-1 text-xs text-muted-foreground">A4 · Updates as you type</p>
+              </div>
+              <span className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-[11px] font-medium text-primary"><span className="size-1.5 animate-pulse rounded-full bg-primary" /> Live</span>
+            </div>
+            <div className="min-h-[38rem] overflow-auto bg-muted/40 p-3 sm:p-5">
+              <InvoicePreview data={previewData} />
             </div>
           </CardContent>
         </Card>

@@ -1,23 +1,27 @@
 import Container from "@/components/shared/container";
 import { InvoiceGenerator } from "@/features/invoices/components/invoice-generator";
-import { companyProfile } from "@/data/company";
-import { buyerProfile } from "@/data/buyer";
-import { defaultTermsAndConditions, defaultNotes } from "@/data/invoice-static";
+import { SiteHeader } from "@/components/layout/site-header";
 
 export const dynamic = "force-dynamic";
 
 export default function NewInvoicePage() {
   return (
-    <Container className="flex h-full flex-col py-4 lg:py-6">
-      <div className="mb-4 flex flex-col space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">New Proforma Invoice</h1>
-        <p className="text-sm text-muted-foreground">
-          Create a proforma invoice with live preview
+    <div className="min-h-screen bg-muted/25">
+      <SiteHeader backToHome />
+      <Container className="flex h-full flex-col py-6 lg:py-8">
+      <div className="mb-6 flex flex-col gap-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Invoice studio</p>
+        <h1 className="text-2xl font-bold tracking-tight">
+          New Proforma Invoice
+        </h1>
+        <p className="max-w-xl text-sm leading-6 text-muted-foreground">
+          Shape the details on the left and watch your polished, print-ready document come together on the right.
         </p>
       </div>
-      <div className="flex-1 overflow-hidden">
+      <div className="min-h-[calc(100vh-13rem)]">
         <InvoiceGenerator />
       </div>
-    </Container>
+      </Container>
+    </div>
   );
 }

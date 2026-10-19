@@ -31,6 +31,10 @@ server-side execution performance.
 7. **Git Commit:** For new features or some changes, commit the changes to the
    development branch.
 8. **Terminal:** use pnpm.
+9. **Documentation and commits:** After completing a feature or code change,
+   commit the changes and update the relevant Markdown files (`README.md`,
+   `AGENTS.md`, and `FOLDER_STRUCTURE.md`) when behavior, conventions, or the
+   source tree changes.
 
 ## Project Stack (as implemented)
 
@@ -44,7 +48,7 @@ server-side execution performance.
 - **Authentication:** Better Auth (emailAndPassword provider,
   `@better-auth/mongo-adapter`, 30-day sessions, `better-auth/client` on the
   client)
-- **PDF:** @react-pdf/renderer
+- **PDF:** PDFKit (server-side generation) + JSX live preview
 - **State:** Redux Toolkit (client UI state only)
 - **Theme:** next-themes (light/dark/system)
 - **Package Manager:** pnpm 12.14.0
@@ -79,12 +83,13 @@ duplication (DRY).
 
 All invoice mutations go through Next.js Server Actions:
 
-| Action                | File                                          | Auth                     | Ownership                               |
-| --------------------- | --------------------------------------------- | ------------------------ | --------------------------------------- |
-| `createInvoiceAction` | `features/invoices/actions/create-invoice.ts` | Optional (guest allowed) | Derived from session when authenticated |
-| `updateInvoiceAction` | `features/invoices/actions/update-invoice.ts` | Required                 | Query by `_id` + `ownerId`              |
-| `deleteInvoiceAction` | `features/invoices/actions/delete-invoice.ts` | Required                 | Query by `_id` + `ownerId`              |
-| `listInvoicesAction`  | `features/invoices/actions/list-invoices.ts`  | Required                 | Filter by `ownerId`                     |
+| Action                   | File                                              | Auth                     | Ownership                                         |
+| ------------------------ | ------------------------------------------------- | ------------------------ | ------------------------------------------------- |
+| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Optional (guest allowed) | Derived from session when authenticated           |
+| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
+| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
+| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                               |
+| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | None (PDF generated from submitted form data)     |
 
 **Security rules enforced:**
 
@@ -96,6 +101,18 @@ All invoice mutations go through Next.js Server Actions:
 - Non-ownership returns a generic "not found" result (no information leakage)
 - Zod validation runs on both client (React Hook Form) and server (Server
   Action)
+
+## PDF generation and live preview
+
+- Live preview is a JSX/HTML A4 document (`invoice-preview.tsx`) that updates
+  from React Hook Form `useWatch`. It is not a PDF renderer.
+- PDF files are generated server-side with PDFKit
+  (`features/invoices/pdf/generate-invoice-pdf.ts`) and downloaded from
+  `exportInvoicePdfAction`. Guests can export without persisting to MongoDB.
+- Preview and PDF share the same mapped document model via
+  `buildInvoiceDocument()`.
+- `pdfkit` is listed in `serverExternalPackages` so Next.js does not bundle it
+  into the server graph.
 
 ## Caching Strategy
 

@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { SiteHeader } from "@/components/layout/site-header";
 import { FileText, LayoutDashboard, Send, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
@@ -70,39 +71,7 @@ const STEPS = [
 export default function Home() {
   return (
     <div className="flex flex-col min-h-full bg-background">
-      <nav className="fixed top-0 left-0 right-0 z-40 border-b border-border bg-background/80 backdrop-blur supports-backdrop-filter:bg-background/60">
-        <div className="flex items-center justify-between px-6 py-4 lg:px-8">
-          <Link
-            href="/"
-            className="flex items-center gap-2 font-bold text-ink text-lg tracking-tight"
-            aria-label="M.M FABRICS home"
-          >
-            <span className="text-primary">M.M</span> FABRICS
-          </Link>
-          <div className="flex items-center gap-8 lg:flex">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-xs text-muted-foreground hover:text-primary transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/auth/login"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Sign in
-            </Link>
-            <Link href="/invoices/new">
-              <Button size="sm">Create invoice</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SiteHeader navigation={NAV_LINKS} />
 
       <main className="flex-1 relative overflow-hidden bg-background">
         {/* Hero section */}
