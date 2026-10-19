@@ -9,28 +9,6 @@ export interface LineItem {
   quantity: number;
   unitPrice: number;
   totalAmount: number;
-  unit: string;
-}
-
-export interface InvoiceNotes {
-  sayTotal?: string;
-  goodsDeliveryDestination?: string;
-  goodsOrigin?: string;
-  advisingBank?: string;
-  allowance?: string;
-  packing?: string;
-  shipmentDate?: string;
-  payment?: string;
-  partialShipment?: string;
-  piValidity?: string;
-}
-
-export interface Signatures {
-  buyerLabel?: string;
-  sellerLabel?: string;
-  stampUrl?: string;
-  includeBuyerSignature: boolean;
-  includeSellerSignature: boolean;
 }
 
 export interface Seller {
@@ -47,6 +25,18 @@ export interface Buyer {
   destinationCountry: string;
 }
 
+export interface InvoiceNotes {
+  goodsDeliveryDestination: string;
+  goodsOrigin: string;
+  advisingBank: string;
+  allowance: string;
+  packing: string;
+  shipmentDate: string;
+  payment: string;
+  partialShipment: string;
+  piValidity: string;
+}
+
 export interface Invoice {
   _id: mongoose.Types.ObjectId;
   ownerId: mongoose.Types.ObjectId;
@@ -58,10 +48,10 @@ export interface Invoice {
   buyer: Buyer;
   lineItems: LineItem[];
   subtotal: number;
+  totalQuantity: number;
   totalAmount: number;
   notes: InvoiceNotes;
   termsAndConditions: string[];
-  signatures: Signatures;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -74,7 +64,6 @@ const lineItemSchema = new mongoose.Schema<LineItem>(
     quantity: { type: Number, required: true, min: 0 },
     unitPrice: { type: Number, required: true, min: 0 },
     totalAmount: { type: Number, required: true, min: 0 },
-    unit: { type: String, default: "Yds" },
   },
   { _id: true },
 );
@@ -89,7 +78,7 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
     },
     piNumber: { type: String, required: true, trim: true },
     issueDate: { type: Date, required: true },
-    currency: { type: String, default: "USD" },
+    currency: { type: String, required: true, default: "USD" },
     status: {
       type: String,
       enum: ["draft", "ready", "exported", "archived"],
@@ -110,27 +99,20 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
     },
     lineItems: [lineItemSchema],
     subtotal: { type: Number, default: 0, min: 0 },
+    totalQuantity: { type: Number, default: 0, min: 0 },
     totalAmount: { type: Number, default: 0, min: 0 },
     notes: {
-      sayTotal: { type: String, default: "" },
-      goodsDeliveryDestination: { type: String, default: "" },
-      goodsOrigin: { type: String, default: "" },
-      advisingBank: { type: String, default: "" },
-      allowance: { type: String, default: "" },
-      packing: { type: String, default: "" },
-      shipmentDate: { type: String, default: "" },
-      payment: { type: String, default: "" },
-      partialShipment: { type: String, default: "" },
-      piValidity: { type: String, default: "" },
+      goodsDeliveryDestination: { type: String, required: true },
+      goodsOrigin: { type: String, required: true },
+      advisingBank: { type: String, required: true },
+      allowance: { type: String, required: true },
+      packing: { type: String, required: true },
+      shipmentDate: { type: String, required: true },
+      payment: { type: String, required: true },
+      partialShipment: { type: String, required: true },
+      piValidity: { type: String, required: true },
     },
     termsAndConditions: [{ type: String }],
-    signatures: {
-      buyerLabel: { type: String, default: "" },
-      sellerLabel: { type: String, default: "" },
-      stampUrl: { type: String, default: "" },
-      includeBuyerSignature: { type: Boolean, default: false },
-      includeSellerSignature: { type: Boolean, default: false },
-    },
   },
   { timestamps: true },
 );

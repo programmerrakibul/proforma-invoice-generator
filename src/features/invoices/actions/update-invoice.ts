@@ -7,18 +7,18 @@ import { connectToDatabase } from "@/lib/db/mongoose";
 import { requireUser } from "@/lib/auth/require-user";
 import { InvoiceModel } from "@/lib/db/models";
 import { ActionResult, zodErrorToActionResult } from "@/lib/validations/action-result";
-import { updateInvoiceSchema, type UpdateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
+import { createInvoiceSchema, type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
 import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
 
 export async function updateInvoiceAction(
   invoiceId: string,
-  input: UpdateInvoiceInput,
+  input: CreateInvoiceInput,
 ): Promise<ActionResult<{ invoiceId: string }>> {
   "use server";
 
   try {
     const user = await requireUser();
-    const validated = updateInvoiceSchema.parse(input);
+    const validated = createInvoiceSchema.parse(input);
 
     await connectToDatabase();
 
@@ -42,46 +42,25 @@ export async function updateInvoiceAction(
     if (validated.issueDate !== undefined) {
       updates.issueDate = new Date(validated.issueDate);
     }
-    if (validated.currency !== undefined) {
-      updates.currency = validated.currency;
-    }
-    if (validated.status !== undefined) {
-      updates.status = validated.status;
-    }
-    if (validated.seller !== undefined) {
-      updates.seller = validated.seller;
-    }
-    if (validated.buyer !== undefined) {
-      updates.buyer = validated.buyer;
-    }
-    if (validated.notes !== undefined) {
-      updates.notes = validated.notes;
-    }
-    if (validated.termsAndConditions !== undefined) {
-      updates.termsAndConditions = validated.termsAndConditions;
-    }
-    if (validated.signatures !== undefined) {
-      updates.signatures = validated.signatures;
-    }
 
-    // Recalculate totals server-side when line items change.
-    if (validated.lineItems !== undefined) {
-      if (validated.lineItems.length === 0) {
-        return {
-          ok: false,
-          message: "Add at least one product.",
-          fieldErrors: {
-            lineItems: ["Add at least one product."],
-          },
-        };
-      }
-      const { lineItems, subtotal, totalAmount } = calculateInvoiceTotals(
-        validated.lineItems,
-      );
-      updates.lineItems = lineItems;
-      updates.subtotal = subtotal;
-      updates.totalAmount = totalAmount;
-    }
+    const { lineItems, subtotal, totalAmount } = calculateInvoiceTotals(
+      validated.lineItems,
+    );
+    updates.currency = validated.currency;
+    updates.buyer = validated.buyer;
+    updates.lineItems = lineItems.map((item) => ({
+      description: item.description,
+      style: item.style,
+      color: item.color,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      totalAmount: item.totalAmount,
+    }));
+    updates.subtotal = subtotal;
+    updates.totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
+    updates.totalAmount = totalAmount;
+    updates.notes = validated.notes;
+    updates.termsAndConditions = validated.termsAndConditions;
 
     await InvoiceModel.updateOne({ _id: invoiceId, ownerId: user.id }, updates);
 

@@ -3,12 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
 
-import { connectToDatabase } from "@/lib/db/mongoose";
+import {
+  createInvoiceSchema,
+  type CreateInvoiceInput,
+} from "@/features/invoices/schemas/invoice.schema";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
+import { persistInvoice } from "@/features/invoices/services/persist-invoice";
+import { connectToDatabase } from "@/lib/db/mongoose";
 import { InvoiceModel } from "@/lib/db/models";
-import { ActionResult, zodErrorToActionResult } from "@/lib/validations/action-result";
-import { createInvoiceSchema, type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
-import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
+import {
+  ActionResult,
+  zodErrorToActionResult,
+} from "@/lib/validations/action-result";
 
 /**
  * Generate a PI number in the format MMF/###/YY (e.g. MMF/001/26)
@@ -24,46 +30,24 @@ export async function getNextPiNumber(ownerId: string): Promise<string> {
 
 export async function createInvoiceAction(
   input: CreateInvoiceInput,
+  invoiceId?: string,
 ): Promise<ActionResult<{ invoiceId?: string; persisted: boolean }>> {
   "use server";
 
   try {
     const validated = createInvoiceSchema.parse(input);
 
-    // Server-calculated totals are authoritative; never trust client totals.
-    const { lineItems, subtotal, totalAmount } = calculateInvoiceTotals(
-      validated.lineItems,
-    );
-
     const user = await getCurrentUser();
 
     if (user) {
-      await connectToDatabase();
-
-      const piNumber = await getNextPiNumber(user.id);
-
-      const invoice = await InvoiceModel.create({
-        ownerId: user.id,
-        piNumber,
-        issueDate: new Date(validated.issueDate),
-        currency: validated.currency,
-        status: "draft",
-        seller: validated.seller,
-        buyer: validated.buyer,
-        lineItems,
-        subtotal,
-        totalAmount,
-        notes: validated.notes,
-        termsAndConditions: validated.termsAndConditions,
-        signatures: validated.signatures,
-      });
+      const savedInvoiceId = await persistInvoice(user.id, validated, "draft", invoiceId);
 
       revalidatePath("/invoices");
-      revalidatePath(`/invoices/${invoice._id}`);
+      revalidatePath(`/invoices/${savedInvoiceId}`);
 
       return {
         ok: true,
-        data: { invoiceId: String(invoice._id), persisted: true },
+        data: { invoiceId: savedInvoiceId, persisted: true },
         message: "Invoice created.",
       };
     }

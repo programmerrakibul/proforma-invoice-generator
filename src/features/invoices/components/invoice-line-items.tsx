@@ -1,320 +1,221 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import {
-  useFieldArray,
-  useFormContext,
-  Controller,
-} from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  PlusIcon,
-  Trash2Icon,
-  MinusIcon,
-  PlusCircleIcon,
-  SearchIcon,
-} from "lucide-react";
-import { toast } from "sonner";
-import { calculateLineItemTotal } from "@/features/invoices/utils/calculate-invoice-total";
-import { PRODUCTS } from "@/features/invoices/utils/products";
-import { type InvoiceLineItem } from "@/features/invoices/schemas/invoice.schema";
-import { type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
-import { LineItemCard } from "@/features/invoices/components/line-item-card";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { Label } from "@/components/ui/label";
+import type { CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
+import { PlusIcon, Trash2Icon } from "lucide-react";
+import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 
 type InvoiceFormValues = CreateInvoiceInput;
 
-const DEFAULT_LINE_ITEM: InvoiceLineItem = {
-  description: "",
-  style: "",
-  color: "",
-  quantity: undefined,
-  unitPrice: undefined,
-  unit: "Yds",
-};
+export function InvoiceLineItems() {
+  const {
+    control,
+    register,
+    formState: { errors },
+  } = useFormContext<InvoiceFormValues>();
+  const lineItems = useWatch({ control, name: "lineItems" });
 
-const UNIT_OPTIONS = ["Yds", "Mtr", "Kg", "Pcs"] as const;
-
-interface InvoiceLineItemsProps {
-  currency: string;
-  onAdd: () => void;
-}
-
-export function InvoiceLineItems({ currency, onAdd }: InvoiceLineItemsProps) {
-  const { control, register, setValue, formState } =
-    useFormContext<InvoiceFormValues>();
-  const isMobile = useMediaQuery("(max-width: 1023px)");
-  const [removedIndex, setRemovedIndex] = useState<number | null>(null);
-  const [removedItem, setRemovedItem] = useState<InvoiceLineItem | null>(null);
-
-  const { fields, append, remove, insert } = useFieldArray<InvoiceFormValues>({
+  const { fields, append, remove } = useFieldArray<InvoiceFormValues>({
     control,
     name: "lineItems",
   });
 
-  const handleAdd = useCallback(() => {
-    append({ ...DEFAULT_LINE_ITEM });
-    onAdd();
-  }, [append, onAdd]);
+  const handleAdd = () => {
+    append({
+      description: "",
+      style: "",
+      color: "",
+      quantity: 1,
+      unitPrice: 0,
+      totalPrice: 0,
+    });
+  };
 
-  const handleRemove = useCallback(
-    (index: number) => {
-      const item = fields[index];
-      setRemovedIndex(index);
-      setRemovedItem(item);
-      remove(index);
-      toast("Product removed", {
-        description: "The product row was removed.",
-        action: {
-          label: "Undo",
-          onClick: () => {
-            if (removedIndex === null || !removedItem) return;
-            insert(removedIndex, removedItem);
-            setRemovedIndex(null);
-            setRemovedItem(null);
-          },
-        },
-      });
-    },
-    [fields, remove, insert, removedIndex, removedItem],
-  );
-
-  const rowTotal = (quantity: number | undefined, unitPrice: number | undefined) =>
-    calculateLineItemTotal(quantity ?? 0, unitPrice ?? 0);
-
-  if (isMobile) {
-    return (
-      <div className="space-y-3">
-        {fields.map((field, index) => {
-          const fieldError = formState.errors.lineItems?.[index];
-          return (
-            <div key={field.id}>
-              <LineItemCard
-                item={{ ...field, id: field.id }}
-                currency={currency}
-                onRemove={() => handleRemove(index)}
-              />
-              {fieldError?.description?.message && (
-                <p className="text-xs text-destructive ml-2">
-                  {fieldError.description?.message}
-                </p>
-              )}
-            </div>
-          );
-        })}
-        {removedIndex !== null && (
-          <div className="p-3 border border-accent bg-accent/50 rounded-lg">
-            <p className="text-xs">Removed a product row.</p>
-          </div>
-        )}
-        <Button
-          variant="outline"
-          onClick={handleAdd}
-          className="w-full"
-          size="sm"
-        >
-          <PlusCircleIcon className="size-4 mr-2" /> Add product
-        </Button>
-      </div>
+  const canAddLineItem =
+    lineItems.length > 0 &&
+    lineItems.every(
+      (item) =>
+        item.description.trim().length > 0 &&
+        item.style.trim().length > 0 &&
+        item.color.trim().length > 0 &&
+        Number.isFinite(item.quantity) &&
+        item.quantity >= 1 &&
+        Number.isFinite(item.unitPrice) &&
+        item.unitPrice > 0,
     );
-  }
 
   return (
-    <div className="space-y-2">
-      <div className="rounded-lg border border-border bg-card p-3">
-        <div className="grid grid-cols-12 gap-2 px-2 text-xs text-muted-foreground font-medium">
-          <div className="col-span-5">Description of goods</div>
-          <div className="col-span-2">Style</div>
-          <div className="col-span-2">Color</div>
-          <div className="col-span-1">Qty</div>
-          <div className="col-span-1">Unit</div>
-          <div className="col-span-1">Unit price</div>
-          <div className="col-span-1">Total</div>
-          <div className="col-span-1">Action</div>
+    <section className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-1">
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">
+            Step 02
+          </p>
+          <h3 className="text-base font-semibold tracking-tight">
+            Goods and pricing
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Add each product, then set quantity and unit price.
+          </p>
         </div>
+        <Button
+          type="button"
+          size="sm"
+          className="rounded-full px-3"
+          onClick={handleAdd}
+          disabled={!canAddLineItem}
+        >
+          <PlusIcon data-icon="inline-start" /> Add item
+        </Button>
       </div>
-      <div className="space-y-1">
-        {fields.map((field, index) => {
-          const fieldError = formState.errors.lineItems?.[index];
-          const hasError = Boolean(fieldError?.description?.message);
-          return (
-            <div key={field.id} className="grid grid-cols-12 gap-2 px-2 items-center">
-              <div className="col-span-5">
-                <Controller
-                  control={control}
-                  name={`lineItems.${index}.description`}
-                  render={({ field: f }) => (
-                    <Popover>
-                      <PopoverTrigger>
-                        <Input
-                          {...f}
-                          placeholder="Search goods…"
-                          className="h-7 text-xs"
-                          aria-invalid={hasError || undefined}
-                        />
-                      </PopoverTrigger>
-                      <PopoverContent className="p-0 w-48 max-h-60">
-                        <Input
-                          placeholder="Search"
-                          className="w-full px-3 py-2 text-xs border-b"
-                          defaultValue=""
-                          readOnly
-                        />
-                        {PRODUCTS.filter(
-                          (p) =>
-                            !f.value ||
-                            p.description
-                              .toLowerCase()
-                              .includes(f.value.toLowerCase()),
-                        ).map((product) => (
-                          <button
-                            key={product.description}
-                            onClick={() => {
-                              f.onChange(product.description);
-                              setValue(
-                                `lineItems.${index}.style`,
-                                product.style,
-                              );
-                              setValue(
-                                `lineItems.${index}.color`,
-                                product.color,
-                              );
-                              setValue(`lineItems.${index}.unit`, product.unit);
-                            }}
-                            className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors"
-                          >
-                            <SearchIcon className="size-3.5 mr-2 text-muted-foreground shrink-0" />
-                            {product.description}
-                          </button>
-                        ))}
-                      </PopoverContent>
-                    </Popover>
-                  )}
-                />
-                {hasError && (
-                  <p className="text-xs text-destructive mt-1">
-                    {fieldError?.description?.message ?? ""}
-                  </p>
-                )}
-              </div>
-              <div className="col-span-2">
-                <Input
-                  {...register(`lineItems.${index}.style`)}
-                  placeholder="Style"
-                  className="h-7 text-xs"
-                />
-              </div>
-              <div className="col-span-2">
-                <Input
-                  {...register(`lineItems.${index}.color`)}
-                  placeholder="Color"
-                  className="h-7 text-xs"
-                />
-              </div>
-              <div className="col-span-1">
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="xs"
-                    onClick={() =>
-                      setValue(
-                        `lineItems.${index}.quantity`,
-                        Math.max(0, (field.quantity ?? 0) - 0.001),
-                      )
-                    }
-                  >
-                    <MinusIcon className="size-3.5" />
-                  </Button>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.001"
-                    {...register(`lineItems.${index}.quantity`)}
-                    className="w-full h-6 text-xs text-right px-1"
-                  />
-                  <Button
-                    variant="outline"
-                    size="xs"
-                    onClick={() =>
-                      setValue(
-                        `lineItems.${index}.quantity`,
-                        (field.quantity ?? 0) + 0.001,
-                      )
-                    }
-                  >
-                    <PlusIcon className="size-3.5" />
-                  </Button>
-                </div>
-              </div>
-              <div className="col-span-1">
-                <Controller
-                  control={control}
-                  name={`lineItems.${index}.unit`}
-                  render={({ field: f }) => (
-                    <Select onValueChange={f.onChange} value={f.value}>
-                      <SelectTrigger className="h-7 text-xs">
-                        <SelectValue placeholder="Yds" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {UNIT_OPTIONS.map((unit) => (
-                          <SelectItem key={unit} value={unit}>
-                            {unit}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-              <div className="col-span-1">
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  {...register(`lineItems.${index}.unitPrice`)}
-                  placeholder="0.00"
-                  className="h-7 text-xs text-right"
-                />
-              </div>
-              <div className="col-span-1">
-                <span className="text-xs text-right font-medium">
-                  {`${currency} ${rowTotal(
-                    field.quantity,
-                    field.unitPrice,
-                  ).toFixed(2)}`}
-                </span>
-              </div>
-              <div className="col-span-1">
-                <Button
-                  variant="destructive"
-                  size="xs"
-                  onClick={() => handleRemove(index)}
-                  aria-label="Remove item"
+
+      <div className="flex flex-col gap-3">
+        {fields.map((field, index) => (
+          <div
+            key={field.id}
+            className="animate-in fade-in slide-in-from-bottom-1 rounded-xl border border-border/70 bg-muted/20 p-4 duration-300"
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-xs font-semibold text-muted-foreground">
+                ITEM {String(index + 1).padStart(2, "0")}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`Remove item ${index + 1}`}
+                onClick={() => remove(index)}
+                disabled={fields.length === 1}
+              >
+                <Trash2Icon />
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-6">
+              <div className="flex flex-col gap-2 sm:col-span-3 md:col-span-2">
+                <Label
+                  htmlFor={`lineItems.${index}.description`}
+                  className="text-xs text-muted-foreground"
                 >
-                  <Trash2Icon className="size-3.5" />
-                </Button>
+                  Description of goods
+                </Label>
+                <Input
+                  id={`lineItems.${index}.description`}
+                  aria-invalid={Boolean(errors.lineItems?.[index]?.description)}
+                  {...register(`lineItems.${index}.description`)}
+                  className="h-10 rounded-lg bg-background"
+                  placeholder="e.g. 100% cotton woven fabric"
+                />
+                {errors.lineItems?.[index]?.description?.message ? (
+                  <p className="text-xs text-destructive">
+                    {errors.lineItems[index]?.description?.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="flex flex-col gap-2 sm:col-span-3 md:col-span-1">
+                <Label
+                  htmlFor={`lineItems.${index}.style`}
+                  className="text-xs text-muted-foreground"
+                >
+                  Style
+                </Label>
+                <Input
+                  id={`lineItems.${index}.style`}
+                  aria-invalid={Boolean(errors.lineItems?.[index]?.style)}
+                  {...register(`lineItems.${index}.style`)}
+                  className="h-10 rounded-lg bg-background"
+                  placeholder="Style"
+                />
+                {errors.lineItems?.[index]?.style?.message ? (
+                  <p className="text-xs text-destructive">
+                    {errors.lineItems[index]?.style?.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label
+                  htmlFor={`lineItems.${index}.color`}
+                  className="text-xs text-muted-foreground"
+                >
+                  Color
+                </Label>
+                <Input
+                  id={`lineItems.${index}.color`}
+                  aria-invalid={Boolean(errors.lineItems?.[index]?.color)}
+                  {...register(`lineItems.${index}.color`)}
+                  className="h-10 rounded-lg bg-background"
+                  placeholder="Color"
+                />
+                {errors.lineItems?.[index]?.color?.message ? (
+                  <p className="text-xs text-destructive">
+                    {errors.lineItems[index]?.color?.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label
+                  htmlFor={`lineItems.${index}.quantity`}
+                  className="text-xs text-muted-foreground"
+                >
+                  Quantity
+                </Label>
+                <Input
+                  id={`lineItems.${index}.quantity`}
+                  type="number"
+                  min="1"
+                  aria-invalid={Boolean(errors.lineItems?.[index]?.quantity)}
+                  {...register(`lineItems.${index}.quantity`, {
+                    valueAsNumber: true,
+                  })}
+                  className="h-10 rounded-lg bg-background"
+                  placeholder="1"
+                />
+                {errors.lineItems?.[index]?.quantity?.message ? (
+                  <p className="text-xs text-destructive">
+                    {errors.lineItems[index]?.quantity?.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label
+                  htmlFor={`lineItems.${index}.unitPrice`}
+                  className="text-xs text-muted-foreground"
+                >
+                  Unit Price
+                </Label>
+                <Input
+                  id={`lineItems.${index}.unitPrice`}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  aria-invalid={Boolean(errors.lineItems?.[index]?.unitPrice)}
+                  {...register(`lineItems.${index}.unitPrice`, {
+                    valueAsNumber: true,
+                  })}
+                  className="h-10 rounded-lg bg-background"
+                  placeholder="0.00"
+                />
+                {errors.lineItems?.[index]?.unitPrice?.message ? (
+                  <p className="text-xs text-destructive">
+                    {errors.lineItems[index]?.unitPrice?.message}
+                  </p>
+                ) : null}
               </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
+
       {fields.length === 0 && (
-        <div className="text-xs text-muted-foreground text-center py-4">
-          No products added yet. Click &ldquo;Add product&rdquo; to begin.
+        <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          No products yet. Add an item to begin your invoice.
         </div>
       )}
-      <Button variant="outline" onClick={handleAdd} className="w-full mt-2 size-sm">
-        <PlusCircleIcon className="size-4 mr-2" /> Add product
-      </Button>
-    </div>
+    </section>
   );
 }

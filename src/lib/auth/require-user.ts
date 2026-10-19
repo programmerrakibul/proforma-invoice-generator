@@ -1,6 +1,5 @@
-"use server";
-
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth/get-current-user";
+import type { User } from "@/lib/auth";
 
 /**
  * Requires an authenticated user. Derives the owner id from the session —
@@ -9,10 +8,10 @@ import { auth } from "@/lib/auth";
  * @returns The authenticated user's safe profile.
  * @throws When no user is authenticated.
  */
-export async function requireUser() {
-  const session = await auth.api.getSession();
-  if (!session?.user) {
+export async function requireUser(): Promise<User> {
+  const user = await getCurrentUser();
+  if (!user) {
     throw new Error("Unauthenticated: no active session.");
   }
-  return session.user;
+  return user;
 }

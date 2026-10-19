@@ -38,6 +38,7 @@ export default function RootLayout({
         "font-sans",
         inter.variable,
         "scroll-smooth",
+        "selection:text-primary-foreground selection:bg-primary/80",
       )}
       suppressHydrationWarning
       data-scroll-behavior="smooth"

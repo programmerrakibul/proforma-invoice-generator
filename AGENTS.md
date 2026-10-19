@@ -31,6 +31,10 @@ server-side execution performance.
 7. **Git Commit:** For new features or some changes, commit the changes to the
    development branch.
 8. **Terminal:** use pnpm.
+9. **Documentation and commits:** After completing a feature or code change,
+   commit the changes and update the relevant Markdown files (`README.md`,
+   `AGENTS.md`, and `FOLDER_STRUCTURE.md`) when behavior, conventions, or the
+   source tree changes.
 
 ## Project Stack (as implemented)
 
@@ -44,7 +48,7 @@ server-side execution performance.
 - **Authentication:** Better Auth (emailAndPassword provider,
   `@better-auth/mongo-adapter`, 30-day sessions, `better-auth/client` on the
   client)
-- **PDF:** @react-pdf/renderer
+- **PDF:** PDFKit (server-side generation) + JSX live preview
 - **State:** Redux Toolkit (client UI state only)
 - **Theme:** next-themes (light/dark/system)
 - **Package Manager:** pnpm 12.14.0
@@ -70,7 +74,9 @@ duplication (DRY).
 - **Provider:** Better Auth (`emailAndPassword`, `@better-auth/mongo-adapter`)
 - **Password hashing:** handled by Better Auth (bcrypt under the hood)
 - **Session strategy:** Better Auth sessions (30 days), resolved via
-  `auth.api.getSession()`
+  `auth.api.getSession({ headers: await headers() })`; server helpers must
+  forward the incoming request headers so Better Auth can read the session
+  cookie
 - **Route:** `GET/POST/PUT/PATCH/DELETE /api/auth/[...all]`
 - **Guest flow:** Unauthenticated users can preview/generate invoices
   client-side; persistence to MongoDB requires sign-in
@@ -79,12 +85,13 @@ duplication (DRY).
 
 All invoice mutations go through Next.js Server Actions:
 
-| Action                | File                                          | Auth                     | Ownership                               |
-| --------------------- | --------------------------------------------- | ------------------------ | --------------------------------------- |
-| `createInvoiceAction` | `features/invoices/actions/create-invoice.ts` | Optional (guest allowed) | Derived from session when authenticated |
-| `updateInvoiceAction` | `features/invoices/actions/update-invoice.ts` | Required                 | Query by `_id` + `ownerId`              |
-| `deleteInvoiceAction` | `features/invoices/actions/delete-invoice.ts` | Required                 | Query by `_id` + `ownerId`              |
-| `listInvoicesAction`  | `features/invoices/actions/list-invoices.ts`  | Required                 | Filter by `ownerId`                     |
+| Action                   | File                                              | Auth                     | Ownership                                         |
+| ------------------------ | ------------------------------------------------- | ------------------------ | ------------------------------------------------- |
+| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Optional (guest allowed) | Derived from session when authenticated           |
+| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
+| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
+| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                               |
+| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | Owner derived from session when persisted        |
 
 **Security rules enforced:**
 
@@ -92,10 +99,39 @@ All invoice mutations go through Next.js Server Actions:
   input
 - `totalAmount` and `subtotal` are recalculated server-side; client values are
   ignored
+- Buyer, invoice notes, line totals, subtotal, total quantity, and status are
+  validated and persisted together for authenticated invoices
 - Update/delete queries always filter by `_id` and `ownerId` together
+- When exporting a saved invoice, pass its id through the existing export
+  action so persistence updates that owner-scoped record rather than creating
+  a new invoice
 - Non-ownership returns a generic "not found" result (no information leakage)
 - Zod validation runs on both client (React Hook Form) and server (Server
   Action)
+
+## PDF generation and live preview
+
+- Live preview is a JSX/HTML A4 document (`invoice-preview.tsx`) that updates
+  from React Hook Form `useWatch`. It is not a PDF renderer.
+- PDF files are generated server-side with PDFKit
+  (`features/invoices/pdf/generate-invoice-pdf.ts`) and downloaded from
+  `exportInvoicePdfAction`. Guests can export without persisting; authenticated
+  exports are persisted with `exported` status.
+- The invoice workspace validates the full payload with Zod, presents database
+  records in an owner-scoped table, supports preview and PDF export, and
+  requires confirmation before deletion.
+- Goods delivery/banking/shipping notes and terms use application defaults in
+  the invoice payload; keep these static details out of the user-facing form
+  until editable terms are requested. The initial product row uses editable
+  values from the supplied invoice sample; calculate all totals from quantity
+  and unit price rather than trusting the client-provided total.
+- Currency values in the invoice preview, list, and PDF use the `en-US` number
+  format; invoice-list quantities use `en-ES`. The seller seal asset is served
+  from `public/mm-fabrics-seal.png`.
+- Preview and PDF share the same mapped document model via
+  `buildInvoiceDocument()`.
+- `pdfkit` is listed in `serverExternalPackages` so Next.js does not bundle it
+  into the server graph.
 
 ## Caching Strategy
 

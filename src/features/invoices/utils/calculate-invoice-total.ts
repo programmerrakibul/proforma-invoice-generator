@@ -41,10 +41,10 @@ function scaleDecimal(num: number): { int: number; decimals: number } {
 function roundToCents(scaled: number, totalDecimals: number): number {
   const m = totalDecimals - 2;
   if (m <= 0) {
-    return scaled * (10 ** -m);
+    return scaled * 10 ** -m;
   }
   const divisor = 10 ** m;
-  const half = 5 * (10 ** (m - 1));
+  const half = 5 * 10 ** (m - 1);
   return Math.floor((scaled + half) / divisor);
 }
 
@@ -52,7 +52,10 @@ function roundToCents(scaled: number, totalDecimals: number): number {
  * Calculate the total for a single line item: quantity × unit price.
  * Rounded once to two decimals using integer math.
  */
-export function calculateLineItemTotal(quantity: number, unitPrice: number): number {
+export function calculateLineItemTotal(
+  quantity: number,
+  unitPrice: number,
+): number {
   const q = scaleDecimal(quantity);
   const p = scaleDecimal(unitPrice);
   const scaled = q.int * p.int;
@@ -67,10 +70,12 @@ export function calculateLineItemTotal(quantity: number, unitPrice: number): num
  * Server calculation is authoritative.
  * The full shape of each line item is preserved via generics.
  */
-export function calculateInvoiceTotals<T extends {
-  quantity?: number | null;
-  unitPrice?: number | null;
-}>(lineItems: Array<T>) {
+export function calculateInvoiceTotals<
+  T extends {
+    quantity?: number | null;
+    unitPrice?: number | null;
+  },
+>(lineItems: Array<T>) {
   const lineTotals = lineItems.map((item) => {
     const quantity = item.quantity ?? 0;
     const unitPrice = item.unitPrice ?? 0;

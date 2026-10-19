@@ -15,14 +15,18 @@ src/
 │   ├── api/
 │   │   └── auth/[...all]/route.ts  # Better Auth Next.js handler (toNextJsHandler)
 │   └── invoices/
-│       ├── page.tsx            # Invoice listing (search, status filter, sort, pagination; auth required)
-│       └── new/page.tsx        # Invoice generator (split form + preview; optional auth)
+│       ├── page.tsx            # Invoice table (filters, pagination; auth required; async searchParams)
+│       └── new/page.tsx        # Invoice studio (draft save for signed-in users; guest PDF export)
+├── assets/
+│   ├── logo.png                 # M.M FABRICS mark used by the shared site header
+│   └── mm_fabrics_seal.png      # Original seller seal asset
 ├── components/
-│   ├── providers.tsx           # BetterAuth AuthProvider + SessionProvider wrapper
+│   ├── providers.tsx           # Global Sonner toast provider
 │   ├── layout/
 │   │   ├── app-sidebar.tsx     # Responsive navigation sidebar
 │   │   ├── mobile-nav.tsx      # Mobile top navigation
-│   │   └── page-header.tsx     # Breadcrumb + page title
+│   │   ├── page-header.tsx     # Breadcrumb + page title
+│   │   └── site-header.tsx     # Shared marketing/auth navigation header
 │   ├── shared/
 │   │   ├── container.tsx
 │   │   ├── confirm-dialog.tsx  # Reusable confirmation dialog
@@ -30,29 +34,48 @@ src/
 │   │   ├── error-state.tsx     # Error state placeholder
 │   │   └── loading-state.tsx   # Loading state placeholder
 │   └── ui/                     # shadcn/ui components (button, input, select, etc.)
+├── data/
+│   ├── buyer.ts                # Default buyer / consignee details
+│   ├── company.ts              # M.M FABRICS seller profile
+│   └── invoice-static.ts       # Default invoice notes and terms
 ├── features/
+│   ├── auth/
+│   │   ├── components/
+│   │   │   ├── auth-field.tsx      # Shared labeled auth input and error state
+│   │   │   ├── auth-page.tsx       # Shared premium auth page frame
+│   │   │   ├── login-form.tsx      # Validated Better Auth sign-in flow
+│   │   │   └── register-form.tsx   # Validated Better Auth registration flow
+│   │   ├── schemas/
+│   │   │   └── auth.schema.ts      # Shared Zod schemas and auth form types
+│   │   └── utils/
+│   │       └── auth-redirect.ts    # Same-site auth redirect validation
 │   └── invoices/
 │       ├── actions/
-│       │   ├── create-invoice.ts   # createInvoiceAction + getNextPiNumber (optional auth)
-│       │   ├── update-invoice.ts   # updateInvoiceAction (ownership: _id + ownerId)
-│       │   ├── delete-invoice.ts   # deleteInvoiceAction (ownership: _id + ownerId)
-│       │   └── list-invoices.ts    # listInvoicesAction (paginated, auth required)
+│       │   ├── create-invoice.ts       # createInvoiceAction + getNextPiNumber (optional auth)
+│       │   ├── update-invoice.ts       # updateInvoiceAction (ownership: _id + ownerId)
+│       │   ├── delete-invoice.ts       # deleteInvoiceAction (ownership: _id + ownerId)
+│       │   ├── list-invoices.ts        # listInvoicesAction (paginated, auth required)
+│       │   └── export-invoice-pdf.ts   # Export PDF; persist as exported when signed in
 │       ├── components/
-│       │   ├── invoice-form.tsx        # Multi-section invoice form (RHF + Zod)
+│       │   ├── invoice-form.tsx        # PI metadata and buyer form (RHF + Zod)
 │       │   ├── invoice-generator.tsx   # Page-level form orchestration + save/export
-│       │   ├── invoice-line-items.tsx  # Line-item CRUD with combobox description
-│       │   ├── line-item-card.tsx      # Mobile stacked line-item card
-│       │   ├── invoice-preview.tsx     # Read-only A4 live preview
-│       │   ├── invoice-summary.tsx     # Subtotal/total summary
-│       │   ├── invoice-toolbar.tsx     # Save/export/preview toolbar
-│       │   └── invoice-pdf.tsx         # @react-pdf/renderer A4 document
+│       │   ├── invoice-line-items.tsx  # Editable items with guarded add-item flow
+│       │   ├── invoice-list-table.tsx  # Table with preview, PDF export, confirmed delete
+│       │   └── invoice-preview.tsx     # JSX A4 live preview (HTML, not PDF)
+│       ├── services/
+│       │   └── persist-invoice.ts      # Shared owner-scoped draft/export persistence
+│       ├── pdf/
+│       │   └── generate-invoice-pdf.ts # PDFKit A4 generator (server-only)
 │       ├── schemas/
 │       │   └── invoice.schema.ts       # Shared Zod schemas (client + server)
 │       ├── store/
 │       │   └── invoice-ui.slice.ts     # Redux UI slice (preview, dirty, zoom, etc.)
-│       ├── types.ts                # Invoice line-item view type
+│       ├── types.ts                # Invoice line-item view + PDF document types
 │       └── utils/
+│           ├── build-invoice-document.ts    # Shared preview/PDF document mapping
 │           ├── calculate-invoice-total.ts   # Decimal-safe money math
+│           ├── download-pdf.ts              # Client download helper for PDFKit output
+│           ├── format-invoice-money.ts      # en-US currency formatting
 │           ├── format-invoice-number.ts     # MMF/###/YY numbering
 │           ├── number-to-words.ts           # "Say total" verbal amount
 │           ├── products.ts                  # Searchable description options
@@ -86,6 +109,9 @@ src/
 └── types/
     ├── common.ts                   # Currency, InvoiceStatus, ZoomLevel types
     └── database.ts                 # Document type re-exports
+
+public/
+└── mm-fabrics-seal.png              # Company seal for invoice preview and PDF
 ```
 
 ## Root config files

@@ -1,170 +1,220 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import dynamic from "next/dynamic";
-import { useForm, FormProvider, type Resolver } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "@/components/ui/toast";
-import { createInvoiceSchema, type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { buyerProfile } from "@/data/buyer";
+import { defaultNotes, defaultTermsAndConditions } from "@/data/invoice-static";
 import { createInvoiceAction } from "@/features/invoices/actions/create-invoice";
+import { exportInvoicePdfAction } from "@/features/invoices/actions/export-invoice-pdf";
 import { InvoiceForm } from "@/features/invoices/components/invoice-form";
 import { InvoicePreview } from "@/features/invoices/components/invoice-preview";
-import { InvoiceToolbar } from "@/features/invoices/components/invoice-toolbar";
-import { setIsDirty, markSaved, setPreviewOpen } from "@/features/invoices/store/invoice-ui.slice";
-import { RootState } from "@/store/index";
+import {
+  buildInvoiceDocument,
+  toInvoiceDocumentInput,
+} from "@/features/invoices/utils/build-invoice-document";
+import { downloadPdfFromBase64 } from "@/features/invoices/utils/download-pdf";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { SaveIcon } from "lucide-react";
+import { DownloadIcon, SaveIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
+import type { CreateInvoiceInput } from "../schemas/invoice.schema";
 
-const PdfExportButton = dynamic(
-  () =>
-    import("@/features/invoices/components/pdf-export-button").then(
-      (mod) => mod.PdfExportButton,
-    ),
-  { ssr: false },
-);
-
-type InvoiceFormValues = CreateInvoiceInput;
-
-const DEFAULT_VALUES: InvoiceFormValues = {
-  piNumber: "",
-  issueDate: "",
-  currency: "USD",
-  status: "draft",
-  seller: { companyName: "", address: "", corporateOffice: "", contactNumber: "", email: "" },
-  buyer: { name: "", address: "", destinationCountry: "" },
-  lineItems: [],
-  subtotal: 0,
-  totalAmount: 0,
-  notes: {
-    sayTotal: "",
-    goodsDeliveryDestination: "",
-    goodsOrigin: "",
-    advisingBank: "",
-    allowance: "",
-    packing: "",
-    shipmentDate: "",
-    payment: "",
-    partialShipment: "",
-    piValidity: "",
-  },
-  termsAndConditions: [],
-  signatures: { buyerLabel: "", sellerLabel: "", stampUrl: "", includeBuyerSignature: false, includeSellerSignature: false },
-};
+interface InvoiceGeneratorProps {
+  initValues?: Partial<CreateInvoiceInput>;
+  canSaveDraft: boolean;
+}
 
 export function InvoiceGenerator({
-  initialValues,
-  companyProfile,
-}: {
-  initialValues?: Partial<InvoiceFormValues>;
-  companyProfile: InvoiceFormValues["seller"];
-}) {
-  const dispatch = useDispatch();
-  const isPreviewOpen = useSelector((state: RootState) => state.invoiceUi.isPreviewOpen);
-
+  initValues,
+  canSaveDraft,
+}: InvoiceGeneratorProps) {
   const methods = useForm<CreateInvoiceInput>({
-    resolver: (zodResolver(createInvoiceSchema) as unknown) as Resolver<
-      CreateInvoiceInput,
-      undefined,
-      CreateInvoiceInput
-    >,
     defaultValues: {
-      ...DEFAULT_VALUES,
-      ...initialValues,
-      seller: companyProfile,
+      piNumber: "MMF/001/26",
+      issueDate: new Date().toISOString().split("T")[0],
+      currency: "USD",
+      buyer: buyerProfile,
+      notes: defaultNotes,
+      termsAndConditions: defaultTermsAndConditions,
+      lineItems: [
+        {
+          description:
+            '35% Cotton 65% Polyester TC\nConstruction: 45x45/90x60\nWidth: 55/56"',
+          style: "Buyer: MAX DUBAI - B27MCSFEWB250B",
+          color: "Navy",
+          quantity: 1958,
+          unitPrice: 0.7,
+          totalPrice: 1370.6,
+        },
+      ],
+      ...initValues,
     },
-    mode: "onBlur",
-    criteriaMode: "all",
+    mode: "onChange" as const,
   });
 
-  const { handleSubmit, formState: { isSubmitting, isDirty: formIsDirty } } = methods;
-  const formValues = methods.getValues();
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const {
+    handleSubmit,
+    control,
+    getValues,
+    formState: { isSubmitting, isDirty },
+  } = methods;
 
-  const onSave = async (values: InvoiceFormValues) => {
+  const watchedValues = useWatch({ control });
+  const previewData = useMemo(
+    () => buildInvoiceDocument(toInvoiceDocumentInput(watchedValues)),
+    [watchedValues],
+  );
+
+  useUnsavedChanges(isDirty, (event) => {
+    event.preventDefault();
+    event.returnValue = "";
+  });
+
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const [exportStatus, setExportStatus] = useState<
+    "idle" | "exporting" | "error"
+  >("idle");
+  const [persistedInvoiceId, setPersistedInvoiceId] = useState<
+    string | undefined
+  >();
+
+  const onSave = async (values: CreateInvoiceInput): Promise<void> => {
     setSaveStatus("saving");
     try {
-      const result = await createInvoiceAction(values);
+      const result = await createInvoiceAction(values, persistedInvoiceId);
       if (result.ok) {
         setSaveStatus("saved");
-        dispatch(markSaved());
-        toast.add({ title: "Saved", description: "Invoice draft saved." });
+        if (result.data.persisted) {
+          setPersistedInvoiceId(result.data.invoiceId);
+          methods.reset(values);
+          toast.success("Draft saved", {
+            description: "Your invoice is safely stored.",
+          });
+        } else {
+          toast.info("Invoice is ready", {
+            description: "Sign in to save this draft to your account.",
+          });
+        }
         setTimeout(() => setSaveStatus("idle"), 1500);
       } else {
         setSaveStatus("error");
-        toast.add({ title: "Could not save", description: result.message });
+        toast.error("Couldn’t save draft", { description: result.message });
+        setTimeout(() => setSaveStatus("idle"), 2000);
       }
     } catch {
       setSaveStatus("error");
-      toast.add({ title: "Could not save", description: "An unexpected error occurred." });
+      toast.error("Couldn’t save draft", { description: "Please try again." });
+      setTimeout(() => setSaveStatus("idle"), 2000);
     }
   };
 
-  useEffect(() => {
-    dispatch(setIsDirty(formIsDirty));
-  }, [dispatch, formIsDirty]);
+  const onExportPdf = async (): Promise<void> => {
+    const isValid = await methods.trigger();
+    if (!isValid) {
+      toast.error("Complete the invoice first", {
+        description: "Review the highlighted fields before exporting.",
+      });
+      return;
+    }
+    setExportStatus("exporting");
+    try {
+      const result = await exportInvoicePdfAction(
+        getValues(),
+        persistedInvoiceId,
+      );
+      if (!result.ok) {
+        setExportStatus("error");
+        toast.error("PDF export failed", { description: result.message });
+        setTimeout(() => setExportStatus("idle"), 2000);
+        return;
+      }
 
-  useUnsavedChanges(
-    formIsDirty,
-    (event) => {
-      event.preventDefault();
-    },
-  );
+      downloadPdfFromBase64(result.data.pdfBase64, result.data.fileName);
+      if (result.data.persisted) {
+        setPersistedInvoiceId(result.data.invoiceId);
+        methods.reset(getValues());
+      }
+      toast.success("Invoice exported", {
+        description: result.data.persisted
+          ? "The PDF is downloaded and the invoice is saved to your account."
+          : "Your PDF is ready to share.",
+      });
+      setExportStatus("idle");
+    } catch {
+      setExportStatus("error");
+      toast.error("PDF export failed", { description: "Please try again." });
+      setTimeout(() => setExportStatus("idle"), 2000);
+    }
+  };
 
   return (
-    <div className="flex flex-col h-full">
-      <InvoiceToolbar
-        isSaving={isSubmitting || saveStatus === "saving"}
-        isDirty={formIsDirty}
-        isPreviewOpen={isPreviewOpen}
-        onSave={() => handleSubmit(onSave)()}
-        onTogglePreview={() => dispatch(setPreviewOpen(!isPreviewOpen))}
-      />
-      <div className="flex-1 min-w-0 overflow-y-auto p-6 lg:p-8">
-        {saveStatus === "error" && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertDescription>Could not save. Please fix the errors and try again.</AlertDescription>
-          </Alert>
-        )}
-        <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSave)} className="space-y-6">
-            <InvoiceForm companyProfile={companyProfile} />
-            <div className="flex justify-end gap-3 pt-6">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isSubmitting || !formIsDirty}
-                onClick={() => handleSubmit(onSave)()}
+    <div className="grid min-h-[calc(100vh-13rem)] grid-cols-1 items-start gap-5 lg:grid-cols-2">
+      <div className="min-w-0">
+        <Card className="overflow-hidden rounded-2xl border-border/70 shadow-sm">
+          <CardContent className="p-4 sm:p-6">
+            <FormProvider {...methods}>
+              <form
+                onSubmit={handleSubmit(onSave)}
+                className="flex flex-col gap-6"
               >
-                <SaveIcon className="size-3.5 mr-2" /> Save draft
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Saving…" : (<> <SaveIcon className="size-3.5 mr-2" /> Save draft</>)}
-              </Button>
-              <PdfExportButton
-                formValues={formValues}
-                isSubmitting={isSubmitting}
-                isDirty={formIsDirty}
-              />
-            </div>
-          </form>
-        </FormProvider>
+                <InvoiceForm />
+                <div className="sticky bottom-0 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border/70 bg-card/95 px-4 pb-2 pt-4 backdrop-blur sm:-mx-6 sm:px-6">
+                  {canSaveDraft ? (
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      size="sm"
+                      disabled={isSubmitting || saveStatus === "saving"}
+                    >
+                      <SaveIcon data-icon="inline-start" />
+                      {saveStatus === "saving"
+                        ? "Saving…"
+                        : saveStatus === "saved"
+                          ? "Saved"
+                          : "Save draft"}
+                    </Button>
+                  ) : null}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={exportStatus === "exporting"}
+                    onClick={onExportPdf}
+                  >
+                    <DownloadIcon data-icon="inline-start" />
+                    {exportStatus === "exporting" ? "Exporting…" : "Export PDF"}
+                  </Button>
+                </div>
+              </form>
+            </FormProvider>
+          </CardContent>
+        </Card>
       </div>
-      {isPreviewOpen && (
-        <aside className="lg:w-96 border-l border-border bg-background hidden lg:block flex flex-col">
-          <div className="p-4 border-b border-border">
-            <h2 className="text-xs font-semibold text-ink uppercase tracking-wider">Preview</h2>
-          </div>
-          <div className="flex-1 overflow-auto p-4">
-            <InvoicePreview zoom="fit" />
-          </div>
-        </aside>
-      )}
+
+      <div className="min-w-0 lg:sticky lg:top-20">
+        <Card className="overflow-hidden rounded-2xl border-border/70 shadow-sm">
+          <CardContent className="flex flex-col overflow-hidden p-0">
+            <div className="flex items-center justify-between border-b border-border/70 bg-card px-5 py-4">
+              <div>
+                <p className="text-sm font-semibold">Live preview</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  A4 · Updates as you type
+                </p>
+              </div>
+              <span className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-[11px] font-medium text-primary">
+                <span className="size-1.5 animate-pulse rounded-full bg-primary" />{" "}
+                Live
+              </span>
+            </div>
+            <div className="min-h-152 overflow-auto bg-muted/40 p-3 sm:p-5">
+              <InvoicePreview data={previewData} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

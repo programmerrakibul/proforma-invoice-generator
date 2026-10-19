@@ -14,7 +14,7 @@ Better Auth.
 - **Authentication:** Better Auth (emailAndPassword provider,
   `@better-auth/mongo-adapter`, 30-day sessions)
 - **State:** Redux Toolkit (client UI state only)
-- **PDF:** @react-pdf/renderer
+- **PDF:** PDFKit (server-side generation) + JSX live preview
 - **Theme:** next-themes (light/dark/system)
 - **Package Manager:** pnpm 12.14.0
 
@@ -80,6 +80,10 @@ pnpm dev
 - **Client SDK:** `better-auth/client` (`signUp.email`, `signIn.email`)
 - **Server helpers:** `getCurrentUser()` (optional), `requireUser()` (throws
   when unauthenticated)
+- **Server session lookup:** Both helpers forward `await headers()` to
+  `auth.api.getSession()` so Better Auth can read the incoming session cookie
+- **Redirect behavior:** Login and registration accept a validated same-site
+  `redirect` query value and fall back to `/invoices`
 - **Guest flow:** Unauthenticated users can preview/generate invoices
   client-side; persistence to MongoDB requires sign-in
 
@@ -98,10 +102,10 @@ pnpm dev
 - `piNumber` (`MMF/###/YY` format, e.g. `MMF/001/26`)
 - `issueDate`, `currency` (default `USD`)
 - `status` (`draft` \| `ready` \| `exported` \| `archived`, indexed)
-- `seller`, `buyer` (embedded contact info)
+- `seller`, `buyer` (embedded contact info, including consignee address and destination country)
 - `lineItems[]` (description, style, color, quantity, unitPrice, totalAmount,
   unit)
-- `subtotal`, `totalAmount` (calculated server-side)
+- `subtotal`, `totalAmount`, `totalQuantity` (calculated server-side)
 - `notes` (sayTotal, goodsDeliveryDestination, goodsOrigin, advisingBank,
   allowance, packing, shipmentDate, payment, partialShipment, piValidity)
 - `termsAndConditions[]`, `signatures` (buyerLabel, sellerLabel, stampUrl,
@@ -113,12 +117,13 @@ pnpm dev
 
 All invoice mutations go through Next.js Server Actions:
 
-| Action                | File                                          | Auth                     | Ownership                               |
-| --------------------- | --------------------------------------------- | ------------------------ | --------------------------------------- |
-| `createInvoiceAction` | `features/invoices/actions/create-invoice.ts` | Optional (guest allowed) | Derived from session when authenticated |
-| `updateInvoiceAction` | `features/invoices/actions/update-invoice.ts` | Required                 | Query by `_id` + `ownerId`              |
-| `deleteInvoiceAction` | `features/invoices/actions/delete-invoice.ts` | Required                 | Query by `_id` + `ownerId`              |
-| `listInvoicesAction`  | `features/invoices/actions/list-invoices.ts`  | Required                 | Filter by `ownerId`                     |
+| Action                   | File                                              | Auth                     | Ownership                                         |
+| ------------------------ | ------------------------------------------------- | ------------------------ | ------------------------------------------------- |
+| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Optional (guest allowed) | Derived from session when authenticated           |
+| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
+| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
+| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                               |
+| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | Session owner when persisted                    |
 
 **Security rules enforced:**
 
@@ -127,9 +132,18 @@ All invoice mutations go through Next.js Server Actions:
 - `totalAmount` and `subtotal` are recalculated server-side; client values are
   ignored
 - Update/delete queries always filter by `_id` and `ownerId` together
+- Exporting an invoice from the list updates that existing record to `exported`
+  only when both its id and the authenticated owner match
 - Non-ownership returns a generic "not found" result (no information leakage)
 - Zod validation runs on both client (React Hook Form) and server (Server
   Action)
+
+## PDF generation and live preview
+
+- Live preview is a JSX/HTML A4 document that updates as the form changes
+- PDF files are generated on the server with PDFKit and downloaded via
+  `exportInvoicePdfAction` (guests can export without signing in)
+- Preview and PDF share the same mapped document model
 
 ## Caching Strategy
 
@@ -144,10 +158,20 @@ All invoice mutations go through Next.js Server Actions:
 ## Features
 
 - User authentication (sign-in/sign-up with Better Auth email/password)
-- Landing page and protected invoice listing with search, status filter, sort,
-  and server-side pagination
-- Invoice generator with live A4 preview
-- Multi-line-item support with searchable description combobox
+- Premium responsive landing, authentication, and invoice studio interfaces
+- Shared site header; auth supports a safe same-site `redirect` query parameter
+- Auth success feedback with toast notifications and destination navigation
+- Landing page and protected invoice table with search, status filter, sorting,
+  pagination, preview, and confirmed deletion
+- Invoice list rows can export saved invoices to PDF and mark them exported
+- Invoice generator with live A4 JSX preview (HTML, updates as the form changes)
+- Multi-line-item support with required-field validation and guarded add-item flow
+- Buyer/consignee details and invoice line items; delivery, banking, shipment,
+  payment notes, and terms are populated from application defaults in the
+  background rather than exposed as form fields
+- The first line item starts with the editable fabric, style, color, quantity,
+  and unit-price values from the invoice sample; calculated totals are always
+  recomputed from quantity and unit price
 - Decimal-safe money calculations (integer-cent arithmetic)
 - "Say total" verbal amount rendering
 - Draft saving with Server Actions
@@ -155,7 +179,10 @@ All invoice mutations go through Next.js Server Actions:
 - Unsaved-changes navigation guard (`beforeunload`)
 - Responsive design: desktop sidebar + sticky preview, tablet collapsible
   sidebar, mobile stacked cards
-- PDF export (via @react-pdf/renderer)
+- PDF export (PDFKit, generated on the server; authenticated exports are saved)
+- Invoice totals show aggregate quantity, unit-price total, and total amount
+- Locale-aware `en-US` currency formatting, `en-ES` quantity formatting, and
+  M.M FABRICS seal/signature footer
 - Light/dark/system theme support (next-themes)
 
 ## Verification Order

@@ -1,207 +1,181 @@
-"use client";
-
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useFormContext } from "react-hook-form";
-import { Separator } from "@/components/ui/separator";
-import { type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
-import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
-import { numberToWords } from "@/features/invoices/utils/number-to-words";
-
-type InvoiceFormValues = CreateInvoiceInput;
+import type { InvoiceDocumentData } from "@/features/invoices/types";
+import { INVOICE_NOTE_FIELDS } from "@/features/invoices/utils/build-invoice-document";
+import { formatInvoiceMoney } from "@/features/invoices/utils/format-invoice-money";
+import Image from "next/image";
 
 interface InvoicePreviewProps {
-  zoom: "fit" | 75 | 100;
+  data: InvoiceDocumentData;
 }
 
-const MM = 96 / 25.4; // pixels per mm at 96 dpi
-const A4_WIDTH_PX = 210 * MM;
-const A4_HEIGHT_PX = 297 * MM;
+function stripLeadingNumber(term: string): string {
+  return term.replace(/^\d+\.\s*/, "");
+}
 
-export function InvoicePreview({ zoom }: InvoicePreviewProps) {
-  const { getValues } = useFormContext<InvoiceFormValues>();
-  const formValues = getValues();
-  const [overflowing, setOverflowing] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
+export function InvoicePreview({ data }: InvoicePreviewProps) {
+  const notes = INVOICE_NOTE_FIELDS.filter((field) => {
+    const value = data.notes[field.key];
+    return Boolean(value && value.trim().length > 0);
+  });
 
-  const { lineItems, totalAmount } = calculateInvoiceTotals(
-    formValues.lineItems,
-  );
-  const currency = formValues.currency ?? "USD";
-  const sayTotal = numberToWords(totalAmount, currency);
-
-  const checkOverflow = useCallback(() => {
-    const el = contentRef.current;
-    if (!el) return;
-    setOverflowing(el.scrollHeight > el.clientHeight + 4);
-  }, []);
-
-  useEffect(checkOverflow, [checkOverflow, lineItems.length, formValues.notes]);
-
-  const scale = zoom === 100 ? 1 : zoom === 75 ? 0.75 : 0.5;
+  const fillerRows = [0, 1];
 
   return (
-    <div
-      className="relative w-full overflow-hidden bg-muted/40 rounded-lg border border-border"
-      style={{
-        width: zoom === 100 ? "100%" : A4_WIDTH_PX * scale,
-        height: zoom === 100 ? "auto" : A4_HEIGHT_PX * scale,
-        transformOrigin: "top left",
-        transform: `scale(${scale})`,
-      } as React.CSSProperties}
-    >
-      <div
-        ref={contentRef}
-        className="w-[210mm] min-h-[297mm] bg-paper border border-border p-8 text-ink overflow-hidden"
-        style={{ ...(zoom === 100 ? { width: "100%", height: "auto" } : {}) } as React.CSSProperties}
-      >
-        {/* Company name */}
-        <div className=" text-xl font-bold tracking-tight mb-1">
-          {formValues.seller.companyName || "M.M FABRICS"}
+    <article className="mx-auto flex min-h-[297mm] w-[210mm] flex-col bg-white px-[14mm] py-[12mm] text-[#1a1a1a] shadow-lg">
+      <header className="mb-3 text-center">
+        <h2 className="text-[22px] font-bold leading-tight text-[#1a2e6a]">
+          {data.seller.companyName}
+        </h2>
+        <p className="mt-1 text-[7.5pt] leading-snug">
+          Address: {data.seller.address}
+        </p>
+        <p className="text-[7.5pt] leading-snug">
+          Corporate Office: {data.seller.corporateOffice}
+        </p>
+        <p className="text-[7.5pt] leading-snug">
+          Contact Number: {data.seller.contactNumber} | Email:{" "}
+          {data.seller.email}
+        </p>
+      </header>
+
+      <div className="mb-3 h-0.5 w-full bg-[#2563eb]" />
+
+      <h3 className="mb-4 text-center text-[18px] font-bold uppercase tracking-wide text-[#2563eb]">
+        Proforma Invoice
+      </h3>
+
+      <div className="mb-4 grid grid-cols-2 gap-6 text-[8.5pt]">
+        <div>
+          <p className="font-bold">Buyer / Consignee</p>
+          <p>{data.buyer.name || "—"}</p>
+          {data.buyer.address ? <p>{data.buyer.address}</p> : null}
+          {data.buyer.destinationCountry ? (
+            <p>{data.buyer.destinationCountry}</p>
+          ) : null}
         </div>
-        {/* Seller contact details */}
-        <div className="text-xs text-muted-foreground mb-6 space-y-1">
-          <div>{formValues.seller.address}</div>
-          <div>
-            {formValues.seller.corporateOffice} •
-            {formValues.seller.contactNumber} •
-            {formValues.seller.email}
-          </div>
+        <div>
+          <p className="font-bold">PI No.</p>
+          <p>{data.piNumber}</p>
+          <p className="mt-2 font-bold">Date</p>
+          <p>{data.issueDateLabel || "—"}</p>
         </div>
-        {/* Blue rule */}
-        <div className="h-1 bg-primary mb-4" />
-        {/* Title */}
-        <div className=" text-2xl font-bold text-primary tracking-wider mb-6">
-          PROFORMA INVOICE
-        </div>
-        {/* Buyer and metadata */}
-        <div className="grid grid-cols-2 gap-4 text-xs mb-6">
-          <div className="space-y-1">
-            <div className="font-semibold">Buyer / Consignee</div>
-            <div>{formValues.buyer.name}</div>
-            <div>{formValues.buyer.address}</div>
-            <div>{formValues.buyer.destinationCountry}</div>
-          </div>
-          <div className="space-y-1 text-right">
-            <div className="font-semibold">PI No.</div>
-            <div>{formValues.piNumber}</div>
-            <div className="font-semibold">Issue date</div>
-            <div>{new Date(formValues.issueDate).toLocaleDateString()}</div>
-            <div className="font-semibold">Currency</div>
-            <div>{currency}</div>
-          </div>
-        </div>
-        <Separator />
-        {/* Line-item table */}
-        <div className="overflow-x-auto mb-4">
-          <table className="w-full text-xs border-collapse border border-border">
-            <thead className="bg-primary text-primary-foreground">
-              <tr>
-                <th className="px-2 py-1 text-left">Description</th>
-                <th className="px-2 py-1 text-left">Style</th>
-                <th className="px-2 py-1 text-left">Color</th>
-                <th className="px-2 py-1 text-right">Qty</th>
-                <th className="px-2 py-1 text-right">Unit</th>
-                <th className="px-2 py-1 text-right">Unit price</th>
-                <th className="px-2 py-1 text-right">Total</th>
-              </tr>
-            </thead>
-            <tbody className="text-ink">
-              {lineItems.map((item, i) => (
-                <tr key={i} className="border-b border-border/50">
-                  <td className="px-2 py-1">{item.description}</td>
-                  <td className="px-2 py-1">{item.style}</td>
-                  <td className="px-2 py-1">{item.color}</td>
-                  <td className="px-2 py-1 text-right">
-                    {String(item.quantity ?? 0)}
-                  </td>
-                  <td className="px-2 py-1 text-right">{item.unit}</td>
-                  <td className="px-2 py-1 text-right">
-                    {`${currency} ${Number(item.unitPrice ?? 0).toFixed(2)}`}
-                  </td>
-                  <td className="px-2 py-1 text-right font-medium">
-                    {`${currency} ${Number(item.totalAmount).toFixed(2)}`}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {/* Totals */}
-        <div className="flex justify-end mt-2">
-          <div className="text-right font-medium text-sm border-l-2 border-primary pl-2">
-            <div>
-              Total {`${currency} ${totalAmount.toFixed(2)}`}
-            </div>
-          </div>
-        </div>
-        {/* Say-total callout */}
-        {sayTotal && (
-          <div className="mt-6 rounded-lg border border-accent bg-accent/50 p-3 text-xs">
-            <span className="font-semibold text-ink">Say total: </span>
-            <span className="">{sayTotal}.</span>
-          </div>
-        )}
-        {/* Notes */}
-        <div className="mt-6 space-y-2 text-xs">
-          <div className="font-semibold text-ink">Notes</div>
-          {[
-            { label: "Say total", value: formValues.notes.sayTotal },
-            { label: "Goods delivery destination", value: formValues.notes.goodsDeliveryDestination },
-            { label: "Goods origin", value: formValues.notes.goodsOrigin },
-            { label: "Advising bank", value: formValues.notes.advisingBank },
-            { label: "Allowance", value: formValues.notes.allowance },
-            { label: "Packing", value: formValues.notes.packing },
-            { label: "Shipment date", value: formValues.notes.shipmentDate },
-            { label: "Payment", value: formValues.notes.payment },
-            { label: "Partial shipment", value: formValues.notes.partialShipment },
-            { label: "PI validity", value: formValues.notes.piValidity },
-          ]
-            .filter((n) => n.value)
-            .map((note, i) => (
-              <div key={i} className="flex">
-                <span className="shrink-0 text-muted-foreground">{i + 1}.</span>
-                <span className="ml-1">{note.label}: {note.value}</span>
-              </div>
-            ))}
-        </div>
-        {/* Terms and conditions */}
-        {formValues.termsAndConditions.length > 0 && (
-          <div className="mt-6 space-y-1 text-xs">
-            <div className="font-semibold text-ink">Terms and conditions</div>
-            {formValues.termsAndConditions.map((term, i) => (
-              <div key={i} className="flex">
-                <span className="shrink-0 text-muted-foreground">{i + 1}.</span>
-                <span className="ml-1">{term}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        {/* Signatures */}
-        <div className="mt-8 flex justify-between text-xs">
-          <div className="w-1/3 border-t border-border pt-2">
-            <div className="text-muted-foreground">Buyer authorized signature</div>
-            {formValues.signatures.buyerLabel && (
-              <div className="font-medium">{formValues.signatures.buyerLabel}</div>
-            )}
-          </div>
-          <div className="w-1/3 border-t border-border pt-2">
-            <div className="text-muted-foreground">Seller signature</div>
-            {formValues.signatures.sellerLabel && (
-              <div className="font-medium">{formValues.signatures.sellerLabel}</div>
-            )}
-          </div>
-        </div>
-        {/* Footer / page count */}
-        <div className="mt-8 flex justify-between text-[10px] text-muted-foreground border-t border-border pt-2">
-          <span>M.M FABRICS — Proforma Invoice</span>
-          <span>Page 1 of 1</span>
-        </div>
-        {overflowing && (
-          <div className="absolute bottom-2 left-2 z-10 rounded bg-destructive/90 px-2 py-1 text-xs text-destructive">
-            Content may exceed one page
-          </div>
-        )}
       </div>
-    </div>
+
+      <table className="mb-4 w-full border-collapse border border-[#1a1a1a] text-[8pt]">
+        <thead>
+          <tr className="bg-[#1a2e6a] text-white">
+            <th className="w-[30%] border border-[#1a1a1a] px-1.5 py-1 text-left font-bold">
+              Description of Goods
+            </th>
+            <th className="w-[14%] border border-[#1a1a1a] px-1.5 py-1 text-left font-bold">
+              Style
+            </th>
+            <th className="w-[14%] border border-[#1a1a1a] px-1.5 py-1 text-left font-bold">
+              Color
+            </th>
+            <th className="w-[14%] border border-[#1a1a1a] px-1.5 py-1 text-right font-bold">
+              Quantity (Yds)
+            </th>
+            <th className="w-[14%] border border-[#1a1a1a] px-1.5 py-1 text-right font-bold">
+              Unit Price ({data.currency})
+            </th>
+            <th className="w-[14%] border border-[#1a1a1a] px-1.5 py-1 text-right font-bold">
+              Total Amount ({data.currency})
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.lineItems.map((item, index) => (
+            <tr key={`${item.description}-${index}`}>
+              <td className="border border-[#1a1a1a] px-1.5 py-1">
+                {item.description}
+              </td>
+              <td className="border border-[#1a1a1a] px-1.5 py-1">
+                {item.style}
+              </td>
+              <td className="border border-[#1a1a1a] px-1.5 py-1">
+                {item.color}
+              </td>
+              <td className="border border-[#1a1a1a] px-1.5 py-1 text-right">
+                {new Intl.NumberFormat("en-ES").format(item.quantity)}
+              </td>
+              <td className="border border-[#1a1a1a] px-1.5 py-1 text-right">
+                {formatInvoiceMoney(item.unitPrice, data.currency)}
+              </td>
+              <td className="border border-[#1a1a1a] px-1.5 py-1 text-right">
+                {formatInvoiceMoney(item.totalAmount, data.currency)}
+              </td>
+            </tr>
+          ))}
+          {fillerRows.map((row) => (
+            <tr key={`empty-${row}`}>
+              <td className="h-6 border border-[#1a1a1a]" />
+              <td className="border border-[#1a1a1a]" />
+              <td className="border border-[#1a1a1a]" />
+              <td className="border border-[#1a1a1a]" />
+              <td className="border border-[#1a1a1a]" />
+              <td className="border border-[#1a1a1a]" />
+            </tr>
+          ))}
+          <tr>
+            <td className="border border-[#1a1a1a]" />
+            <td className="border border-[#1a1a1a]" />
+            <td className="border border-[#1a1a1a]" />
+            <td className="border border-[#1a1a1a] px-1.5 py-1 text-right font-bold">
+              {new Intl.NumberFormat("en-ES").format(data.totalQuantity)}
+            </td>
+            <td className="border border-[#1a1a1a] px-1.5 py-1 text-right font-bold">
+              {formatInvoiceMoney(data.totalUnitPrice, data.currency)}
+            </td>
+            <td className="border border-[#1a1a1a] px-1.5 py-1 text-right font-bold">
+              {formatInvoiceMoney(data.totalAmount, data.currency)}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="mb-4 rounded border border-[#d97706] bg-[#fef3c7] px-2.5 py-2 text-[8pt]">
+        <p className="font-bold">Say total:</p>
+        <p>{data.sayTotal}.</p>
+      </div>
+
+      {notes.length > 0 ? (
+        <section className="mb-4 text-[8pt]">
+          <p className="mb-1 font-bold">Notes</p>
+          {notes.map((note, index) => (
+            <p key={note.key}>
+              {index + 1}. {note.label}: {data.notes[note.key]}
+            </p>
+          ))}
+        </section>
+      ) : null}
+
+      <section className="mb-8 text-[8pt]">
+        <p className="mb-1 font-bold">Terms & Conditions:</p>
+        {data.termsAndConditions.map((term, index) => (
+          <p key={`${term}-${index}`}>
+            {index + 1}. {stripLeadingNumber(term)}
+          </p>
+        ))}
+      </section>
+
+      <footer className="mt-auto grid grid-cols-2 gap-16 pt-8 text-[8pt] text-center">
+        <div>
+          <div className="mb-1 h-14 border-b border-[#1a1a1a]" />
+          <p>Buyer Authorized Signature</p>
+        </div>
+        <div>
+          <div className="relative mb-1 h-14 border-b border-[#1a1a1a]">
+            <Image
+              src="/mm-fabrics-seal.png"
+              alt="M.M FABRICS company seal"
+              width={140}
+              height={100}
+              className="absolute bottom-1 left-1/2 h-12 w-20 -translate-x-1/2 object-contain"
+            />
+          </div>
+          <p>For M.M FABRICS</p>
+        </div>
+      </footer>
+    </article>
   );
 }
