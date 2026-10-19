@@ -117,7 +117,8 @@ All invoice mutations go through Next.js Server Actions:
 - Goods delivery/banking/shipping notes and terms use application defaults in
   the invoice payload; keep these static details out of the user-facing form
   until editable terms are requested. The initial product row uses editable
-  starter text and quantity defaults, while unit price remains zero until set.
+  values from the supplied invoice sample; calculate all totals from quantity
+  and unit price rather than trusting the client-provided total.
 - Money values in the invoice preview, list, and PDF use the `en-ES` number
   format; the seller seal asset is served from `public/mm-fabrics-seal.png`.
 - Preview and PDF share the same mapped document model via

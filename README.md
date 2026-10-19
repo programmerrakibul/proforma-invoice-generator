@@ -162,9 +162,9 @@ All invoice mutations go through Next.js Server Actions:
 - Buyer/consignee details and invoice line items; delivery, banking, shipment,
   payment notes, and terms are populated from application defaults in the
   background rather than exposed as form fields
-- The first line item starts with editable starter values (Fabric, Standard,
-  As specified, and quantity 1); unit price starts at 0 and must be set before
-  saving or exporting
+- The first line item starts with the editable fabric, style, color, quantity,
+  and unit-price values from the invoice sample; calculated totals are always
+  recomputed from quantity and unit price
 - Decimal-safe money calculations (integer-cent arithmetic)
 - "Say total" verbal amount rendering
 - Draft saving with Server Actions
