@@ -89,7 +89,7 @@ All invoice mutations go through Next.js Server Actions:
 | `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
 | `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
 | `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                               |
-| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | None (PDF generated from submitted form data)     |
+| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | Owner derived from session when persisted        |
 
 **Security rules enforced:**
 
@@ -97,6 +97,8 @@ All invoice mutations go through Next.js Server Actions:
   input
 - `totalAmount` and `subtotal` are recalculated server-side; client values are
   ignored
+- Buyer, invoice notes, line totals, subtotal, total quantity, and status are
+  validated and persisted together for authenticated invoices
 - Update/delete queries always filter by `_id` and `ownerId` together
 - Non-ownership returns a generic "not found" result (no information leakage)
 - Zod validation runs on both client (React Hook Form) and server (Server
@@ -108,7 +110,12 @@ All invoice mutations go through Next.js Server Actions:
   from React Hook Form `useWatch`. It is not a PDF renderer.
 - PDF files are generated server-side with PDFKit
   (`features/invoices/pdf/generate-invoice-pdf.ts`) and downloaded from
-  `exportInvoicePdfAction`. Guests can export without persisting to MongoDB.
+  `exportInvoicePdfAction`. Guests can export without persisting; authenticated
+  exports are persisted with `exported` status.
+- The invoice workspace validates the full payload with Zod, presents database
+  records in an owner-scoped table, and requires confirmation before deletion.
+- Money values in the invoice preview, list, and PDF use the `en-ES` number
+  format; the seller seal asset is served from `public/mm-fabrics-seal.png`.
 - Preview and PDF share the same mapped document model via
   `buildInvoiceDocument()`.
 - `pdfkit` is listed in `serverExternalPackages` so Next.js does not bundle it

@@ -43,24 +43,24 @@ export async function updateInvoiceAction(
       updates.issueDate = new Date(validated.issueDate);
     }
 
-    // Recalculate totals server-side when line items change.
-    if (validated.lineItems !== undefined) {
-      if (validated.lineItems.length === 0) {
-        return {
-          ok: false,
-          message: "Add at least one product.",
-          fieldErrors: {
-            lineItems: ["Add at least one product."],
-          },
-        };
-      }
-      const { lineItems, subtotal, totalAmount } = calculateInvoiceTotals(
-        validated.lineItems,
-      );
-      updates.lineItems = lineItems;
-      updates.subtotal = subtotal;
-      updates.totalAmount = totalAmount;
-    }
+    const { lineItems, subtotal, totalAmount } = calculateInvoiceTotals(
+      validated.lineItems,
+    );
+    updates.currency = validated.currency;
+    updates.buyer = validated.buyer;
+    updates.lineItems = lineItems.map((item) => ({
+      description: item.description,
+      style: item.style,
+      color: item.color,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      totalAmount: item.totalAmount,
+    }));
+    updates.subtotal = subtotal;
+    updates.totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
+    updates.totalAmount = totalAmount;
+    updates.notes = validated.notes;
+    updates.termsAndConditions = validated.termsAndConditions;
 
     await InvoiceModel.updateOne({ _id: invoiceId, ownerId: user.id }, updates);
 

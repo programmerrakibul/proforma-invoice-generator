@@ -1,5 +1,7 @@
 import type { InvoiceDocumentData } from "@/features/invoices/types";
 import { INVOICE_NOTE_FIELDS } from "@/features/invoices/utils/build-invoice-document";
+import { formatInvoiceMoney } from "@/features/invoices/utils/format-invoice-money";
+import Image from "next/image";
 
 interface InvoicePreviewProps {
   data: InvoiceDocumentData;
@@ -18,7 +20,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
   const fillerRows = [0, 1];
 
   return (
-    <article className="mx-auto w-[210mm] min-h-[297mm] bg-white px-[14mm] py-[12mm] text-[#1a1a1a] shadow-lg">
+    <article className="mx-auto flex min-h-[297mm] w-[210mm] flex-col bg-white px-[14mm] py-[12mm] text-[#1a1a1a] shadow-lg">
       <header className="mb-3 text-center">
         <h2 className="text-[22px] font-bold leading-tight text-[#1a2e6a]">
           {data.seller.companyName}
@@ -34,7 +36,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
         </p>
       </header>
 
-      <div className="mb-3 h-[2px] w-full bg-[#2563eb]" />
+      <div className="mb-3 h-0.5 w-full bg-[#2563eb]" />
 
       <h3 className="mb-4 text-center text-[18px] font-bold uppercase tracking-wide text-[#2563eb]">
         Proforma Invoice
@@ -93,13 +95,13 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
                 {item.color}
               </td>
               <td className="border border-[#1a1a1a] px-1.5 py-1 text-right">
-                {Number(item.quantity).toLocaleString()}
+                {new Intl.NumberFormat("en-ES").format(item.quantity)}
               </td>
               <td className="border border-[#1a1a1a] px-1.5 py-1 text-right">
-                {Number(item.unitPrice).toFixed(2)}
+                {formatInvoiceMoney(item.unitPrice, data.currency)}
               </td>
               <td className="border border-[#1a1a1a] px-1.5 py-1 text-right">
-                {Number(item.totalAmount).toFixed(2)}
+                {formatInvoiceMoney(item.totalAmount, data.currency)}
               </td>
             </tr>
           ))}
@@ -118,11 +120,13 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
             <td className="border border-[#1a1a1a]" />
             <td className="border border-[#1a1a1a]" />
             <td className="border border-[#1a1a1a] px-1.5 py-1 text-right font-bold">
-              {data.totalQuantity.toLocaleString()}
+              {new Intl.NumberFormat("en-ES").format(data.totalQuantity)}
             </td>
-            <td className="border border-[#1a1a1a]" />
             <td className="border border-[#1a1a1a] px-1.5 py-1 text-right font-bold">
-              {data.totalAmount.toFixed(2)}
+              {formatInvoiceMoney(data.totalUnitPrice, data.currency)}
+            </td>
+            <td className="border border-[#1a1a1a] px-1.5 py-1 text-right font-bold">
+              {formatInvoiceMoney(data.totalAmount, data.currency)}
             </td>
           </tr>
         </tbody>
@@ -153,20 +157,23 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
         ))}
       </section>
 
-      <div className="mb-8 grid grid-cols-2 gap-16 text-[8pt]">
+      <footer className="mt-auto grid grid-cols-2 gap-16 pt-8 text-[8pt]">
         <div>
-          <div className="mb-1 border-t border-[#1a1a1a]" />
+          <div className="mb-1 h-14 border-b border-[#1a1a1a]" />
           <p>Buyer Authorized Signature</p>
         </div>
         <div>
-          <div className="mb-1 border-t border-[#1a1a1a]" />
+          <div className="relative mb-1 h-14 border-b border-[#1a1a1a]">
+            <Image
+              src="/mm-fabrics-seal.png"
+              alt="M.M FABRICS company seal"
+              width={140}
+              height={100}
+              className="absolute bottom-1 left-1/2 h-12 w-20 -translate-x-1/2 object-contain"
+            />
+          </div>
           <p>For M.M FABRICS</p>
         </div>
-      </div>
-
-      <footer className="mt-auto flex items-center justify-between border-t border-[#1a1a1a] pt-2 text-[7pt] text-[#666666]">
-        <span>M.M FABRICS — Proforma Invoice</span>
-        <span>Page 1 of 1</span>
       </footer>
     </article>
   );

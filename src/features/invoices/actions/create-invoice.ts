@@ -7,10 +7,10 @@ import {
   createInvoiceSchema,
   type CreateInvoiceInput,
 } from "@/features/invoices/schemas/invoice.schema";
-import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
-import { InvoiceModel } from "@/lib/db/models";
+import { persistInvoice } from "@/features/invoices/services/persist-invoice";
 import { connectToDatabase } from "@/lib/db/mongoose";
+import { InvoiceModel } from "@/lib/db/models";
 import {
   ActionResult,
   zodErrorToActionResult,
@@ -30,38 +30,24 @@ export async function getNextPiNumber(ownerId: string): Promise<string> {
 
 export async function createInvoiceAction(
   input: CreateInvoiceInput,
+  invoiceId?: string,
 ): Promise<ActionResult<{ invoiceId?: string; persisted: boolean }>> {
   "use server";
 
   try {
     const validated = createInvoiceSchema.parse(input);
 
-    // Server-calculated totals are authoritative; never trust client totals.
-    const { lineItems, totalAmount } = calculateInvoiceTotals(
-      validated.lineItems
-    );
-
     const user = await getCurrentUser();
 
-    console.log(user);
-
     if (user) {
-      await connectToDatabase();
-
-      const invoice = await InvoiceModel.create({
-        ownerId: user.id,
-        piNumber: validated.piNumber,
-        issueDate: new Date(validated.issueDate),
-        lineItems,
-        totalAmount,
-      });
+      const savedInvoiceId = await persistInvoice(user.id, validated, "draft", invoiceId);
 
       revalidatePath("/invoices");
-      revalidatePath(`/invoices/${invoice._id}`);
+      revalidatePath(`/invoices/${savedInvoiceId}`);
 
       return {
         ok: true,
-        data: { invoiceId: String(invoice._id), persisted: true },
+        data: { invoiceId: savedInvoiceId, persisted: true },
         message: "Invoice created.",
       };
     }

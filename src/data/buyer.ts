@@ -1,5 +1,5 @@
 export const buyerProfile = {
-  name: "ABC TRADING CORPORATION",
-  address: "House #12, Road #8, Gulshan-1, Dhaka-1212, Bangladesh",
+  name: "Entrust Fashion Limited",
+  address: "Nayanagar Chairmanbari More, Turag, Dhaka, Bangladesh",
   destinationCountry: "Bangladesh",
 };

@@ -1,10 +1,14 @@
 import Container from "@/components/shared/container";
 import { InvoiceGenerator } from "@/features/invoices/components/invoice-generator";
+import { getNextPiNumber } from "@/features/invoices/actions/create-invoice";
 import { SiteHeader } from "@/components/layout/site-header";
+import { getCurrentUser } from "@/lib/auth/get-current-user";
 
 export const dynamic = "force-dynamic";
 
-export default function NewInvoicePage() {
+export default async function NewInvoicePage() {
+  const currentUser = await getCurrentUser();
+  const piNumber = currentUser ? await getNextPiNumber(currentUser.id) : "MMF/001/26";
   return (
     <div className="min-h-screen bg-muted/25">
       <SiteHeader backToHome />
@@ -19,7 +23,7 @@ export default function NewInvoicePage() {
         </p>
       </div>
       <div className="min-h-[calc(100vh-13rem)]">
-        <InvoiceGenerator />
+        <InvoiceGenerator canSaveDraft={Boolean(currentUser)} initValues={{ piNumber }} />
       </div>
       </Container>
     </div>

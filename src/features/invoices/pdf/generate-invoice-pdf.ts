@@ -1,5 +1,7 @@
 import "server-only";
 
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import type { InvoiceDocumentData } from "@/features/invoices/types";
 import { INVOICE_NOTE_FIELDS } from "@/features/invoices/utils/build-invoice-document";
 import PDFDocument from "pdfkit";
@@ -9,7 +11,6 @@ type PdfDoc = PDFKit.PDFDocument;
 const NAVY = "#1a2e6a";
 const BLUE = "#2563eb";
 const BLACK = "#1a1a1a";
-const GRAY = "#666666";
 const AMBER_BG = "#fef3c7";
 const AMBER_BORDER = "#d97706";
 const WHITE = "#ffffff";
@@ -19,6 +20,14 @@ const PAGE_MARGIN_TOP = 40;
 const PAGE_MARGIN_BOTTOM = 52;
 const TABLE_FONT_SIZE = 8;
 const MIN_EMPTY_ROWS = 2;
+const SEAL_PATH = join(process.cwd(), "public", "mm-fabrics-seal.png");
+
+function formatInvoiceNumber(value: number): string {
+  return new Intl.NumberFormat("en-ES", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
 
 const COLUMN_RATIOS = [0.3, 0.14, 0.14, 0.14, 0.14, 0.14] as const;
 
@@ -290,6 +299,13 @@ function drawSignatures(doc: PdfDoc): void {
   });
 
   const sellerX = PAGE_MARGIN_X + contentWidth(doc) - blockWidth;
+  if (existsSync(SEAL_PATH)) {
+    doc.image(SEAL_PATH, sellerX + blockWidth / 2 - 30, y - 38, {
+      fit: [60, 34],
+      align: "center",
+      valign: "center",
+    });
+  }
   doc
     .moveTo(sellerX, y)
     .lineTo(sellerX + blockWidth, y)
@@ -310,9 +326,9 @@ function renderInvoice(doc: PdfDoc, data: InvoiceDocumentData): void {
       item.description,
       item.style,
       item.color,
-      Number(item.quantity).toLocaleString(),
-      Number(item.unitPrice).toFixed(2),
-      Number(item.totalAmount).toFixed(2),
+      new Intl.NumberFormat("en-ES").format(Number(item.quantity)),
+      formatInvoiceNumber(Number(item.unitPrice)),
+      formatInvoiceNumber(Number(item.totalAmount)),
     ]);
   });
 
@@ -327,9 +343,9 @@ function renderInvoice(doc: PdfDoc, data: InvoiceDocumentData): void {
       "",
       "",
       "",
-      data.totalQuantity.toLocaleString(),
-      "",
-      data.totalAmount.toFixed(2),
+      new Intl.NumberFormat("en-ES").format(data.totalQuantity),
+      formatInvoiceNumber(data.totalUnitPrice),
+      formatInvoiceNumber(data.totalAmount),
     ],
     { bold: true },
   );

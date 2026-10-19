@@ -52,6 +52,7 @@ export interface InvoiceDocumentData {
   buyer: InvoiceDocumentBuyer;
   lineItems: InvoiceDocumentLineItem[];
   subtotal: number;
+  totalUnitPrice: number;
   totalAmount: number;
   totalQuantity: number;
   sayTotal: string;

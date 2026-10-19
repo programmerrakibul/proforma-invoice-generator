@@ -3,12 +3,19 @@ import type {
   InvoiceDocumentNotes,
   InvoiceDocumentSeller,
 } from "@/features/invoices/types";
-import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
+import { calculateInvoiceTotals, roundMoney } from "@/features/invoices/utils/calculate-invoice-total";
 import { numberToWords } from "@/features/invoices/utils/number-to-words";
+import { buyerProfile } from "@/data/buyer";
+import { defaultNotes, defaultTermsAndConditions } from "@/data/invoice-static";
 
 export interface InvoiceDocumentInput {
   piNumber?: string;
   issueDate?: string;
+  currency?: string;
+  seller?: Partial<InvoiceDocumentData["seller"]>;
+  buyer?: Partial<InvoiceDocumentData["buyer"]>;
+  notes?: Partial<InvoiceDocumentNotes>;
+  termsAndConditions?: string[];
   lineItems?: Array<{
     description?: string;
     style?: string;
@@ -28,15 +35,7 @@ export const DEFAULT_SELLER: InvoiceDocumentSeller = {
   email: "jewel@mmfabrics-bd.com",
 };
 
-export const DEFAULT_TERMS: string[] = [
-  "Negotiable; any Bank in Bangladesh",
-  "L/C amendment charge are on L/C applicant account.",
-  "Maturity date must be calculated from the date of delivery.",
-  "After signature the delivery challan or discrepancy won't be acceptable.",
-  "Overdue interest (if any) should be pay by opener.",
-  "Payment to be made on maturity date in US Dollar.",
-  "All apparent errors/discrepancy (if any) would be acceptable by opener.",
-];
+export const DEFAULT_TERMS: string[] = defaultTermsAndConditions;
 
 export const INVOICE_NOTE_FIELDS: Array<{
   key: keyof InvoiceDocumentNotes;
@@ -69,6 +68,11 @@ export function formatInvoiceIssueDate(value?: string): string {
 export function toInvoiceDocumentInput(values: {
   piNumber?: string;
   issueDate?: string;
+  currency?: string;
+  seller?: Partial<InvoiceDocumentData["seller"]>;
+  buyer?: Partial<InvoiceDocumentData["buyer"]>;
+  notes?: Partial<InvoiceDocumentNotes>;
+  termsAndConditions?: string[];
   lineItems?: Array<{
     description?: string;
     style?: string;
@@ -80,6 +84,11 @@ export function toInvoiceDocumentInput(values: {
   return {
     piNumber: values.piNumber,
     issueDate: values.issueDate,
+    currency: values.currency,
+    seller: values.seller,
+    buyer: values.buyer,
+    notes: values.notes,
+    termsAndConditions: values.termsAndConditions,
     lineItems: (values.lineItems ?? [])
       .filter((item): item is NonNullable<typeof item> => item !== undefined)
       .map((item) => ({
@@ -103,18 +112,22 @@ export function buildInvoiceDocument(
     (sum, item) => sum + (item.quantity ?? 0),
     0,
   );
+  const totalUnitPrice = roundMoney(
+    lineItems.reduce((sum, item) => sum + (item.unitPrice ?? 0), 0),
+  );
 
   return {
     piNumber: input.piNumber?.trim() || "MMF/000/00",
     issueDateLabel: formatInvoiceIssueDate(
       typeof input.issueDate === "string" ? input.issueDate : undefined,
     ),
-    currency: "USD",
-    seller: DEFAULT_SELLER,
+    currency: input.currency ?? "USD",
+    seller: { ...DEFAULT_SELLER, ...input.seller },
     buyer: {
-      name: "",
-      address: "",
-      destinationCountry: "",
+      name: input.buyer?.name ?? buyerProfile.name,
+      address: input.buyer?.address ?? buyerProfile.address,
+      destinationCountry:
+        input.buyer?.destinationCountry ?? buyerProfile.destinationCountry,
     },
     lineItems: lineItems.map((item) => ({
       description: item.description ?? "",
@@ -125,10 +138,11 @@ export function buildInvoiceDocument(
       totalAmount: item.totalAmount,
     })),
     subtotal,
+    totalUnitPrice,
     totalAmount,
     totalQuantity,
     sayTotal: numberToWords(totalAmount, "USD"),
-    notes: {},
-    termsAndConditions: DEFAULT_TERMS,
+    notes: { ...defaultNotes, ...input.notes },
+    termsAndConditions: input.termsAndConditions ?? defaultTermsAndConditions,
   };
 }

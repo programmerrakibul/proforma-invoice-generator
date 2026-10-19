@@ -22,6 +22,19 @@ export interface Seller {
 export interface Buyer {
   name: string;
   address: string;
+  destinationCountry: string;
+}
+
+export interface InvoiceNotes {
+  goodsDeliveryDestination: string;
+  goodsOrigin: string;
+  advisingBank: string;
+  allowance: string;
+  packing: string;
+  shipmentDate: string;
+  payment: string;
+  partialShipment: string;
+  piValidity: string;
 }
 
 export interface Invoice {
@@ -29,11 +42,15 @@ export interface Invoice {
   ownerId: mongoose.Types.ObjectId;
   piNumber: string;
   issueDate: Date;
+  currency: string;
+  status: "draft" | "ready" | "exported" | "archived";
   seller: Seller;
   buyer: Buyer;
   lineItems: LineItem[];
+  subtotal: number;
   totalQuantity: number;
   totalAmount: number;
+  notes: InvoiceNotes;
   termsAndConditions: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -61,6 +78,13 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
     },
     piNumber: { type: String, required: true, trim: true },
     issueDate: { type: Date, required: true },
+    currency: { type: String, required: true, default: "USD" },
+    status: {
+      type: String,
+      enum: ["draft", "ready", "exported", "archived"],
+      default: "draft",
+      index: true,
+    },
     seller: {
       companyName: { type: String, required: true, trim: true },
       address: { type: String, required: true, trim: true },
@@ -71,16 +95,30 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
     buyer: {
       name: { type: String, required: true, trim: true },
       address: { type: String, required: true, trim: true },
+      destinationCountry: { type: String, required: true, trim: true },
     },
     lineItems: [lineItemSchema],
+    subtotal: { type: Number, default: 0, min: 0 },
     totalQuantity: { type: Number, default: 0, min: 0 },
     totalAmount: { type: Number, default: 0, min: 0 },
+    notes: {
+      goodsDeliveryDestination: { type: String, required: true },
+      goodsOrigin: { type: String, required: true },
+      advisingBank: { type: String, required: true },
+      allowance: { type: String, required: true },
+      packing: { type: String, required: true },
+      shipmentDate: { type: String, required: true },
+      payment: { type: String, required: true },
+      partialShipment: { type: String, required: true },
+      piValidity: { type: String, required: true },
+    },
     termsAndConditions: [{ type: String }],
   },
   { timestamps: true },
 );
 
 invoiceSchema.index({ ownerId: 1, updatedAt: -1 });
+invoiceSchema.index({ ownerId: 1, status: 1, updatedAt: -1 });
 invoiceSchema.index({ ownerId: 1, piNumber: 1 });
 
 invoiceSchema.set("toJSON", {

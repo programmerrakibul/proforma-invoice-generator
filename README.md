@@ -98,10 +98,10 @@ pnpm dev
 - `piNumber` (`MMF/###/YY` format, e.g. `MMF/001/26`)
 - `issueDate`, `currency` (default `USD`)
 - `status` (`draft` \| `ready` \| `exported` \| `archived`, indexed)
-- `seller`, `buyer` (embedded contact info)
+- `seller`, `buyer` (embedded contact info, including consignee address and destination country)
 - `lineItems[]` (description, style, color, quantity, unitPrice, totalAmount,
   unit)
-- `subtotal`, `totalAmount` (calculated server-side)
+- `subtotal`, `totalAmount`, `totalQuantity` (calculated server-side)
 - `notes` (sayTotal, goodsDeliveryDestination, goodsOrigin, advisingBank,
   allowance, packing, shipmentDate, payment, partialShipment, piValidity)
 - `termsAndConditions[]`, `signatures` (buyerLabel, sellerLabel, stampUrl,
@@ -119,7 +119,7 @@ All invoice mutations go through Next.js Server Actions:
 | `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
 | `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
 | `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                               |
-| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | None (PDF generated from submitted form data)     |
+| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | Session owner when persisted                    |
 
 **Security rules enforced:**
 
@@ -155,10 +155,11 @@ All invoice mutations go through Next.js Server Actions:
 - Premium responsive landing, authentication, and invoice studio interfaces
 - Shared site header; auth supports a safe same-site `redirect` query parameter
 - Auth success feedback with toast notifications and destination navigation
-- Landing page and protected invoice listing with search, status filter, sort,
-  and server-side pagination
+- Landing page and protected invoice table with search, status filter, sorting,
+  pagination, preview, and confirmed deletion
 - Invoice generator with live A4 JSX preview (HTML, updates as the form changes)
-- Multi-line-item support with searchable description combobox
+- Multi-line-item support with required-field validation and guarded add-item flow
+- Buyer/consignee details and editable delivery, banking, shipment, and payment notes
 - Decimal-safe money calculations (integer-cent arithmetic)
 - "Say total" verbal amount rendering
 - Draft saving with Server Actions
@@ -166,7 +167,9 @@ All invoice mutations go through Next.js Server Actions:
 - Unsaved-changes navigation guard (`beforeunload`)
 - Responsive design: desktop sidebar + sticky preview, tablet collapsible
   sidebar, mobile stacked cards
-- PDF export (PDFKit, generated on the server)
+- PDF export (PDFKit, generated on the server; authenticated exports are saved)
+- Invoice totals show aggregate quantity, unit-price total, and total amount
+- Locale-aware `en-ES` money formatting and M.M FABRICS seal/signature footer
 - Light/dark/system theme support (next-themes)
 
 ## Verification Order

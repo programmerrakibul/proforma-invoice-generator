@@ -15,8 +15,10 @@ src/
 │   ├── api/
 │   │   └── auth/[...all]/route.ts  # Better Auth Next.js handler (toNextJsHandler)
 │   └── invoices/
-│       ├── page.tsx            # Invoice listing (search, status filter, sort, pagination; auth required)
-│       └── new/page.tsx        # Invoice generator (split form + preview; optional auth)
+│       ├── page.tsx            # Invoice table (filters, pagination; auth required; async searchParams)
+│       └── new/page.tsx        # Invoice studio (draft save for signed-in users; guest PDF export)
+├── assets/
+│   └── logo.png                 # M.M FABRICS mark used by the shared site header
 ├── components/
 │   ├── providers.tsx           # BetterAuth AuthProvider + SessionProvider wrapper
 │   ├── layout/
@@ -48,12 +50,15 @@ src/
 │       │   ├── update-invoice.ts       # updateInvoiceAction (ownership: _id + ownerId)
 │       │   ├── delete-invoice.ts       # deleteInvoiceAction (ownership: _id + ownerId)
 │       │   ├── list-invoices.ts        # listInvoicesAction (paginated, auth required)
-│       │   └── export-invoice-pdf.ts   # exportInvoicePdfAction (PDFKit buffer, guest allowed)
+│       │   └── export-invoice-pdf.ts   # Export PDF; persist as exported when signed in
 │       ├── components/
 │       │   ├── invoice-form.tsx        # Multi-section invoice form (RHF + Zod)
 │       │   ├── invoice-generator.tsx   # Page-level form orchestration + save/export
 │       │   ├── invoice-line-items.tsx  # Line-item CRUD with combobox description
+│       │   ├── invoice-list-table.tsx  # Invoice table with preview and confirmed delete
 │       │   └── invoice-preview.tsx     # JSX A4 live preview (HTML, not PDF)
+│       ├── services/
+│       │   └── persist-invoice.ts      # Shared owner-scoped draft/export persistence
 │       ├── pdf/
 │       │   └── generate-invoice-pdf.ts # PDFKit A4 generator (server-only)
 │       ├── schemas/
@@ -65,6 +70,7 @@ src/
 │           ├── build-invoice-document.ts    # Shared preview/PDF document mapping
 │           ├── calculate-invoice-total.ts   # Decimal-safe money math
 │           ├── download-pdf.ts              # Client download helper for PDFKit output
+│           ├── format-invoice-money.ts      # en-ES currency formatting
 │           ├── format-invoice-number.ts     # MMF/###/YY numbering
 │           ├── number-to-words.ts           # "Say total" verbal amount
 │           ├── products.ts                  # Searchable description options
@@ -98,6 +104,9 @@ src/
 └── types/
     ├── common.ts                   # Currency, InvoiceStatus, ZoomLevel types
     └── database.ts                 # Document type re-exports
+
+public/
+└── mm-fabrics-seal.png              # Company seal for invoice preview and PDF
 ```
 
 ## Root config files

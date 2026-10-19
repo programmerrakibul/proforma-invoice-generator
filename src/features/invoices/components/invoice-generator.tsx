@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { buyerProfile } from "@/data/buyer";
+import { defaultNotes, defaultTermsAndConditions } from "@/data/invoice-static";
 import { createInvoiceAction } from "@/features/invoices/actions/create-invoice";
 import { exportInvoicePdfAction } from "@/features/invoices/actions/export-invoice-pdf";
 import { InvoiceForm } from "@/features/invoices/components/invoice-form";
@@ -20,14 +22,19 @@ import type { CreateInvoiceInput } from "../schemas/invoice.schema";
 
 interface InvoiceGeneratorProps {
   initValues?: Partial<CreateInvoiceInput>;
+  canSaveDraft: boolean;
 }
 
-export function InvoiceGenerator({ initValues }: InvoiceGeneratorProps) {
+export function InvoiceGenerator({ initValues, canSaveDraft }: InvoiceGeneratorProps) {
   const methods = useForm<CreateInvoiceInput>({
     defaultValues: {
-      piNumber: "",
+      piNumber: "MMF/001/26",
       issueDate: new Date().toISOString().split("T")[0],
-      lineItems: [],
+      currency: "USD",
+      buyer: buyerProfile,
+      notes: defaultNotes,
+      termsAndConditions: defaultTermsAndConditions,
+      lineItems: [{ description: "", style: "", color: "", quantity: 1, unitPrice: 0, totalPrice: 0 }],
       ...initValues,
     },
     mode: "onChange" as const,
@@ -57,14 +64,17 @@ export function InvoiceGenerator({ initValues }: InvoiceGeneratorProps) {
   const [exportStatus, setExportStatus] = useState<
     "idle" | "exporting" | "error"
   >("idle");
+  const [persistedInvoiceId, setPersistedInvoiceId] = useState<string | undefined>();
 
   const onSave = async (values: CreateInvoiceInput): Promise<void> => {
     setSaveStatus("saving");
     try {
-      const result = await createInvoiceAction(values);
+      const result = await createInvoiceAction(values, persistedInvoiceId);
       if (result.ok) {
         setSaveStatus("saved");
         if (result.data.persisted) {
+          setPersistedInvoiceId(result.data.invoiceId);
+          methods.reset(values);
           toast.success("Draft saved", { description: "Your invoice is safely stored." });
         } else {
           toast.info("Invoice is ready", { description: "Sign in to save this draft to your account." });
@@ -83,11 +93,16 @@ export function InvoiceGenerator({ initValues }: InvoiceGeneratorProps) {
   };
 
   const onExportPdf = async (): Promise<void> => {
+    const isValid = await methods.trigger();
+    if (!isValid) {
+      toast.error("Complete the invoice first", {
+        description: "Review the highlighted fields before exporting.",
+      });
+      return;
+    }
     setExportStatus("exporting");
     try {
-      const result = await exportInvoicePdfAction(
-        toInvoiceDocumentInput(getValues()),
-      );
+      const result = await exportInvoicePdfAction(getValues(), persistedInvoiceId);
       if (!result.ok) {
         setExportStatus("error");
         toast.error("PDF export failed", { description: result.message });
@@ -96,7 +111,15 @@ export function InvoiceGenerator({ initValues }: InvoiceGeneratorProps) {
       }
 
       downloadPdfFromBase64(result.data.pdfBase64, result.data.fileName);
-      toast.success("Invoice exported", { description: "Your PDF is ready to share." });
+      if (result.data.persisted) {
+        setPersistedInvoiceId(result.data.invoiceId);
+        methods.reset(getValues());
+      }
+      toast.success("Invoice exported", {
+        description: result.data.persisted
+          ? "The PDF is downloaded and the invoice is saved to your account."
+          : "Your PDF is ready to share.",
+      });
       setExportStatus("idle");
     } catch {
       setExportStatus("error");
@@ -114,15 +137,17 @@ export function InvoiceGenerator({ initValues }: InvoiceGeneratorProps) {
               <form onSubmit={handleSubmit(onSave)} className="flex flex-col gap-6">
                 <InvoiceForm />
                 <div className="sticky bottom-0 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border/70 bg-card/95 px-4 pb-2 pt-4 backdrop-blur sm:-mx-6 sm:px-6">
-                  <Button
-                    type="submit"
-                    variant="outline"
-                    size="sm"
-                    disabled={isSubmitting || saveStatus === "saving"}
-                  >
-                    <SaveIcon data-icon="inline-start" />
-                    {saveStatus === "saving" ? "Saving…" : saveStatus === "saved" ? "Saved" : "Save draft"}
-                  </Button>
+                  {canSaveDraft ? (
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      size="sm"
+                      disabled={isSubmitting || saveStatus === "saving"}
+                    >
+                      <SaveIcon data-icon="inline-start" />
+                      {saveStatus === "saving" ? "Saving…" : saveStatus === "saved" ? "Saved" : "Save draft"}
+                    </Button>
+                  ) : null}
                   <Button
                     type="button"
                     variant="outline"

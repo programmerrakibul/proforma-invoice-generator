@@ -1,22 +1,22 @@
 export const defaultTermsAndConditions = [
-  "1. Negotiable; any Bank in Bangladesh",
-  "2. L/C amendment charge are on L/C applicant account.",
-  "3. Maturity date must be calculated from the date of delivery.",
-  "4. After signature the delivery challan or discrepancy won't be acceptable.",
-  "5. Overdue interest (if any) should be pay by opener.",
-  "6. Payment to be made on maturity date in US Dollar.",
-  "7. All apparent errors/discrepancy (if any) would be acceptable by opener.",
+  "Negotiable: Any bank in Bangladesh.",
+  "L/C amendment charge are on L/C applicant account.",
+  "Maturity date must be calculated from the date of delivery.",
+  "After signature the delivery challan any discrepancy won't be acceptable.",
+  "Overdue interest (if any) should be paid by opener.",
+  "Payment to be made on maturity date in US Dollar.",
+  "All apparent errors/discrepancy (if any) would be acceptable by opener.",
 ];
 
 export const defaultNotes = {
-  sayTotal: "",
-  goodsDeliveryDestination: "",
+  goodsDeliveryDestination: "Entrust Fashion Limited",
   goodsOrigin: "Bangladesh",
-  advisingBank: "",
-  allowance: "",
-  packing: "",
-  shipmentDate: "",
-  payment: "L/C",
-  partialShipment: "Allowed",
-  piValidity: "30 Days",
+  advisingBank:
+    "NRBC BANK LIMITED (Kamarpara Sub Branch) A/C: 5209-33300000609 | Swift Code: NRBBBDDH | VAT Reg. No: 004906505-0306",
+  allowance: "3% more or less to be accepted in quantity and amount.",
+  packing: "By standard Packing.",
+  shipmentDate: "30 Days after Getting Approval",
+  payment: "By 100% confirmed irrevocable L/C at 90 days sight",
+  partialShipment: "Should be allowed.",
+  piValidity: "15 days from the issuing date.",
 };
