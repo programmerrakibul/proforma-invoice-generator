@@ -9,16 +9,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { SiteHeader } from "@/components/layout/site-header";
 import { FileText, LayoutDashboard, Send, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-
-const NAV_LINKS = [
-  { href: "#features", label: "Features" },
-  { href: "#how-it-works", label: "How it works" },
-  { href: "#pricing", label: "Pricing" },
-  { href: "#about", label: "About" },
-];
 
 const FEATURES = [
   {
@@ -71,8 +63,6 @@ const STEPS = [
 export default function Home() {
   return (
     <div className="flex flex-col min-h-full bg-background">
-      <SiteHeader navigation={NAV_LINKS} />
-
       <main className="flex-1 relative overflow-hidden bg-background">
         {/* Hero section */}
         <section className="relative py-24 lg:py-32">

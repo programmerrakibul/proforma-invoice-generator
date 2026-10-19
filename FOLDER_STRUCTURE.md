@@ -5,9 +5,10 @@ Referenced by AGENTS.md and README.md.
 
 ```plaintext
 src/
+├── proxy.ts                    # Optimistic auth redirects for invoice list and auth pages
 ├── app/
 │   ├── globals.css
-│   ├── layout.tsx              # Root layout (Providers + StoreProvider, fonts, metadata)
+│   ├── layout.tsx              # Root layout (session-aware shared header, providers, fonts, metadata)
 │   ├── page.tsx                # Landing page
 │   ├── auth/
 │   │   ├── login/page.tsx      # Sign-in page (Better Auth email/password)
@@ -26,7 +27,7 @@ src/
 │   │   ├── app-sidebar.tsx     # Responsive navigation sidebar
 │   │   ├── mobile-nav.tsx      # Mobile top navigation
 │   │   ├── page-header.tsx     # Breadcrumb + page title
-│   │   └── site-header.tsx     # Shared marketing/auth navigation header
+│   │   └── site-header.tsx     # Shared session-aware navigation and login/user placeholder
 │   ├── shared/
 │   │   ├── container.tsx
 │   │   ├── confirm-dialog.tsx  # Reusable confirmation dialog
@@ -42,7 +43,7 @@ src/
 │   ├── auth/
 │   │   ├── components/
 │   │   │   ├── auth-field.tsx      # Shared labeled auth input and error state
-│   │   │   ├── auth-page.tsx       # Shared premium auth page frame
+│   │   │   ├── auth-page.tsx       # Shared premium auth page frame with back navigation
 │   │   │   ├── login-form.tsx      # Validated Better Auth sign-in flow
 │   │   │   └── register-form.tsx   # Validated Better Auth registration flow
 │   │   ├── schemas/

@@ -1,6 +1,8 @@
 import { AuthPage } from "@/features/auth/components/auth-page";
 import { LoginForm } from "@/features/auth/components/login-form";
 import { getSafeAuthRedirect } from "@/features/auth/utils/auth-redirect";
+import { getCurrentUser } from "@/lib/auth/get-current-user";
+import { redirect as navigate } from "next/navigation";
 
 interface LoginPageProps {
   searchParams: Promise<{ redirect?: string }>;
@@ -8,6 +10,9 @@ interface LoginPageProps {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { redirect } = await searchParams;
+  const destination = getSafeAuthRedirect(redirect ?? "/invoices");
+  if (await getCurrentUser()) navigate(destination);
+
   return (
     <AuthPage
       eyebrow="Welcome back"
@@ -17,7 +22,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       footerHref="/auth/register"
       footerLinkText="Create an account"
     >
-      <LoginForm redirectTo={getSafeAuthRedirect(redirect ?? "/invoices")} />
+      <LoginForm redirectTo={destination} />
     </AuthPage>
   );
 }

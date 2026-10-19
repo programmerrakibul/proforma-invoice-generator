@@ -57,9 +57,16 @@ server-side execution performance.
 
 ## This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+This version has breaking changes — APIs, conventions, and file structure may
+all differ from your training data. Read the relevant guide in
+`node_modules/next/dist/docs/` (resolved from this file's directory; in
+monorepos the `next` package may not be visible from the repo root) before
+writing any code. Heed deprecation notices.
 
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+This block is written and re-added by `next dev` — verify at
+`node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a
+diff only re-creates the uncommitted change; committing it with your work keeps
+the tree clean.
 
 <!-- END:nextjs-agent-rules -->
 
@@ -80,18 +87,23 @@ duplication (DRY).
 - **Route:** `GET/POST/PUT/PATCH/DELETE /api/auth/[...all]`
 - **Guest flow:** Unauthenticated users can preview/generate invoices
   client-side; persistence to MongoDB requires sign-in
+- **Route redirects:** `src/proxy.ts` performs optimistic Better Auth cookie
+  checks for the protected invoice list and redirects signed-in users away from
+  login and registration. Server pages/actions remain responsible for
+  authoritative session and ownership checks. The guest-accessible invoice
+  studio (`/invoices/new`) is not blocked by the proxy.
 
 ## Server Actions
 
 All invoice mutations go through Next.js Server Actions:
 
-| Action                   | File                                              | Auth                     | Ownership                                         |
-| ------------------------ | ------------------------------------------------- | ------------------------ | ------------------------------------------------- |
-| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Optional (guest allowed) | Derived from session when authenticated           |
-| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
-| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
-| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                               |
-| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | Owner derived from session when persisted        |
+| Action                   | File                                              | Auth                     | Ownership                                 |
+| ------------------------ | ------------------------------------------------- | ------------------------ | ----------------------------------------- |
+| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Optional (guest allowed) | Derived from session when authenticated   |
+| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                |
+| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                |
+| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                       |
+| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | Owner derived from session when persisted |
 
 **Security rules enforced:**
 
@@ -102,9 +114,9 @@ All invoice mutations go through Next.js Server Actions:
 - Buyer, invoice notes, line totals, subtotal, total quantity, and status are
   validated and persisted together for authenticated invoices
 - Update/delete queries always filter by `_id` and `ownerId` together
-- When exporting a saved invoice, pass its id through the existing export
-  action so persistence updates that owner-scoped record rather than creating
-  a new invoice
+- When exporting a saved invoice, pass its id through the existing export action
+  so persistence updates that owner-scoped record rather than creating a new
+  invoice
 - Non-ownership returns a generic "not found" result (no information leakage)
 - Zod validation runs on both client (React Hook Form) and server (Server
   Action)

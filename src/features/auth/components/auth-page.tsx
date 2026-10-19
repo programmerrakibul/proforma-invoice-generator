@@ -1,5 +1,5 @@
-import { SiteHeader } from "@/components/layout/site-header";
 import {
+  ArrowLeft,
   ArrowUpRight,
   Check,
   FileText,
@@ -35,8 +35,7 @@ export function AuthPage({
   children,
 }: AuthPageProps) {
   return (
-    <main className="min-h-screen bg-muted/30">
-      <SiteHeader backToHome />
+    <main className="min-h-[calc(100vh-4rem)] bg-muted/30">
       <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl items-center gap-12 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_0.85fr] lg:px-8 lg:py-16">
         <section className="relative hidden min-h-150 overflow-hidden rounded-[2rem] bg-primary p-10 text-primary-foreground shadow-xl lg:flex lg:flex-col lg:justify-between">
           <div
@@ -79,6 +78,12 @@ export function AuthPage({
         </section>
 
         <section className="mx-auto w-full max-w-md animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <Link
+            href="/"
+            className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="size-4" /> Back
+          </Link>
           <div className="mb-8">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
               {eyebrow}
