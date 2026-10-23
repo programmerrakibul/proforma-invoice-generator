@@ -150,6 +150,9 @@ All invoice mutations go through Next.js Server Actions:
 - `src/components/layout/mobile-navigation.tsx` provides the accessible
   drawer menu below the desktop navigation breakpoint; authenticated invoice
   links remain hidden from guests.
+- `src/features/auth/components/logout-button.tsx` provides the Better Auth
+  sign-out action in the desktop account controls and authenticated mobile
+  menu.
 
 ## Caching Strategy
 

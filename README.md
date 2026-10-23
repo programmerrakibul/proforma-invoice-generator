@@ -5,7 +5,8 @@ with Next.js 16 App Router, React 19, Tailwind CSS v4, shadcn/ui, Mongoose, and
 Better Auth.
 
 The shared site header adapts from a compact mobile drawer to centered desktop
-navigation and keeps invoice links scoped to authenticated users.
+navigation, keeps invoice links scoped to authenticated users, and provides
+sign-out controls on both mobile and desktop.
 
 ## Tech Stack
 

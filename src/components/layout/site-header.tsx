@@ -1,6 +1,7 @@
 import logoImage from "@/assets/logo.png";
 import { buttonVariants } from "@/components/ui/button";
 import type { User } from "@/lib/auth";
+import { LogoutButton } from "@/features/auth/components/logout-button";
 import { ArrowUpRight, UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -67,14 +68,19 @@ export function SiteHeader({ user }: SiteHeaderProps) {
             <MobileNavigation user={user} />
           </div>
           {user ? (
-            <Link
-              href="/invoices"
-              aria-label={`Signed in as ${user.name || user.email}`}
-              title={user.name || user.email}
-              className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold text-foreground sm:size-9"
-            >
-              {initials || <UserRound className="size-4" />}
-            </Link>
+            <>
+              <Link
+                href="/invoices"
+                aria-label={`Signed in as ${user.name || user.email}`}
+                title={user.name || user.email}
+                className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold text-foreground sm:size-9"
+              >
+                {initials || <UserRound className="size-4" />}
+              </Link>
+              <div className="hidden lg:block">
+                <LogoutButton compact />
+              </div>
+            </>
           ) : (
             <Link
               href="/auth/login"

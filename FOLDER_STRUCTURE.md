@@ -46,6 +46,7 @@ src/
 │   │   │   ├── auth-field.tsx      # Shared labeled auth input and error state
 │   │   │   ├── auth-page.tsx       # Shared premium auth page frame with back navigation
 │   │   │   ├── login-form.tsx      # Validated Better Auth sign-in flow
+│   │   │   ├── logout-button.tsx   # Better Auth sign-out action
 │   │   │   └── register-form.tsx   # Validated Better Auth registration flow
 │   │   ├── schemas/
 │   │   │   └── auth.schema.ts      # Shared Zod schemas and auth form types

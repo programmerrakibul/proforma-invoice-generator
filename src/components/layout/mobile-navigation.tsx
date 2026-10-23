@@ -10,6 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import type { User } from "@/lib/auth";
+import { LogoutButton } from "@/features/auth/components/logout-button";
 import { ArrowUpRight, Menu } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -70,16 +71,21 @@ export function MobileNavigation({ user }: MobileNavigationProps) {
           )}
         </nav>
         <div className="mt-auto border-t border-border p-4">
-          <Link
-            href={user ? "/invoices" : "/auth/login"}
-            onClick={() => setOpen(false)}
-            className={buttonVariants({
-              className: "w-full justify-center rounded-full",
-            })}
-          >
-            {user ? "My invoices" : "Login"}
-            <ArrowUpRight data-icon="inline-end" />
-          </Link>
+          <div className="flex flex-col gap-2">
+            <Link
+              href={user ? "/invoices" : "/auth/login"}
+              onClick={() => setOpen(false)}
+              className={buttonVariants({
+                className: "w-full justify-center rounded-full",
+              })}
+            >
+              {user ? "My invoices" : "Login"}
+              <ArrowUpRight data-icon="inline-end" />
+            </Link>
+            {user ? (
+              <LogoutButton onLoggedOut={() => setOpen(false)} />
+            ) : null}
+          </div>
         </div>
       </SheetContent>
     </Sheet>
