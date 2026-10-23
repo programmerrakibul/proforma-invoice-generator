@@ -42,7 +42,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
   });
 
   return (
-    <article className="mx-auto flex min-h-[297mm] w-[210mm] flex-col bg-white p-[25.4mm] font-sans text-[#253b36] shadow-lg print:min-h-[297mm] print:shadow-none">
+    <article className="mx-auto flex min-h-[297mm] w-[210mm] flex-col bg-white p-[15.4mm] font-sans text-[#253b36] shadow-lg print:min-h-[297mm] print:shadow-none">
       <header className="flex items-start justify-between gap-6 pb-5">
         <div className="flex items-center gap-3">
           <Image src={logo} alt="M.M Fabrics logo" width={58} height={58} className="size-[18mm] rounded-xl object-contain" priority />
@@ -59,22 +59,21 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
       </header>
 
       <Separator className="h-[1.2mm] rounded-full bg-[#164b3a]" />
-      <section className="flex flex-col gap-1.5 py-5 text-[8pt] leading-relaxed text-[#657770]">
+
+      <section className="py-5 text-[8pt] leading-relaxed text-[#657770]">
+        <p><strong className="text-[#253b36]">Contact:</strong> {data.seller.contactNumber}</p>
+        <p><strong className="text-[#253b36]">Email:</strong> {data.seller.email}</p>
         <p><strong className="text-[#253b36]">Address:</strong> {data.seller.address}</p>
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
-          <p><strong className="text-[#253b36]">Corporate Office:</strong> {data.seller.corporateOffice}</p>
-          <p><strong className="text-[#253b36]">Contact:</strong> {data.seller.contactNumber}</p>
-          <p><strong className="text-[#253b36]">Email:</strong> {data.seller.email}</p>
-        </div>
+        <p><strong className="text-[#253b36]">Corporate Office:</strong> {data.seller.corporateOffice}</p>
       </section>
 
       <section className="mb-7 grid grid-cols-[1.35fr_0.65fr] gap-8 text-[8.5pt]">
         <div>
-          <p className="mb-2 font-extrabold tracking-[0.15em] text-[#164b3a]">BILL TO / CONSIGNEE</p>
+          <p className="font-extrabold tracking-[0.15em] text-[#164b3a]">BILL TO / CONSIGNEE</p>
           <p className="text-[13pt] font-bold text-[#253b36]">{data.buyer.name || "—"}</p>
-          <p className="mt-1 text-[#657770]">{data.buyer.address}</p>
+          <p className="text-[#657770]">{data.buyer.address}</p>
         </div>
-        <dl className="flex flex-col gap-2 pt-3 text-[#657770]">
+        <dl className="flex flex-col pt-3 text-[#657770]">
           <div className="flex justify-between gap-3"><dt>Date</dt><dd className="font-bold text-[#253b36]">{data.issueDateLabel || "—"}</dd></div>
           <div className="flex justify-between gap-3"><dt>Currency</dt><dd className="font-bold text-[#253b36]">{data.currency}</dd></div>
           <div className="flex justify-between gap-3"><dt>Terms</dt><dd className="font-bold text-[#253b36]">As agreed</dd></div>

@@ -7,8 +7,8 @@ import {
   registerSchema,
   type RegisterFormValues,
 } from "@/features/auth/schemas/auth.schema";
+import { signUp } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createAuthClient } from "better-auth/client";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -19,9 +19,7 @@ interface RegisterFormProps {
   redirectTo: string;
 }
 
-const authClient = createAuthClient();
-
-export function RegisterForm({ redirectTo  = "/invoices"}: RegisterFormProps) {
+export function RegisterForm({ redirectTo = "/invoices" }: RegisterFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
@@ -36,7 +34,7 @@ export function RegisterForm({ redirectTo  = "/invoices"}: RegisterFormProps) {
   const onSubmit = async (values: RegisterFormValues): Promise<void> => {
     setServerError(null);
     try {
-      const result = await authClient.signUp.email({
+      const result = await signUp.email({
         name: values.name,
         email: values.email,
         password: values.password,

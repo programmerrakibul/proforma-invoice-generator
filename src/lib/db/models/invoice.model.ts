@@ -42,7 +42,7 @@ export interface Invoice {
   piNumber: string;
   issueDate: Date;
   currency: string;
-  status: "draft" | "ready" | "exported" | "archived";
+  status: "draft" | "exported";
   seller: Seller;
   buyer: Buyer;
   lineItems: LineItem[];

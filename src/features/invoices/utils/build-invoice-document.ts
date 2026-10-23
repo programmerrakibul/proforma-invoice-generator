@@ -1,12 +1,15 @@
+import { buyerProfile } from "@/data/buyer";
+import { defaultNotes, defaultTermsAndConditions } from "@/data/invoice-static";
 import type {
   InvoiceDocumentData,
   InvoiceDocumentNotes,
   InvoiceDocumentSeller,
 } from "@/features/invoices/types";
-import { calculateInvoiceTotals, roundMoney } from "@/features/invoices/utils/calculate-invoice-total";
+import {
+  calculateInvoiceTotals,
+  roundMoney,
+} from "@/features/invoices/utils/calculate-invoice-total";
 import { numberToWords } from "@/features/invoices/utils/number-to-words";
-import { buyerProfile } from "@/data/buyer";
-import { defaultNotes, defaultTermsAndConditions } from "@/data/invoice-static";
 
 export interface InvoiceDocumentInput {
   piNumber?: string;
@@ -30,7 +33,7 @@ export const DEFAULT_SELLER: InvoiceDocumentSeller = {
   address:
     "Sobhan Super Market, South Birampur, Madhabdi, Narsingdi, Bangladesh",
   corporateOffice:
-    "House#16, B-Road, 16, Sector: 13, Uttara, Dhaka-1230, Bangladesh",
+    "House#16-B6, Road#16, Sector#13, Uttara, Dhaka-1230, Bangladesh",
   contactNumber: "01777589989",
   email: "jewel@mmfabrics-bd.com",
 };
@@ -73,13 +76,16 @@ export function toInvoiceDocumentInput(values: {
   buyer?: Partial<InvoiceDocumentData["buyer"]>;
   notes?: Partial<InvoiceDocumentNotes>;
   termsAndConditions?: string[];
-  lineItems?: Array<{
-    description?: string;
-    style?: string;
-    color?: string;
-    quantity?: number | null;
-    unitPrice?: number | null;
-  } | undefined>;
+  lineItems?: Array<
+    | {
+        description?: string;
+        style?: string;
+        color?: string;
+        quantity?: number | null;
+        unitPrice?: number | null;
+      }
+    | undefined
+  >;
 }): InvoiceDocumentInput {
   return {
     piNumber: values.piNumber,

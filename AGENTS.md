@@ -123,7 +123,12 @@ All invoice mutations go through Next.js Server Actions:
 
 ## PDF generation and live preview
 
-- Live preview is a single-page JSX/HTML A4 document (`invoice-preview.tsx`) with 1-inch margins that updates from React Hook Form `useWatch`. It uses the shadcn table and separator, the company logo, paired shipment/banking and terms columns, and a signature and thank-you footer.
+- Live preview is a single-page JSX/HTML A4 document (`invoice-preview.tsx`)
+  with 1-inch margins that updates from React Hook Form `useWatch`. It uses the
+  shadcn table and separator, the company logo, paired shipment/banking and
+  terms columns, and a signature and thank-you footer.
+- Seller address, corporate office, contact number, and email are shown as four
+  stacked rows in the HTML preview and generated PDF.
 - PDF files are generated server-side with PDFKit
   (`features/invoices/pdf/generate-invoice-pdf.ts`) and downloaded from
   `exportInvoicePdfAction`. Guests can export without persisting; authenticated

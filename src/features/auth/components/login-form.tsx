@@ -7,8 +7,8 @@ import {
   loginSchema,
   type LoginFormValues,
 } from "@/features/auth/schemas/auth.schema";
+import { signIn } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createAuthClient } from "better-auth/client";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -18,8 +18,6 @@ import { toast } from "sonner";
 interface LoginFormProps {
   redirectTo: string;
 }
-
-const authClient = createAuthClient();
 
 export function LoginForm({ redirectTo = "/invoices" }: LoginFormProps) {
   const router = useRouter();
@@ -36,7 +34,7 @@ export function LoginForm({ redirectTo = "/invoices" }: LoginFormProps) {
   const onSubmit = async (values: LoginFormValues): Promise<void> => {
     setServerError(null);
     try {
-      const result = await authClient.signIn.email({
+      const result = await signIn.email({
         ...values,
       });
 

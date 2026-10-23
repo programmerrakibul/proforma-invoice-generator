@@ -116,36 +116,24 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
     .lineWidth(3)
     .strokeColor(GREEN)
     .stroke();
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(8)
-    .fillColor(DARK)
-    .text("Address:", x, ruleY + 15, { continued: true });
-  doc
-    .font("Helvetica")
-    .fillColor(MUTED)
-    .text(` ${data.seller.address}`, { width });
-  doc
-    .font("Helvetica-Bold")
-    .fillColor(DARK)
-    .text("Corporate Office:", x, doc.y + 3, { continued: true });
-  doc
-    .font("Helvetica")
-    .fillColor(MUTED)
-    .text(` ${data.seller.corporateOffice}`, { continued: true });
-  doc
-    .font("Helvetica-Bold")
-    .fillColor(DARK)
-    .text("   Contact:", { continued: true });
-  doc
-    .font("Helvetica")
-    .fillColor(MUTED)
-    .text(` ${data.seller.contactNumber}    `, { continued: true });
-  doc
-    .font("Helvetica-Bold")
-    .fillColor(DARK)
-    .text("Email:", { continued: true });
-  doc.font("Helvetica").fillColor(MUTED).text(` ${data.seller.email}`);
+  const sellerDetails: Array<[string, string]> = [
+    ["Address", data.seller.address],
+    ["Corporate Office", data.seller.corporateOffice],
+    ["Contact", data.seller.contactNumber],
+    ["Email", data.seller.email],
+  ];
+  sellerDetails.forEach(([label, value], index) => {
+    const y = index === 0 ? ruleY + 15 : doc.y + 2;
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(8)
+      .fillColor(DARK)
+      .text(`${label}:`, x, y, { continued: true });
+    doc
+      .font("Helvetica")
+      .fillColor(MUTED)
+      .text(` ${value}`, { width });
+  });
   const buyerY = doc.y + 20;
   const half = width * 0.58;
   doc
