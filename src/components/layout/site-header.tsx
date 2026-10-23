@@ -1,16 +1,15 @@
+"use client"
+
 import logoImage from "@/assets/logo.png";
 import { buttonVariants } from "@/components/ui/button";
-import type { User } from "@/lib/auth";
 import { LogoutButton } from "@/features/auth/components/logout-button";
+import { useSession } from "@/lib/auth-client";
 import { ArrowUpRight, UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import Container from "../shared/container";
+import { Spinner } from "../ui/spinner";
 import { MobileNavigation } from "./mobile-navigation";
-
-interface SiteHeaderProps {
-  user: User | null;
-}
 
 const NAVIGATION = [
   { href: "/", label: "Home" },
@@ -20,13 +19,16 @@ const NAVIGATION = [
   { href: "/#how-it-works", label: "How it works" },
 ];
 
-export function SiteHeader({ user }: SiteHeaderProps) {
-  const initials = user?.name
-    ?.split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join("") || "U";
+export function SiteHeader() {
+  const { data, isPending } = useSession();
+  const user = data?.user;
+  const initials =
+    user?.name
+      ?.split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join("") || "U";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-xl">
@@ -53,21 +55,27 @@ export function SiteHeader({ user }: SiteHeaderProps) {
           className="hidden items-center gap-4 xl:gap-5 lg:flex"
           aria-label="Main navigation"
         >
-          {NAVIGATION.filter((item) => !item.authenticated || user).map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="whitespace-nowrap text-xs text-muted-foreground transition-colors hover:text-foreground xl:text-sm"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {NAVIGATION.filter((item) => !item.authenticated || user).map(
+            (item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="whitespace-nowrap text-xs text-muted-foreground transition-colors hover:text-foreground xl:text-sm"
+              >
+                {item.label}
+              </Link>
+            ),
+          )}
         </nav>
         <div className="flex items-center justify-end gap-1.5 sm:gap-2 lg:col-start-3">
           <div className="lg:hidden">
-            <MobileNavigation user={user} />
+            <MobileNavigation />
           </div>
-          {user ? (
+          {isPending ? (
+            <>
+              <Spinner />
+            </>
+          ) : user ? (
             <>
               <Link
                 href="/invoices"
@@ -86,7 +94,8 @@ export function SiteHeader({ user }: SiteHeaderProps) {
               href="/auth/login"
               className={buttonVariants({
                 size: "sm",
-                className: "h-8 rounded-full px-3 text-xs sm:h-9 sm:px-4 sm:text-sm",
+                className:
+                  "h-8 rounded-full px-3 text-xs sm:h-9 sm:px-4 sm:text-sm",
               })}
             >
               Login

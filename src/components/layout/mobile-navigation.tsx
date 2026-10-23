@@ -9,15 +9,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import type { User } from "@/lib/auth";
 import { LogoutButton } from "@/features/auth/components/logout-button";
+import { useSession } from "@/lib/auth-client";
 import { ArrowUpRight, Menu } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-
-interface MobileNavigationProps {
-  user: User | null;
-}
 
 const NAVIGATION = [
   { href: "/", label: "Home" },
@@ -27,7 +23,9 @@ const NAVIGATION = [
   { href: "/#how-it-works", label: "How it works" },
 ];
 
-export function MobileNavigation({ user }: MobileNavigationProps) {
+export function MobileNavigation() {
+  const { data } = useSession();
+  const user = data?.user;
   const [open, setOpen] = useState<boolean>(false);
 
   return (
@@ -53,10 +51,7 @@ export function MobileNavigation({ user }: MobileNavigationProps) {
             Navigate the invoice workspace
           </SheetDescription>
         </SheetHeader>
-        <nav
-          className="flex flex-col gap-1 p-3"
-          aria-label="Mobile navigation"
-        >
+        <nav className="flex flex-col gap-1 p-3" aria-label="Mobile navigation">
           {NAVIGATION.filter((item) => !item.authenticated || user).map(
             (item) => (
               <Link
@@ -82,9 +77,7 @@ export function MobileNavigation({ user }: MobileNavigationProps) {
               {user ? "My invoices" : "Login"}
               <ArrowUpRight data-icon="inline-end" />
             </Link>
-            {user ? (
-              <LogoutButton onLoggedOut={() => setOpen(false)} />
-            ) : null}
+            {user ? <LogoutButton onLoggedOut={() => setOpen(false)} /> : null}
           </div>
         </div>
       </SheetContent>

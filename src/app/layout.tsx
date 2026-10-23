@@ -1,8 +1,7 @@
+import { SiteHeader } from "@/components/layout/site-header";
 import { Providers } from "@/components/providers";
 import { cn } from "@/lib/utils";
 import { StoreProvider } from "@/store/provider";
-import { SiteHeader } from "@/components/layout/site-header";
-import { getCurrentUser } from "@/lib/auth/get-current-user";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
@@ -24,13 +23,11 @@ export const metadata: Metadata = {
   description: "Create and manage proforma invoices.",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentUser();
-
   return (
     <html
       lang="en"
@@ -50,7 +47,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <Providers>
           <StoreProvider>
-            <SiteHeader user={user} />
+            <SiteHeader />
             {children}
           </StoreProvider>
         </Providers>

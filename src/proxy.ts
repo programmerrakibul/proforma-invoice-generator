@@ -24,8 +24,6 @@ export async function proxy(
   const isAuthenticated = await hasSessionCookie(request);
   const pathname = request.nextUrl.pathname;
 
-  console.log(isAuthenticated);
-
   if (pathname.startsWith("/invoices") && !isAuthenticated) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set(
