@@ -8,6 +8,7 @@ src/
 ├── proxy.ts                    # Optimistic auth redirects for invoice list and auth pages
 ├── app/
 │   ├── globals.css
+│   ├── loading.tsx              # Global branded loading fallback
 │   ├── layout.tsx              # Root layout (session-aware shared header, providers, fonts, metadata)
 │   ├── page.tsx                # Landing page
 │   ├── auth/
