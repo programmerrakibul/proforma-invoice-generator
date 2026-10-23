@@ -144,9 +144,9 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
         <div className="mb-8 grid grid-cols-2 gap-12 text-center text-[8pt] font-bold text-[#253b36]">
           <div><Separator className="mb-2 border-t border-dashed border-[#9eafa8] bg-transparent" /><p>Buyer authorized signature</p></div>
           <div>
+            <Image src="/mm-fabrics-seal.png" alt="M.M FABRICS company seal" width={100} height={80} className="mx-auto mb-1 h-[16mm] w-[22mm] object-contain" />
             <Separator className="mb-2 border-t border-dashed border-[#9eafa8] bg-transparent" />
             <p>For M.M FABRICS</p>
-            <Image src="/mm-fabrics-seal.png" alt="M.M FABRICS company seal" width={100} height={80} className="mx-auto mt-2 h-[16mm] w-[22mm] object-contain" />
           </div>
         </div>
         <Separator className="mb-3 bg-[#d4e1dc]" />
