@@ -19,7 +19,7 @@ src/
 │       ├── page.tsx            # Invoice table (filters, pagination; auth required; async searchParams)
 │       └── new/page.tsx        # Invoice studio (draft save for signed-in users; guest PDF export)
 ├── assets/
-│   ├── logo.png                 # M.M FABRICS mark used by the shared site header
+│   ├── logo.png                 # M.M FABRICS logo used by the invoice preview and PDF
 │   └── mm_fabrics_seal.png      # Original seller seal asset
 ├── components/
 │   ├── providers.tsx           # Global Sonner toast provider

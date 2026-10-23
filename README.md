@@ -145,10 +145,10 @@ All invoice mutations go through Next.js Server Actions:
 
 ## PDF generation and live preview
 
-- Live preview is a JSX/HTML A4 document that updates as the form changes
+- Live preview is a JSX/HTML A4 document that follows the M.M FABRICS invoice design and updates as the form changes
 - PDF files are generated on the server with PDFKit and downloaded via
   `exportInvoicePdfAction` (guests can export without signing in)
-- Preview and PDF share the same mapped document model
+- Preview and PDF share the same mapped document model and matching A4 layout, company logo, seal, and final-page signature/footer
 
 ## Caching Strategy
 
@@ -171,7 +171,7 @@ All invoice mutations go through Next.js Server Actions:
 - Landing page and protected invoice table with search, status filter, sorting,
   pagination, preview, and confirmed deletion
 - Invoice list rows can export saved invoices to PDF and mark them exported
-- Invoice generator with live A4 JSX preview (HTML, updates as the form changes)
+- Invoice generator with live A4 JSX preview matching the M.M FABRICS invoice design (HTML, updates as the form changes)
 - Multi-line-item support with required-field validation and guarded add-item
   flow
 - Buyer/consignee details and invoice line items; delivery, banking, shipment,

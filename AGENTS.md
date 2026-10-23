@@ -123,8 +123,7 @@ All invoice mutations go through Next.js Server Actions:
 
 ## PDF generation and live preview
 
-- Live preview is a JSX/HTML A4 document (`invoice-preview.tsx`) that updates
-  from React Hook Form `useWatch`. It is not a PDF renderer.
+- Live preview is a JSX/HTML A4 document (`invoice-preview.tsx`) that updates from React Hook Form `useWatch`. It uses the shadcn table and separator, the company logo, paired shipment/banking and terms columns, and a final-page signature and thank-you footer.
 - PDF files are generated server-side with PDFKit
   (`features/invoices/pdf/generate-invoice-pdf.ts`) and downloaded from
   `exportInvoicePdfAction`. Guests can export without persisting; authenticated
@@ -140,8 +139,7 @@ All invoice mutations go through Next.js Server Actions:
 - Currency values in the invoice preview, list, and PDF use the `en-US` number
   format; invoice-list quantities use `en-ES`. The seller seal asset is served
   from `public/mm-fabrics-seal.png`.
-- Preview and PDF share the same mapped document model via
-  `buildInvoiceDocument()`.
+- Preview and PDF share the same mapped document model via `buildInvoiceDocument()`. Both follow the supplied A4 design, use the company logo and seal, and keep the signature and thank-you footer at the bottom of the final page. The table includes actual line items and totals without artificial blank rows.
 - `pdfkit` is listed in `serverExternalPackages` so Next.js does not bundle it
   into the server graph.
 
