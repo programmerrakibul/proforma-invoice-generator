@@ -29,7 +29,6 @@ export interface InvoiceDocumentSeller {
 export interface InvoiceDocumentBuyer {
   name: string;
   address: string;
-  destinationCountry: string;
 }
 
 export interface InvoiceDocumentNotes {

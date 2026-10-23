@@ -1,9 +1,9 @@
 import "server-only";
 
-import { existsSync } from "node:fs";
-import { join } from "node:path";
 import type { InvoiceDocumentData } from "@/features/invoices/types";
 import { INVOICE_NOTE_FIELDS } from "@/features/invoices/utils/build-invoice-document";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import PDFDocument from "pdfkit";
 
 type PdfDoc = PDFKit.PDFDocument;
@@ -196,9 +196,7 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
     { fontSize: 7.5, color: BLACK },
   );
 
-  doc
-    .rect(PAGE_MARGIN_X, y + 6, contentWidth(doc), 2)
-    .fill(BLUE);
+  doc.rect(PAGE_MARGIN_X, y + 6, contentWidth(doc), 2).fill(BLUE);
 
   drawCenteredText(doc, "PROFORMA INVOICE", y + 16, {
     fontSize: 18,
@@ -212,14 +210,11 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
   doc.font("Helvetica-Bold").fontSize(8.5).fillColor(BLACK);
   doc.text("Buyer / Consignee", PAGE_MARGIN_X, metaY, { width: columnWidth });
   doc.font("Helvetica").fontSize(8.5);
-  doc.text(data.buyer.name || "—", PAGE_MARGIN_X, doc.y, { width: columnWidth });
+  doc.text(data.buyer.name || "—", PAGE_MARGIN_X, doc.y, {
+    width: columnWidth,
+  });
   if (data.buyer.address) {
     doc.text(data.buyer.address, PAGE_MARGIN_X, doc.y, { width: columnWidth });
-  }
-  if (data.buyer.destinationCountry) {
-    doc.text(data.buyer.destinationCountry, PAGE_MARGIN_X, doc.y, {
-      width: columnWidth,
-    });
   }
 
   const rightX = PAGE_MARGIN_X + columnWidth;
@@ -253,12 +248,9 @@ function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
       const value = data.notes[note.key] ?? "";
       ensureSpace(doc, 14);
       doc.font("Helvetica").fontSize(8).fillColor(BLACK);
-      doc.text(
-        `${index + 1}. ${note.label}: ${value}`,
-        PAGE_MARGIN_X,
-        doc.y,
-        { width: contentWidth(doc) },
-      );
+      doc.text(`${index + 1}. ${note.label}: ${value}`, PAGE_MARGIN_X, doc.y, {
+        width: contentWidth(doc),
+      });
     });
   }
 

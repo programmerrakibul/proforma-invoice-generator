@@ -126,8 +126,6 @@ export function buildInvoiceDocument(
     buyer: {
       name: input.buyer?.name ?? buyerProfile.name,
       address: input.buyer?.address ?? buyerProfile.address,
-      destinationCountry:
-        input.buyer?.destinationCountry ?? buyerProfile.destinationCountry,
     },
     lineItems: lineItems.map((item) => ({
       description: item.description ?? "",
