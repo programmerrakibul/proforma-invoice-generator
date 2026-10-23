@@ -149,7 +149,7 @@ All invoice mutations go through Next.js Server Actions:
 
 ## PDF generation and live preview
 
-- Live preview is a JSX/HTML A4 document that follows the M.M FABRICS invoice design and updates as the form changes
+- Live preview is a single-page JSX/HTML A4 document with 1-inch margins that follows the M.M FABRICS invoice design and updates as the form changes
 - PDF files are generated on the server with PDFKit and downloaded via
   `exportInvoicePdfAction` (guests can export without signing in)
 - Preview and PDF share the same mapped document model and matching A4 layout, company logo, seal, and final-page signature/footer

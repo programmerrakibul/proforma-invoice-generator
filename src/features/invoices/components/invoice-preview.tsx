@@ -42,7 +42,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
   });
 
   return (
-    <article className="mx-auto flex min-h-[297mm] w-[210mm] flex-col bg-white px-[14mm] py-[12mm] font-sans text-[#253b36] shadow-lg print:min-h-[297mm] print:shadow-none">
+    <article className="mx-auto flex min-h-[297mm] w-[210mm] flex-col bg-white p-[25.4mm] font-sans text-[#253b36] shadow-lg print:min-h-[297mm] print:shadow-none">
       <header className="flex items-start justify-between gap-6 pb-5">
         <div className="flex items-center gap-3">
           <Image src={logo} alt="M.M Fabrics logo" width={58} height={58} className="size-[18mm] rounded-xl object-contain" priority />

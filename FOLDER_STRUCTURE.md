@@ -36,6 +36,7 @@ src/
 │   │   ├── error-state.tsx     # Error state placeholder
 │   │   └── loading-state.tsx   # Loading state placeholder
 │   └── ui/                     # shadcn/ui components (button, input, select, etc.)
+│       └── password-input.tsx  # Reusable password input with show/hide control
 ├── data/
 │   ├── buyer.ts                # Default buyer / consignee details
 │   ├── company.ts              # M.M FABRICS seller profile
