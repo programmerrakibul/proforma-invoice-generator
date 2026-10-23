@@ -27,7 +27,8 @@ src/
 │   │   ├── app-sidebar.tsx     # Responsive navigation sidebar
 │   │   ├── mobile-nav.tsx      # Mobile top navigation
 │   │   ├── page-header.tsx     # Breadcrumb + page title
-│   │   └── site-header.tsx     # Shared session-aware navigation and login/user placeholder
+│   │   ├── mobile-navigation.tsx # Accessible responsive drawer navigation
+│   │   └── site-header.tsx     # Shared responsive session-aware navigation and account action
 │   ├── shared/
 │   │   ├── container.tsx
 │   │   ├── confirm-dialog.tsx  # Reusable confirmation dialog

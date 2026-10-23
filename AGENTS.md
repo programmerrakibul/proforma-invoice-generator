@@ -143,6 +143,14 @@ All invoice mutations go through Next.js Server Actions:
 - `pdfkit` is listed in `serverExternalPackages` so Next.js does not bundle it
   into the server graph.
 
+## Shared site header
+
+- `src/components/layout/site-header.tsx` keeps the session-aware desktop
+  navigation and account action in the shared header.
+- `src/components/layout/mobile-navigation.tsx` provides the accessible
+  drawer menu below the desktop navigation breakpoint; authenticated invoice
+  links remain hidden from guests.
+
 ## Caching Strategy
 
 - Mongoose connection is cached on `globalThis.mongooseCache` to prevent

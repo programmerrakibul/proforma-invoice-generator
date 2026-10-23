@@ -5,6 +5,7 @@ import { ArrowUpRight, UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import Container from "../shared/container";
+import { MobileNavigation } from "./mobile-navigation";
 
 interface SiteHeaderProps {
   user: User | null;
@@ -28,45 +29,49 @@ export function SiteHeader({ user }: SiteHeaderProps) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-xl">
-      <Container className="grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-3">
+      <Container className="grid h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 sm:px-5 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <Link
           href="/"
-          className="flex items-center gap-3"
+          className="flex min-w-0 items-center gap-2 sm:gap-3"
           aria-label="M.M FABRICS home"
         >
-          <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-sm font-bold tracking-tight text-primary-foreground shadow-sm">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold tracking-tight text-primary-foreground shadow-sm sm:size-9">
             <Image
               src={logoImage.src}
               alt="M.M FABRICS"
-              width={150}
-              height={150}
+              width={36}
+              height={36}
+              className="size-full object-contain"
             />
           </span>
-          <span className="text-sm font-semibold tracking-[0.16em]">
+          <span className="truncate text-[11px] font-semibold tracking-[0.12em] sm:text-sm sm:tracking-[0.16em]">
             M.M FABRICS
           </span>
         </Link>
         <nav
-          className="hidden items-center gap-5 lg:flex"
+          className="hidden items-center gap-4 xl:gap-5 lg:flex"
           aria-label="Main navigation"
         >
           {NAVIGATION.filter((item) => !item.authenticated || user).map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="whitespace-nowrap text-sm text-muted-foreground transition-colors hover:text-foreground"
+              className="whitespace-nowrap text-xs text-muted-foreground transition-colors hover:text-foreground xl:text-sm"
             >
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="flex justify-end">
+        <div className="flex items-center justify-end gap-1.5 sm:gap-2 lg:col-start-3">
+          <div className="lg:hidden">
+            <MobileNavigation user={user} />
+          </div>
           {user ? (
             <Link
               href="/invoices"
               aria-label={`Signed in as ${user.name || user.email}`}
               title={user.name || user.email}
-              className="flex size-9 items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold text-foreground"
+              className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold text-foreground sm:size-9"
             >
               {initials || <UserRound className="size-4" />}
             </Link>
@@ -75,7 +80,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
               href="/auth/login"
               className={buttonVariants({
                 size: "sm",
-                className: "rounded-full px-4",
+                className: "h-8 rounded-full px-3 text-xs sm:h-9 sm:px-4 sm:text-sm",
               })}
             >
               Login

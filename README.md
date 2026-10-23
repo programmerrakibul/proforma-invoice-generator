@@ -4,6 +4,9 @@ A premium, responsive B2B proforma invoice generator for **M.M FABRICS** built
 with Next.js 16 App Router, React 19, Tailwind CSS v4, shadcn/ui, Mongoose, and
 Better Auth.
 
+The shared site header adapts from a compact mobile drawer to centered desktop
+navigation and keeps invoice links scoped to authenticated users.
+
 ## Tech Stack
 
 - **Framework:** Next.js 16.4.0 (App Router, Turbopack)
