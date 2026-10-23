@@ -1,6 +1,6 @@
+import Container from "@/components/shared/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import Container from "@/components/shared/container";
 import {
   Card,
   CardContent,
@@ -72,9 +72,9 @@ export default function Home() {
                 Proforma invoice generator
               </Badge>
               <h1 className=" font-bold text-ink text-4xl lg:text-6xl tracking-tight leading-tight mb-6">
-                Create professional proforma
+                Create professional proforma invoices
                 <br />
-                invoices for M.M FABRICS
+                for M.M FABRICS
               </h1>
               <p className="text-muted-foreground text-lg lg:text-xl max-w-2xl mb-10 leading-relaxed">
                 Generate, preview, and export A4 proforma invoices with
