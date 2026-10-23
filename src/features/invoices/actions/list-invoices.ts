@@ -2,11 +2,14 @@
 
 import mongoose from "mongoose";
 
+import type {
+  InvoiceDocumentData,
+  InvoiceDocumentNotes,
+} from "@/features/invoices/types";
 import { buildInvoiceDocument } from "@/features/invoices/utils/build-invoice-document";
-import type { InvoiceDocumentData, InvoiceDocumentNotes } from "@/features/invoices/types";
 import { requireUser } from "@/lib/auth/require-user";
-import { connectToDatabase } from "@/lib/db/mongoose";
 import { InvoiceModel } from "@/lib/db/models";
+import { connectToDatabase } from "@/lib/db/mongoose";
 import type { ActionResult } from "@/lib/validations/action-result";
 
 interface RawLineItem {
@@ -38,7 +41,7 @@ export interface InvoiceListItem {
   id: string;
   invoiceNumber: string;
   issueDate: string;
-  status: "draft" | "ready" | "exported" | "archived";
+  status: "draft" | "exported";
   buyerName: string;
   currency: string;
   totalQuantity: number;
@@ -59,13 +62,13 @@ interface ListInvoicesInput {
   page?: number;
   pageSize?: number;
   search?: string;
-  status?: "all" | "draft" | "ready" | "exported" | "archived";
+  status?: "all" | "draft" | "exported";
   sort?: string;
 }
 
 interface InvoiceQueryFilter {
   ownerId: mongoose.Types.ObjectId;
-  status?: "draft" | "ready" | "exported" | "archived";
+  status?: "draft" | "exported";
   $or?: Array<{ piNumber?: RegExp; "buyer.name"?: RegExp }>;
 }
 

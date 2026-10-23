@@ -2,14 +2,12 @@ import Container from "@/components/shared/container";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { listInvoicesAction } from "@/features/invoices/actions/list-invoices";
 import { InvoiceListTable } from "@/features/invoices/components/invoice-list-table";
-import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { ArrowLeft, ArrowRight, FilePlus2, Search } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 
 type SearchParamValue = string | string[] | undefined;
-type InvoiceStatusFilter = "all" | "draft" | "ready" | "exported" | "archived";
+type InvoiceStatusFilter = "all" | "draft" | "exported";
 type InvoiceSort = "newest" | "oldest" | "highest" | "lowest";
 interface InvoicesPageProps {
   searchParams: Promise<Record<string, SearchParamValue>>;
@@ -30,9 +28,7 @@ function buildQueryString(params: Record<string, string | undefined>): string {
 function parseStatus(value: string): InvoiceStatusFilter {
   switch (value) {
     case "draft":
-    case "ready":
     case "exported":
-    case "archived":
       return value;
     default:
       return "all";
@@ -55,10 +51,6 @@ export default async function InvoicesPage({
 }: InvoicesPageProps) {
   await connection();
   const params = await searchParams;
-  const user = await getCurrentUser();
-
-  if (!user) redirect("/auth/login?redirect=%2Finvoices");
-
   const pageValue = Number.parseInt(firstParam(params.page), 10);
   const page = Number.isFinite(pageValue) && pageValue > 0 ? pageValue : 1;
   const search = firstParam(params.search).trim();

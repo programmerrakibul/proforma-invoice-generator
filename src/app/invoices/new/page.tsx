@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function NewInvoicePage() {
   const currentUser = await getCurrentUser();
   const piNumber = currentUser ? await getNextPiNumber(currentUser.id) : "MMF/001/26";
+  
   return (
     <div className="min-h-screen bg-muted/25">
       <Container className="flex h-full flex-col py-6 lg:py-8">

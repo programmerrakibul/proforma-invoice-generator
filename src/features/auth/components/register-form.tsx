@@ -39,16 +39,18 @@ export function RegisterForm({ redirectTo = "/invoices" }: RegisterFormProps) {
         email: values.email,
         password: values.password,
       });
+
       if (result.error) {
         throw new Error(
           result.error.message ??
             "We couldn’t create your account. Please try again.",
         );
-        return;
       }
+
       toast.success("Your workspace is ready", {
         description: "Welcome to M.M FABRICS.",
       });
+
       router.replace(redirectTo);
       router.refresh();
     } catch (error: unknown) {
@@ -71,6 +73,7 @@ export function RegisterForm({ redirectTo = "/invoices" }: RegisterFormProps) {
           <AlertDescription>{serverError}</AlertDescription>
         </Alert>
       ) : null}
+
       <AuthField
         id="name"
         label="Full name"
@@ -79,6 +82,7 @@ export function RegisterForm({ redirectTo = "/invoices" }: RegisterFormProps) {
         error={errors.name?.message}
         {...register("name")}
       />
+
       <AuthField
         id="email"
         label="Work email"
@@ -88,6 +92,7 @@ export function RegisterForm({ redirectTo = "/invoices" }: RegisterFormProps) {
         error={errors.email?.message}
         {...register("email")}
       />
+
       <AuthField
         id="password"
         label="Password"
@@ -97,6 +102,7 @@ export function RegisterForm({ redirectTo = "/invoices" }: RegisterFormProps) {
         error={errors.password?.message}
         {...register("password")}
       />
+
       <AuthField
         id="confirmPassword"
         label="Confirm password"
@@ -106,6 +112,7 @@ export function RegisterForm({ redirectTo = "/invoices" }: RegisterFormProps) {
         error={errors.confirmPassword?.message}
         {...register("confirmPassword")}
       />
+
       <Button
         type="submit"
         disabled={isSubmitting}

@@ -46,9 +46,7 @@ interface InvoiceListTableProps {
 
 const STATUS_LABELS: Record<InvoiceListItem["status"], string> = {
   draft: "Draft",
-  ready: "Ready",
   exported: "Exported",
-  archived: "Archived",
 };
 
 const STATUS_VARIANTS: Record<
@@ -56,9 +54,7 @@ const STATUS_VARIANTS: Record<
   "default" | "secondary" | "outline" | "ghost"
 > = {
   draft: "outline",
-  ready: "default",
   exported: "secondary",
-  archived: "ghost",
 };
 
 const SUPPORTED_CURRENCIES: ReadonlyArray<CreateInvoiceInput["currency"]> = [
