@@ -67,8 +67,8 @@ export default async function InvoicesPage({
   });
 
   return (
-    <Container className="py-10 lg:py-14">
-      <section className="mx-auto max-w-7xl">
+    <section className="py-10 lg:py-14">
+      <Container>
         <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
@@ -226,7 +226,7 @@ export default async function InvoicesPage({
             {result.message}
           </div>
         )}
-      </section>
-    </Container>
+      </Container>
+    </section>
   );
 }

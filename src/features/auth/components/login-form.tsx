@@ -71,6 +71,7 @@ export function LoginForm({ redirectTo = "/invoices" }: LoginFormProps) {
           <AlertDescription>{serverError}</AlertDescription>
         </Alert>
       ) : null}
+
       <AuthField
         id="email"
         label="Work email"
@@ -80,6 +81,7 @@ export function LoginForm({ redirectTo = "/invoices" }: LoginFormProps) {
         error={errors.email?.message}
         {...register("email")}
       />
+
       <AuthField
         id="password"
         label="Password"
@@ -89,6 +91,7 @@ export function LoginForm({ redirectTo = "/invoices" }: LoginFormProps) {
         error={errors.password?.message}
         {...register("password")}
       />
+
       <Button
         type="submit"
         disabled={isSubmitting}

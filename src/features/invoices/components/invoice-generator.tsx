@@ -14,21 +14,16 @@ import {
 } from "@/features/invoices/utils/build-invoice-document";
 import { downloadPdfFromBase64 } from "@/features/invoices/utils/download-pdf";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { useSession } from "@/lib/auth-client";
 import { DownloadIcon, SaveIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { CreateInvoiceInput } from "../schemas/invoice.schema";
 
-interface InvoiceGeneratorProps {
-  initValues?: Partial<CreateInvoiceInput>;
-  canSaveDraft: boolean;
-}
-
-export function InvoiceGenerator({
-  initValues,
-  canSaveDraft,
-}: InvoiceGeneratorProps) {
+export function InvoiceGenerator() {
+  const { data } = useSession();
+  const canSaveDraft = Boolean(data);
   const methods = useForm<CreateInvoiceInput>({
     defaultValues: {
       piNumber: "MMF/001/26",
@@ -48,7 +43,6 @@ export function InvoiceGenerator({
           totalPrice: 1370.6,
         },
       ],
-      ...initValues,
     },
     mode: "onChange" as const,
   });

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import logoImage from "@/assets/logo.png";
 import { buttonVariants } from "@/components/ui/button";
@@ -45,6 +45,7 @@ export function SiteHeader() {
               width={36}
               height={36}
               className="size-full object-contain"
+              loading="eager"
             />
           </span>
           <span className="truncate text-[11px] font-semibold tracking-[0.12em] sm:text-sm sm:tracking-[0.16em]">
