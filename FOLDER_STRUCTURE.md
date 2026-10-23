@@ -11,8 +11,9 @@ src/
 │   ├── layout.tsx              # Root layout (session-aware shared header, providers, fonts, metadata)
 │   ├── page.tsx                # Landing page
 │   ├── auth/
-│   │   ├── login/page.tsx      # Sign-in page (Better Auth email/password)
-│   │   └── register/page.tsx   # Sign-up page (Better Auth email/password)
+│   │   ├── loading.tsx         # Shared loading UI for sign-in and registration
+│   │   ├── login/page.tsx      # Sign-in page (Better Auth email/password; server-resolved redirect)
+│   │   └── register/page.tsx   # Sign-up page (Better Auth email/password; server-resolved redirect)
 │   ├── api/
 │   │   └── auth/[...all]/route.ts  # Better Auth Next.js handler (toNextJsHandler)
 │   └── invoices/

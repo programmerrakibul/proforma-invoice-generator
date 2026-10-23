@@ -1,13 +1,21 @@
-"use client";
-
 import { AuthPage } from "@/features/auth/components/auth-page";
 import { RegisterForm } from "@/features/auth/components/register-form";
 import { getSafeAuthRedirect } from "@/features/auth/utils/auth-redirect";
-import { useSearchParams } from "next/navigation";
+import type { JSX } from "react";
 
-export default function RegisterPage() {
-  const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect");
+type SearchParamValue = string | string[] | undefined;
+
+interface RegisterPageProps {
+  searchParams: Promise<Record<string, SearchParamValue>>;
+}
+
+export default async function RegisterPage({
+  searchParams,
+}: RegisterPageProps): Promise<JSX.Element> {
+  const params = await searchParams;
+  const redirect = Array.isArray(params.redirect)
+    ? params.redirect[0]
+    : params.redirect;
   const destination = getSafeAuthRedirect(redirect ?? "/invoices");
 
   return (
