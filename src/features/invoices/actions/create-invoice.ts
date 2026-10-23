@@ -7,10 +7,10 @@ import {
   createInvoiceSchema,
   type CreateInvoiceInput,
 } from "@/features/invoices/schemas/invoice.schema";
-import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { persistInvoice } from "@/features/invoices/services/persist-invoice";
-import { connectToDatabase } from "@/lib/db/mongoose";
+import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { InvoiceModel } from "@/lib/db/models";
+import { connectToDatabase } from "@/lib/db/mongoose";
 import {
   ActionResult,
   zodErrorToActionResult,
@@ -40,7 +40,12 @@ export async function createInvoiceAction(
     const user = await getCurrentUser();
 
     if (user) {
-      const savedInvoiceId = await persistInvoice(user.id, validated, "draft", invoiceId);
+      const savedInvoiceId = await persistInvoice(
+        user.id,
+        validated,
+        "draft",
+        invoiceId,
+      );
 
       revalidatePath("/invoices");
       revalidatePath(`/invoices/${savedInvoiceId}`);

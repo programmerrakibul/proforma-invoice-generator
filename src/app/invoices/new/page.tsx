@@ -1,7 +1,6 @@
 import Container from "@/components/shared/container";
 import { InvoiceGenerator } from "@/features/invoices/components/invoice-generator";
 import { getNextPiNumber } from "@/features/invoices/actions/create-invoice";
-import { SiteHeader } from "@/components/layout/site-header";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +10,6 @@ export default async function NewInvoicePage() {
   const piNumber = currentUser ? await getNextPiNumber(currentUser.id) : "MMF/001/26";
   return (
     <div className="min-h-screen bg-muted/25">
-      <SiteHeader backToHome />
       <Container className="flex h-full flex-col py-6 lg:py-8">
       <div className="mb-6 flex flex-col gap-2">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Invoice studio</p>

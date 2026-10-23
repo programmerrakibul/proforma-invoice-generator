@@ -22,7 +22,6 @@ export interface Seller {
 export interface Buyer {
   name: string;
   address: string;
-  destinationCountry: string;
 }
 
 export interface InvoiceNotes {
@@ -81,7 +80,7 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
     currency: { type: String, required: true, default: "USD" },
     status: {
       type: String,
-      enum: ["draft", "ready", "exported", "archived"],
+      enum: ["draft", "exported", "archived"],
       default: "draft",
       index: true,
     },
@@ -95,7 +94,6 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
     buyer: {
       name: { type: String, required: true, trim: true },
       address: { type: String, required: true, trim: true },
-      destinationCountry: { type: String, required: true, trim: true },
     },
     lineItems: [lineItemSchema],
     subtotal: { type: Number, default: 0, min: 0 },
@@ -114,7 +112,7 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
     },
     termsAndConditions: [{ type: String }],
   },
-  { timestamps: true },
+  { timestamps: true, collection: "invoice" },
 );
 
 invoiceSchema.index({ ownerId: 1, updatedAt: -1 });
@@ -131,7 +129,7 @@ invoiceSchema.set("toObject", {
   versionKey: false,
 });
 
-export const InvoiceModel = getModel("Invoice", invoiceSchema) as Model<
+export const InvoiceModel = getModel("invoice", invoiceSchema) as Model<
   InferSchemaType<typeof invoiceSchema>
 >;
 

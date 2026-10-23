@@ -4,6 +4,10 @@ A premium, responsive B2B proforma invoice generator for **M.M FABRICS** built
 with Next.js 16 App Router, React 19, Tailwind CSS v4, shadcn/ui, Mongoose, and
 Better Auth.
 
+The shared site header adapts from a compact mobile drawer to centered desktop
+navigation, keeps invoice links scoped to authenticated users, and provides
+sign-out controls on both mobile and desktop.
+
 ## Tech Stack
 
 - **Framework:** Next.js 16.4.0 (App Router, Turbopack)
@@ -80,6 +84,10 @@ pnpm dev
 - **Client SDK:** `better-auth/client` (`signUp.email`, `signIn.email`)
 - **Server helpers:** `getCurrentUser()` (optional), `requireUser()` (throws
   when unauthenticated)
+- **Route redirects:** `src/proxy.ts` performs optimistic session-cookie checks
+  for the protected invoice list and redirects signed-in users away from login
+  and registration; the invoice page still verifies the Better Auth session
+  server-side
 - **Server session lookup:** Both helpers forward `await headers()` to
   `auth.api.getSession()` so Better Auth can read the incoming session cookie
 - **Redirect behavior:** Login and registration accept a validated same-site
@@ -102,7 +110,8 @@ pnpm dev
 - `piNumber` (`MMF/###/YY` format, e.g. `MMF/001/26`)
 - `issueDate`, `currency` (default `USD`)
 - `status` (`draft` \| `ready` \| `exported` \| `archived`, indexed)
-- `seller`, `buyer` (embedded contact info, including consignee address and destination country)
+- `seller`, `buyer` (embedded contact info, including consignee address and
+  destination country)
 - `lineItems[]` (description, style, color, quantity, unitPrice, totalAmount,
   unit)
 - `subtotal`, `totalAmount`, `totalQuantity` (calculated server-side)
@@ -117,13 +126,13 @@ pnpm dev
 
 All invoice mutations go through Next.js Server Actions:
 
-| Action                   | File                                              | Auth                     | Ownership                                         |
-| ------------------------ | ------------------------------------------------- | ------------------------ | ------------------------------------------------- |
-| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Optional (guest allowed) | Derived from session when authenticated           |
-| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
-| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                        |
-| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                               |
-| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | Session owner when persisted                    |
+| Action                   | File                                              | Auth                     | Ownership                               |
+| ------------------------ | ------------------------------------------------- | ------------------------ | --------------------------------------- |
+| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Optional (guest allowed) | Derived from session when authenticated |
+| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required                 | Query by `_id` + `ownerId`              |
+| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required                 | Query by `_id` + `ownerId`              |
+| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                     |
+| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | Session owner when persisted            |
 
 **Security rules enforced:**
 
@@ -140,10 +149,10 @@ All invoice mutations go through Next.js Server Actions:
 
 ## PDF generation and live preview
 
-- Live preview is a JSX/HTML A4 document that updates as the form changes
+- Live preview is a JSX/HTML A4 document that follows the M.M FABRICS invoice design and updates as the form changes
 - PDF files are generated on the server with PDFKit and downloaded via
   `exportInvoicePdfAction` (guests can export without signing in)
-- Preview and PDF share the same mapped document model
+- Preview and PDF share the same mapped document model and matching A4 layout, company logo, seal, and final-page signature/footer
 
 ## Caching Strategy
 
@@ -159,13 +168,16 @@ All invoice mutations go through Next.js Server Actions:
 
 - User authentication (sign-in/sign-up with Better Auth email/password)
 - Premium responsive landing, authentication, and invoice studio interfaces
-- Shared site header; auth supports a safe same-site `redirect` query parameter
+- Shared site header on every page with centered navigation and a session-aware
+  login/user placeholder; auth screens include back navigation and support a
+  safe same-site `redirect` query parameter
 - Auth success feedback with toast notifications and destination navigation
 - Landing page and protected invoice table with search, status filter, sorting,
   pagination, preview, and confirmed deletion
 - Invoice list rows can export saved invoices to PDF and mark them exported
-- Invoice generator with live A4 JSX preview (HTML, updates as the form changes)
-- Multi-line-item support with required-field validation and guarded add-item flow
+- Invoice generator with live A4 JSX preview matching the M.M FABRICS invoice design (HTML, updates as the form changes)
+- Multi-line-item support with required-field validation and guarded add-item
+  flow
 - Buyer/consignee details and invoice line items; delivery, banking, shipment,
   payment notes, and terms are populated from application defaults in the
   background rather than exposed as form fields
@@ -181,8 +193,8 @@ All invoice mutations go through Next.js Server Actions:
   sidebar, mobile stacked cards
 - PDF export (PDFKit, generated on the server; authenticated exports are saved)
 - Invoice totals show aggregate quantity, unit-price total, and total amount
-- Locale-aware `en-US` currency formatting, `en-ES` quantity formatting, and
-  M.M FABRICS seal/signature footer
+- Locale-aware `en-US` currency formatting, `en-ES` quantity formatting, and M.M
+  FABRICS seal/signature footer
 - Light/dark/system theme support (next-themes)
 
 ## Verification Order

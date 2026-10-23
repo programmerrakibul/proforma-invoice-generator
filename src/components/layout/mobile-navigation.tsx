@@ -1,0 +1,93 @@
+"use client";
+
+import { buttonVariants } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import type { User } from "@/lib/auth";
+import { LogoutButton } from "@/features/auth/components/logout-button";
+import { ArrowUpRight, Menu } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+
+interface MobileNavigationProps {
+  user: User | null;
+}
+
+const NAVIGATION = [
+  { href: "/", label: "Home" },
+  { href: "/invoices/new", label: "Create invoice" },
+  { href: "/invoices", label: "Invoice list", authenticated: true },
+  { href: "/#features", label: "Features" },
+  { href: "/#how-it-works", label: "How it works" },
+];
+
+export function MobileNavigation({ user }: MobileNavigationProps) {
+  const [open, setOpen] = useState<boolean>(false);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger
+        aria-label="Open navigation menu"
+        render={
+          <button
+            type="button"
+            className="inline-flex size-9 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        }
+      >
+        <Menu className="size-4" aria-hidden="true" />
+      </SheetTrigger>
+      <SheetContent
+        side="right"
+        className="w-[min(20rem,calc(100vw-2rem))] p-0 sm:max-w-sm"
+      >
+        <SheetHeader className="border-b border-border px-5 py-5">
+          <SheetTitle className="text-left text-base">M.M FABRICS</SheetTitle>
+          <SheetDescription className="text-left">
+            Navigate the invoice workspace
+          </SheetDescription>
+        </SheetHeader>
+        <nav
+          className="flex flex-col gap-1 p-3"
+          aria-label="Mobile navigation"
+        >
+          {NAVIGATION.filter((item) => !item.authenticated || user).map(
+            (item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="rounded-lg px-3 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {item.label}
+              </Link>
+            ),
+          )}
+        </nav>
+        <div className="mt-auto border-t border-border p-4">
+          <div className="flex flex-col gap-2">
+            <Link
+              href={user ? "/invoices" : "/auth/login"}
+              onClick={() => setOpen(false)}
+              className={buttonVariants({
+                className: "w-full justify-center rounded-full",
+              })}
+            >
+              {user ? "My invoices" : "Login"}
+              <ArrowUpRight data-icon="inline-end" />
+            </Link>
+            {user ? (
+              <LogoutButton onLoggedOut={() => setOpen(false)} />
+            ) : null}
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}

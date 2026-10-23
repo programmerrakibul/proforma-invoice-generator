@@ -1,5 +1,5 @@
-import mongoose, { type InferSchemaType, type Model } from "mongoose";
 import { getModel } from "@/lib/db/model-helpers";
+import mongoose, { type InferSchemaType, type Model } from "mongoose";
 
 export interface CompanyProfile {
   companyName: string;
@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema<User>(
       logoUrl: { type: String, default: "" },
     },
   },
-  { timestamps: true },
+  { timestamps: true, collection: "user" },
 );
 
 userSchema.set("toJSON", {
@@ -66,7 +66,7 @@ userSchema.set("toObject", {
   },
 });
 
-export const UserModel = getModel("User", userSchema) as Model<
+export const UserModel = getModel("user", userSchema) as Model<
   InferSchemaType<typeof userSchema>
 >;
 

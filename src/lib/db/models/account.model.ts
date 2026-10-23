@@ -1,10 +1,7 @@
 import { getModel } from "@/lib/db/model-helpers";
 import mongoose, { type InferSchemaType, type Model } from "mongoose";
 
-/**
- * NextAuth v4 Account collection.
- * Links a User to an external or credential provider account.
- */
+
 export interface Account {
   _id: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -45,12 +42,12 @@ const accountSchema = new mongoose.Schema<Account>(
     oauth_token_secret: { type: String },
     oauth_token: { type: String },
   },
-  { timestamps: true },
+  { timestamps: true, collection: "account" },
 );
 
 accountSchema.index({ provider: 1, providerAccountId: 1 }, { unique: true });
 
-export const AccountModel = getModel("Account", accountSchema) as Model<
+export const AccountModel = getModel("account", accountSchema) as Model<
   InferSchemaType<typeof accountSchema>
 >;
 

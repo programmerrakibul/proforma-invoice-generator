@@ -1,10 +1,7 @@
-import mongoose, { type InferSchemaType, type Model } from "mongoose";
 import { getModel } from "@/lib/db/model-helpers";
+import mongoose, { type InferSchemaType, type Model } from "mongoose";
 
-/**
- * NextAuth v4 Session collection.
- * Records active authenticated sessions scoped to a User.
- */
+
 export interface Session {
   _id: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -25,10 +22,10 @@ const sessionSchema = new mongoose.Schema<Session>(
     expires: { type: Date, required: true },
     sessionToken: { type: String, required: true, unique: true, index: true },
   },
-  { timestamps: true },
+  { timestamps: true, collection: "session" },
 );
 
-export const SessionModel = getModel("Session", sessionSchema) as Model<
+export const SessionModel = getModel("session", sessionSchema) as Model<
   InferSchemaType<typeof sessionSchema>
 >;
 
