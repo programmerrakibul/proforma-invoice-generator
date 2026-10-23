@@ -1,8 +1,9 @@
 import Container from "@/components/shared/container";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { listInvoicesAction } from "@/features/invoices/actions/list-invoices";
+import { InvoiceListFilters } from "@/features/invoices/components/invoice-list-filters";
 import { InvoiceListTable } from "@/features/invoices/components/invoice-list-table";
-import { ArrowLeft, ArrowRight, FilePlus2, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, FilePlus2 } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 
@@ -87,49 +88,12 @@ export default async function InvoicesPage({
           </Link>
         </div>
 
-        <form
-          method="GET"
-          action="/invoices"
-          className="mb-5 grid grid-cols-1 gap-3 rounded-2xl border border-border/70 bg-card p-4 shadow-sm md:grid-cols-[minmax(16rem,1fr)_12rem_12rem_auto]"
-        >
-          <label className="relative flex items-center">
-            <Search className="absolute left-3 size-4 text-muted-foreground" />
-            <input
-              name="search"
-              defaultValue={search}
-              placeholder="Search PI number or buyer"
-              className="h-10 w-full rounded-xl border border-input bg-background pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-            />
-          </label>
-          <select
-            name="status"
-            defaultValue={status}
-            aria-label="Filter by status"
-            className="h-10 rounded-xl border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-          >
-            <option value="all">All statuses</option>
-            <option value="draft">Draft</option>
-            <option value="exported">Exported</option>
-          </select>
-          <select
-            name="sort"
-            defaultValue={sort}
-            aria-label="Sort invoices"
-            className="h-10 rounded-xl border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-          >
-            <option value="newest">Recently updated</option>
-            <option value="oldest">Oldest updated</option>
-            <option value="highest">Highest amount</option>
-            <option value="lowest">Lowest amount</option>
-          </select>
-          <Button
-            type="submit"
-            variant="secondary"
-            className="h-10 rounded-xl px-5"
-          >
-            Apply
-          </Button>
-        </form>
+        <InvoiceListFilters
+          key={`${search}:${status}:${sort}`}
+          search={search}
+          status={status}
+          sort={sort}
+        />
 
         {result.ok ? (
           <>

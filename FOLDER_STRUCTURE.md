@@ -61,6 +61,7 @@ src/
 │       │   ├── list-invoices.ts        # listInvoicesAction (Zod-validated server search/filter/sort/pagination, auth required)
 │       │   └── export-invoice-pdf.ts   # Export PDF; persist as exported when signed in
 │       ├── components/
+│       │   ├── invoice-list-filters.tsx # Debounced GET search + status/sort controls
 │       │   ├── invoice-form.tsx        # PI metadata and buyer form (RHF + Zod)
 │       │   ├── invoice-generator.tsx   # Page-level form orchestration + save/export
 │       │   ├── invoice-line-items.tsx  # Editable items with guarded add-item flow

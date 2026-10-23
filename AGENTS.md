@@ -107,8 +107,8 @@ All invoice mutations go through Next.js Server Actions:
 
 - `listInvoicesAction` validates page, page size, search, status, and sort with
   Zod, then applies owner-scoped search/filter/sort and pagination in MongoDB.
-  The `/invoices` page reads URL search parameters on the server and renders
-  only the requested page of results.
+  The `/invoices` page debounces search input, reads URL search parameters on
+  the server, and renders only the requested page of results.
 
 **Security rules enforced:**
 
