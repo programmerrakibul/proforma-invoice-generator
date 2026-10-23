@@ -109,9 +109,7 @@ export default async function InvoicesPage({
           >
             <option value="all">All statuses</option>
             <option value="draft">Draft</option>
-            <option value="ready">Ready</option>
             <option value="exported">Exported</option>
-            <option value="archived">Archived</option>
           </select>
           <select
             name="sort"
@@ -179,13 +177,13 @@ export default async function InvoicesPage({
             )}
             {result.data.totalPages > 1 ? (
               <div className="mt-5 flex items-center justify-end gap-2">
-                {page > 1 ? (
+                {result.data.page > 1 ? (
                   <Link
                     className={buttonVariants({
                       variant: "outline",
                       size: "sm",
                     })}
-                    href={`/invoices?${buildQueryString({ ...queryParams, page: String(page - 1) })}`}
+                    href={`/invoices?${buildQueryString({ ...queryParams, page: String(result.data.page - 1) })}`}
                   >
                     <ArrowLeft data-icon="inline-start" /> Previous
                   </Link>
@@ -197,13 +195,13 @@ export default async function InvoicesPage({
                     <ArrowLeft data-icon="inline-start" /> Previous
                   </span>
                 )}
-                {page < result.data.totalPages ? (
+                {result.data.page < result.data.totalPages ? (
                   <Link
                     className={buttonVariants({
                       variant: "outline",
                       size: "sm",
                     })}
-                    href={`/invoices?${buildQueryString({ ...queryParams, page: String(page + 1) })}`}
+                    href={`/invoices?${buildQueryString({ ...queryParams, page: String(result.data.page + 1) })}`}
                   >
                     Next <ArrowRight data-icon="inline-end" />
                   </Link>

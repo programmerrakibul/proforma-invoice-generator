@@ -174,7 +174,8 @@ All invoice mutations go through Next.js Server Actions:
   safe same-site `redirect` query parameter
 - Auth success feedback with toast notifications and destination navigation
 - Landing page and protected invoice table with search, status filter, sorting,
-  pagination, preview, and confirmed deletion
+  pagination, preview, and confirmed deletion; search/filter/sort/page queries
+  are validated and executed server-side against the owner-scoped MongoDB data
 - Invoice list rows can export saved invoices to PDF and mark them exported
 - Invoice generator with live A4 JSX preview matching the M.M FABRICS invoice design (HTML, updates as the form changes)
 - Multi-line-item support with required-field validation and guarded add-item

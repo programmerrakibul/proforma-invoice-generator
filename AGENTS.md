@@ -105,6 +105,11 @@ All invoice mutations go through Next.js Server Actions:
 | `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                       |
 | `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | Owner derived from session when persisted |
 
+- `listInvoicesAction` validates page, page size, search, status, and sort with
+  Zod, then applies owner-scoped search/filter/sort and pagination in MongoDB.
+  The `/invoices` page reads URL search parameters on the server and renders
+  only the requested page of results.
+
 **Security rules enforced:**
 
 - `ownerId` is always derived from the authenticated session, never from client

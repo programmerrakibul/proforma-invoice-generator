@@ -58,7 +58,7 @@ src/
 │       │   ├── create-invoice.ts       # createInvoiceAction + getNextPiNumber (optional auth)
 │       │   ├── update-invoice.ts       # updateInvoiceAction (ownership: _id + ownerId)
 │       │   ├── delete-invoice.ts       # deleteInvoiceAction (ownership: _id + ownerId)
-│       │   ├── list-invoices.ts        # listInvoicesAction (paginated, auth required)
+│       │   ├── list-invoices.ts        # listInvoicesAction (Zod-validated server search/filter/sort/pagination, auth required)
 │       │   └── export-invoice-pdf.ts   # Export PDF; persist as exported when signed in
 │       ├── components/
 │       │   ├── invoice-form.tsx        # PI metadata and buyer form (RHF + Zod)

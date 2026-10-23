@@ -1,6 +1,7 @@
 "use server";
 
 import mongoose from "mongoose";
+import { z } from "zod";
 
 import type {
   InvoiceDocumentData,
@@ -58,13 +59,15 @@ export interface PaginatedInvoices {
   totalPages: number;
 }
 
-interface ListInvoicesInput {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  status?: "all" | "draft" | "exported";
-  sort?: string;
-}
+const listInvoicesInputSchema = z.object({
+  page: z.number().int().positive().optional(),
+  pageSize: z.number().int().positive().max(100).optional(),
+  search: z.string().trim().max(100).optional(),
+  status: z.enum(["all", "draft", "exported"]).optional(),
+  sort: z.enum(["newest", "oldest", "highest", "lowest"]).optional(),
+});
+
+export type ListInvoicesInput = z.infer<typeof listInvoicesInputSchema>;
 
 interface InvoiceQueryFilter {
   ownerId: mongoose.Types.ObjectId;
@@ -76,35 +79,40 @@ export async function listInvoicesAction(
   input: ListInvoicesInput = {},
 ): Promise<ActionResult<PaginatedInvoices>> {
   try {
+    const validatedInput = listInvoicesInputSchema.parse(input);
     const user = await requireUser();
     await connectToDatabase();
 
-    const page = Math.max(1, input.page ?? 1);
-    const pageSize = Math.min(100, Math.max(1, input.pageSize ?? 10));
-    const skip = (page - 1) * pageSize;
+    const requestedPage = validatedInput.page ?? 1;
+    const pageSize = validatedInput.pageSize ?? 10;
     const ownerId = new mongoose.Types.ObjectId(user.id);
     const filter: InvoiceQueryFilter = { ownerId };
 
-    if (input.status && input.status !== "all") filter.status = input.status;
-    if (input.search) {
-      const escapedSearch = input.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (validatedInput.status && validatedInput.status !== "all") {
+      filter.status = validatedInput.status;
+    }
+    if (validatedInput.search) {
+      const escapedSearch = validatedInput.search.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&",
+      );
       const searchRegex = new RegExp(escapedSearch, "i");
       filter.$or = [{ piNumber: searchRegex }, { "buyer.name": searchRegex }];
     }
 
     const sort: Record<string, 1 | -1> = { updatedAt: -1 };
-    if (input.sort === "oldest") sort.updatedAt = 1;
-    if (input.sort === "highest") sort.totalAmount = -1;
-    if (input.sort === "lowest") sort.totalAmount = 1;
+    if (validatedInput.sort === "oldest") sort.updatedAt = 1;
+    if (validatedInput.sort === "highest") sort.totalAmount = -1;
+    if (validatedInput.sort === "lowest") sort.totalAmount = 1;
 
-    const [rawItems, total] = await Promise.all([
-      InvoiceModel.find(filter)
-        .sort(sort)
-        .skip(skip)
-        .limit(pageSize)
-        .lean<RawInvoice[]>(),
-      InvoiceModel.countDocuments(filter),
-    ]);
+    const total = await InvoiceModel.countDocuments(filter);
+    const totalPages = Math.ceil(total / pageSize);
+    const page = totalPages === 0 ? 1 : Math.min(requestedPage, totalPages);
+    const rawItems = await InvoiceModel.find(filter)
+      .sort(sort)
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .lean<RawInvoice[]>();
 
     const items: InvoiceListItem[] = rawItems.map((item) => {
       const issueDate = item.issueDate.toISOString();
@@ -140,7 +148,7 @@ export async function listInvoicesAction(
         total,
         page,
         pageSize,
-        totalPages: Math.ceil(total / pageSize),
+        totalPages,
       },
       message: "Invoices loaded.",
     };
