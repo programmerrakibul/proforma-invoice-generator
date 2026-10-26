@@ -13,7 +13,6 @@ import {
   toInvoiceDocumentInput,
 } from "@/features/invoices/utils/build-invoice-document";
 import { downloadPdfFromBase64 } from "@/features/invoices/utils/download-pdf";
-import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { useSession } from "@/lib/auth-client";
 import { getPINumber } from "@/lib/pi-number";
 import { DownloadIcon, SaveIcon } from "lucide-react";
@@ -54,7 +53,7 @@ export function InvoiceGenerator() {
     handleSubmit,
     control,
     getValues,
-    formState: { isSubmitting, isDirty },
+    formState: { isSubmitting },
   } = methods;
 
   const watchedValues = useWatch({ control });
@@ -62,11 +61,6 @@ export function InvoiceGenerator() {
     () => buildInvoiceDocument(toInvoiceDocumentInput(watchedValues)),
     [watchedValues],
   );
-
-  useUnsavedChanges(isDirty, (event) => {
-    event.preventDefault();
-    event.returnValue = "";
-  });
 
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "saved" | "error"

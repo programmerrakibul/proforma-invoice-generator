@@ -68,9 +68,6 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-[7.5pt] font-bold tracking-[0.2em] text-[#64766f]">
-            COMMERCIAL DOCUMENT
-          </p>
           <h1 className="mt-1 text-[19pt] font-extrabold tracking-[0.06em] text-[#164b3a]">
             PROFORMA INVOICE
           </h1>

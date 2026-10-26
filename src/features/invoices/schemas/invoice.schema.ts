@@ -28,7 +28,8 @@ export const invoiceLineItemSchema = z.object({
     .string()
     .trim()
     .min(1, "Construction is required.")
-    .max(100, "Construction must be 100 characters or fewer."),
+    .max(100, "Construction must be 100 characters or fewer.")
+    .transform((val) => val.replaceAll("*", "x")),
   width: z
     .string()
     .trim()

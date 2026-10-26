@@ -41,7 +41,6 @@ export function InvoiceForm() {
               <Input
                 id="piNumber"
                 aria-invalid={Boolean(errors.piNumber)}
-                className="h-10 rounded-xl bg-background"
                 placeholder="MMF/001/26"
                 {...register("piNumber")}
               />
@@ -59,7 +58,6 @@ export function InvoiceForm() {
                 id="issueDate"
                 type="date"
                 aria-invalid={Boolean(errors.issueDate)}
-                className="h-10 rounded-xl bg-background"
                 {...register("issueDate")}
               />
               {errors.issueDate?.message ? (
@@ -88,7 +86,6 @@ export function InvoiceForm() {
                 <Input
                   id="buyer.name"
                   aria-invalid={Boolean(errors.buyer?.name)}
-                  className="h-10 rounded-xl bg-background"
                   {...register("buyer.name")}
                 />
                 {errors.buyer?.name?.message ? (
@@ -107,7 +104,6 @@ export function InvoiceForm() {
                 <Textarea
                   id="buyer.address"
                   aria-invalid={Boolean(errors.buyer?.address)}
-                  className="min-h-20 rounded-xl bg-background"
                   {...register("buyer.address")}
                 />
                 {errors.buyer?.address?.message ? (

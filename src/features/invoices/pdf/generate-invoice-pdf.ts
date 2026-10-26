@@ -85,15 +85,6 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
     });
   doc
     .font("Helvetica-Bold")
-    .fontSize(7.5)
-    .fillColor(MUTED)
-    .text("COMMERCIAL DOCUMENT", x + width - 210, PAGE_MARGIN_TOP + 1, {
-      width: 210,
-      align: "right",
-      characterSpacing: 1.3,
-    });
-  doc
-    .font("Helvetica-Bold")
     .fontSize(18)
     .fillColor(GREEN)
     .text("PROFORMA INVOICE", x + width - 300, PAGE_MARGIN_TOP + 16, {

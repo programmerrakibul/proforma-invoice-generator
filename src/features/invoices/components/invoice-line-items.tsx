@@ -116,9 +116,9 @@ export function InvoiceLineItems() {
                 <Trash2Icon />
               </Button>
             </div>
-            <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
+            <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
               <Field
-                className="sm:col-span-2 xl:col-span-3"
+                className="sm:col-span-2 xl:col-span-2"
                 data-invalid={Boolean(errors.lineItems?.[index]?.fabric)}
               >
                 <FieldLabel htmlFor={`lineItems.${index}.fabric`}>
@@ -149,7 +149,7 @@ export function InvoiceLineItems() {
               </Field>
 
               <Field
-                className="sm:col-span-2 xl:col-span-2"
+                className="col-span-1 xl:col-span-2"
                 data-invalid={Boolean(errors.lineItems?.[index]?.construction)}
               >
                 <FieldLabel htmlFor={`lineItems.${index}.construction`}>
@@ -161,7 +161,6 @@ export function InvoiceLineItems() {
                     errors.lineItems?.[index]?.construction,
                   )}
                   {...register(`lineItems.${index}.construction`)}
-                  className="h-10 rounded-lg bg-background"
                   placeholder="e.g. 20x20/108x58"
                 />
                 {errors.lineItems?.[index]?.construction?.message ? (
@@ -172,7 +171,7 @@ export function InvoiceLineItems() {
               </Field>
 
               <Field
-                className="sm:col-span-2 xl:col-span-2"
+                className="col-span-1"
                 data-invalid={Boolean(errors.lineItems?.[index]?.width)}
               >
                 <FieldLabel htmlFor={`lineItems.${index}.width`}>
@@ -189,7 +188,6 @@ export function InvoiceLineItems() {
                       <SelectTrigger
                         id={`lineItems.${index}.width`}
                         aria-invalid={Boolean(errors.lineItems?.[index]?.width)}
-                        className="h-10 w-full rounded-lg bg-background"
                       >
                         <SelectValue placeholder="Select width from 40 to 80" />
                       </SelectTrigger>
@@ -213,7 +211,7 @@ export function InvoiceLineItems() {
               </Field>
 
               <Field
-                className="sm:col-span-2 xl:col-span-2"
+                className="col-span-1 xl:col-span-2"
                 data-invalid={Boolean(errors.lineItems?.[index]?.style)}
               >
                 <FieldLabel htmlFor={`lineItems.${index}.style`}>
@@ -223,7 +221,6 @@ export function InvoiceLineItems() {
                   id={`lineItems.${index}.style`}
                   aria-invalid={Boolean(errors.lineItems?.[index]?.style)}
                   {...register(`lineItems.${index}.style`)}
-                  className="h-10 rounded-lg bg-background"
                   placeholder="Style"
                 />
                 {errors.lineItems?.[index]?.style?.message ? (
@@ -234,7 +231,7 @@ export function InvoiceLineItems() {
               </Field>
 
               <Field
-                className="sm:col-span-1 xl:col-span-1"
+                className="col-span-1"
                 data-invalid={Boolean(errors.lineItems?.[index]?.color)}
               >
                 <FieldLabel htmlFor={`lineItems.${index}.color`}>
@@ -244,7 +241,6 @@ export function InvoiceLineItems() {
                   id={`lineItems.${index}.color`}
                   aria-invalid={Boolean(errors.lineItems?.[index]?.color)}
                   {...register(`lineItems.${index}.color`)}
-                  className="h-10 rounded-lg bg-background"
                   placeholder="Color"
                 />
                 {errors.lineItems?.[index]?.color?.message ? (
@@ -255,7 +251,7 @@ export function InvoiceLineItems() {
               </Field>
 
               <Field
-                className="sm:col-span-1 xl:col-span-1"
+                className="col-span-1"
                 data-invalid={Boolean(errors.lineItems?.[index]?.quantity)}
               >
                 <FieldLabel htmlFor={`lineItems.${index}.quantity`}>
@@ -269,7 +265,6 @@ export function InvoiceLineItems() {
                   {...register(`lineItems.${index}.quantity`, {
                     valueAsNumber: true,
                   })}
-                  className="h-10 rounded-lg bg-background"
                   placeholder="1"
                 />
                 {errors.lineItems?.[index]?.quantity?.message ? (
@@ -280,7 +275,7 @@ export function InvoiceLineItems() {
               </Field>
 
               <Field
-                className="sm:col-span-2 xl:col-span-2"
+                className="col-span-1"
                 data-invalid={Boolean(errors.lineItems?.[index]?.unitPrice)}
               >
                 <FieldLabel htmlFor={`lineItems.${index}.unitPrice`}>
@@ -295,7 +290,6 @@ export function InvoiceLineItems() {
                   {...register(`lineItems.${index}.unitPrice`, {
                     valueAsNumber: true,
                   })}
-                  className="h-10 rounded-lg bg-background"
                   placeholder="0.00"
                 />
                 {errors.lineItems?.[index]?.unitPrice?.message ? (

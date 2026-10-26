@@ -72,7 +72,6 @@ function FabricSuggestInput({
         aria-expanded={isOpen}
         aria-controls={isOpen ? listboxId : undefined}
         autoComplete="off"
-        className="h-10 rounded-lg bg-background"
         placeholder="Search or enter a fabric"
         onFocus={() => {
           setIsOpen(true);
@@ -116,7 +115,7 @@ function FabricSuggestInput({
               variant="secondary"
               role="option"
               aria-selected="false"
-              className="h-auto justify-start px-3 py-2 text-left text-sm"
+              className="justify-start py-1 text-left"
               onPointerDown={(event) => event.preventDefault()}
               onClick={() => commitFabric(query.trim())}
             >
@@ -130,7 +129,7 @@ function FabricSuggestInput({
               variant="ghost"
               role="option"
               aria-selected={fabric === value}
-              className="h-auto justify-start px-3 py-2 text-left text-sm"
+              className="justify-start py-1 text-left"
               onPointerDown={(event) => event.preventDefault()}
               onClick={() => commitFabric(fabric)}
             >
@@ -138,7 +137,7 @@ function FabricSuggestInput({
             </Button>
           ))}
           {matches.length === 0 && !(hasTyped && query.trim()) ? (
-            <p className="px-3 py-2 text-sm text-muted-foreground">
+            <p className="px-3 py-2 text-muted-foreground">
               No catalog fabrics match.
             </p>
           ) : null}
