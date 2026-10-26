@@ -14,7 +14,10 @@ import { connectToDatabase } from "@/lib/db/mongoose";
 import type { ActionResult } from "@/lib/validations/action-result";
 
 interface RawLineItem {
-  description: string;
+  fabric?: string;
+  construction?: string;
+  width?: string;
+  description?: string;
   style: string;
   color: string;
   quantity: number;

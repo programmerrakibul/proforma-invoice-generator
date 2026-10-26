@@ -159,7 +159,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
           <TableBody>
             {data.lineItems.map((item, index) => (
               <TableRow
-                key={`${item.description}-${index}`}
+                key={`${item.fabric}-${item.construction}-${item.width}-${index}`}
                 className="border-[#d4e1dc] hover:bg-transparent"
               >
                 <TableCell className="whitespace-pre-line px-3 py-3 align-top font-medium text-[#253b36]">

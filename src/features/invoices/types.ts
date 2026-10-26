@@ -1,6 +1,8 @@
 export interface InvoiceLineItemView {
   id: string;
-  description: string;
+  fabric: string;
+  construction: string;
+  width: string;
   style: string;
   color: string;
   quantity: number;
@@ -10,6 +12,9 @@ export interface InvoiceLineItemView {
 }
 
 export interface InvoiceDocumentLineItem {
+  fabric: string;
+  construction: string;
+  width: string;
   description: string;
   style: string;
   color: string;

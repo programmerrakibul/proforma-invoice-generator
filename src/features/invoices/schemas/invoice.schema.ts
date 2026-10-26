@@ -19,11 +19,28 @@ const invoiceNoteSchema = z.object({
 });
 
 export const invoiceLineItemSchema = z.object({
-  description: z
+  fabric: z
     .string()
     .trim()
-    .min(1, "Description is required.")
-    .max(300, "Description must be 300 characters or fewer."),
+    .min(1, "Fabric is required.")
+    .max(300, "Fabric must be 300 characters or fewer."),
+  construction: z
+    .string()
+    .trim()
+    .min(1, "Construction is required.")
+    .max(100, "Construction must be 100 characters or fewer."),
+  width: z
+    .string()
+    .trim()
+    .min(1, "Width is required.")
+    .max(6, "Width must be 6 characters or fewer.")
+    .refine(
+      (value) =>
+        /^\d+(?:\.\d+)?$/.test(value) &&
+        Number(value) >= 40 &&
+        Number(value) <= 80,
+      "Width must be a number from 40 to 80 inches.",
+    ),
   style: z
     .string()
     .trim()

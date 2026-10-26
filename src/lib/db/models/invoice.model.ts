@@ -3,7 +3,9 @@ import mongoose, { type InferSchemaType, type Model } from "mongoose";
 
 export interface LineItem {
   _id?: mongoose.Types.ObjectId;
-  description: string;
+  fabric: string;
+  construction: string;
+  width: string;
   style: string;
   color: string;
   quantity: number;
@@ -57,7 +59,9 @@ export interface Invoice {
 
 const lineItemSchema = new mongoose.Schema<LineItem>(
   {
-    description: { type: String, required: true, trim: true },
+    fabric: { type: String, required: true, trim: true },
+    construction: { type: String, required: true, trim: true },
+    width: { type: String, required: true, trim: true },
     style: { type: String, required: true, trim: true },
     color: { type: String, required: true, trim: true },
     quantity: { type: Number, required: true, min: 0 },

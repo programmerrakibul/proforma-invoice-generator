@@ -30,7 +30,9 @@ export async function persistInvoice(
     seller: DEFAULT_SELLER,
     buyer: input.buyer,
     lineItems: totals.lineItems.map((item) => ({
-      description: item.description,
+      fabric: item.fabric,
+      construction: item.construction,
+      width: item.width,
       style: item.style,
       color: item.color,
       quantity: item.quantity,

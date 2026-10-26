@@ -6,8 +6,14 @@ import { ZodError } from "zod";
 import { connectToDatabase } from "@/lib/db/mongoose";
 import { requireUser } from "@/lib/auth/require-user";
 import { InvoiceModel } from "@/lib/db/models";
-import { ActionResult, zodErrorToActionResult } from "@/lib/validations/action-result";
-import { createInvoiceSchema, type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
+import {
+  ActionResult,
+  zodErrorToActionResult,
+} from "@/lib/validations/action-result";
+import {
+  createInvoiceSchema,
+  type CreateInvoiceInput,
+} from "@/features/invoices/schemas/invoice.schema";
 import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
 
 export async function updateInvoiceAction(
@@ -49,7 +55,9 @@ export async function updateInvoiceAction(
     updates.currency = validated.currency;
     updates.buyer = validated.buyer;
     updates.lineItems = lineItems.map((item) => ({
-      description: item.description,
+      fabric: item.fabric,
+      construction: item.construction,
+      width: item.width,
       style: item.style,
       color: item.color,
       quantity: item.quantity,
@@ -57,7 +65,10 @@ export async function updateInvoiceAction(
       totalAmount: item.totalAmount,
     }));
     updates.subtotal = subtotal;
-    updates.totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
+    updates.totalQuantity = lineItems.reduce(
+      (sum, item) => sum + item.quantity,
+      0,
+    );
     updates.totalAmount = totalAmount;
     updates.notes = validated.notes;
     updates.termsAndConditions = validated.termsAndConditions;

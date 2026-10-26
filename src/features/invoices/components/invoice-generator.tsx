@@ -15,6 +15,7 @@ import {
 import { downloadPdfFromBase64 } from "@/features/invoices/utils/download-pdf";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { useSession } from "@/lib/auth-client";
+import { getPINumber } from "@/lib/pi-number";
 import { DownloadIcon, SaveIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
@@ -24,9 +25,10 @@ import type { CreateInvoiceInput } from "../schemas/invoice.schema";
 export function InvoiceGenerator() {
   const { data } = useSession();
   const canSaveDraft = Boolean(data);
+  const piNumber = getPINumber();
   const methods = useForm<CreateInvoiceInput>({
     defaultValues: {
-      piNumber: "MMF/001/26",
+      piNumber: piNumber,
       issueDate: new Date().toISOString().split("T")[0],
       currency: "USD",
       buyer: buyerProfile,
@@ -34,8 +36,9 @@ export function InvoiceGenerator() {
       termsAndConditions: defaultTermsAndConditions,
       lineItems: [
         {
-          description:
-            '35% Cotton 65% Polyester TC\nConstruction: 45x45/90x60\nWidth: 55/56"',
+          fabric: "35% Cotton 65% Polyester TC",
+          construction: "45x45/90x60",
+          width: "56",
           style: "Buyer: MAX DUBAI - B27MCSFEWB250B",
           color: "Navy",
           quantity: 1958,
@@ -147,7 +150,7 @@ export function InvoiceGenerator() {
   return (
     <div className="grid min-h-[calc(100vh-13rem)] grid-cols-1 items-start gap-5 lg:grid-cols-2">
       <div className="min-w-0">
-        <Card className="overflow-hidden rounded-2xl border-border/70 shadow-sm">
+        <Card className="rounded-2xl border-border/70 shadow-sm">
           <CardContent className="p-4 sm:p-6">
             <FormProvider {...methods}>
               <form

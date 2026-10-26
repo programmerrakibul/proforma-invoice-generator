@@ -20,6 +20,9 @@ export interface InvoiceDocumentInput {
   notes?: Partial<InvoiceDocumentNotes>;
   termsAndConditions?: string[];
   lineItems?: Array<{
+    fabric?: string;
+    construction?: string;
+    width?: string;
     description?: string;
     style?: string;
     color?: string;
@@ -55,6 +58,29 @@ export const INVOICE_NOTE_FIELDS: Array<{
   { key: "piValidity", label: "PI validity" },
 ];
 
+function getLegacyDescriptionParts(description?: string): {
+  fabric: string;
+  construction: string;
+  width: string;
+} {
+  const lines = description?.split(/\r?\n/) ?? [];
+  const constructionLine = lines.find((line) =>
+    /^construction\s*:/i.test(line.trim()),
+  );
+  const widthLine = lines.find((line) => /^width\s*:/i.test(line.trim()));
+
+  return {
+    fabric: lines[0]?.trim() ?? "",
+    construction:
+      constructionLine?.replace(/^\s*construction\s*:\s*/i, "") ?? "",
+    width: widthLine?.replace(/^\s*width\s*:\s*/i, "") ?? "",
+  };
+}
+
+function formatWidth(width: string): string {
+  return /^\d+(?:\.\d+)?$/.test(width) ? `${width}\"` : width;
+}
+
 export function formatInvoiceIssueDate(value?: string): string {
   if (!value) {
     return "";
@@ -78,6 +104,9 @@ export function toInvoiceDocumentInput(values: {
   termsAndConditions?: string[];
   lineItems?: Array<
     | {
+        fabric?: string;
+        construction?: string;
+        width?: string;
         description?: string;
         style?: string;
         color?: string;
@@ -97,13 +126,19 @@ export function toInvoiceDocumentInput(values: {
     termsAndConditions: values.termsAndConditions,
     lineItems: (values.lineItems ?? [])
       .filter((item): item is NonNullable<typeof item> => item !== undefined)
-      .map((item) => ({
-        description: item.description,
-        style: item.style,
-        color: item.color,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-      })),
+      .map((item) => {
+        const legacyParts = getLegacyDescriptionParts(item.description);
+        return {
+          fabric: item.fabric ?? legacyParts.fabric,
+          construction: item.construction ?? legacyParts.construction,
+          width: item.width ?? legacyParts.width,
+          description: item.description,
+          style: item.style,
+          color: item.color,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+        };
+      }),
   };
 }
 
@@ -133,14 +168,28 @@ export function buildInvoiceDocument(
       name: input.buyer?.name ?? buyerProfile.name,
       address: input.buyer?.address ?? buyerProfile.address,
     },
-    lineItems: lineItems.map((item) => ({
-      description: item.description ?? "",
-      style: item.style ?? "",
-      color: item.color ?? "",
-      quantity: item.quantity ?? 0,
-      unitPrice: item.unitPrice ?? 0,
-      totalAmount: item.totalAmount,
-    })),
+    lineItems: lineItems.map((item) => {
+      const fabric = item.fabric ?? "";
+      const construction = item.construction ?? "";
+      const width = item.width ?? "";
+      const description = [
+        fabric,
+        `Construction: ${construction}`,
+        `Width: ${formatWidth(width)}`,
+      ].join("\n");
+
+      return {
+        fabric,
+        construction,
+        width,
+        description,
+        style: item.style ?? "",
+        color: item.color ?? "",
+        quantity: item.quantity ?? 0,
+        unitPrice: item.unitPrice ?? 0,
+        totalAmount: item.totalAmount,
+      };
+    }),
     subtotal,
     totalUnitPrice,
     totalAmount,

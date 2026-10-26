@@ -101,7 +101,9 @@ export function InvoiceListTable({ items }: InvoiceListTableProps) {
       currency,
       buyer: invoice.preview.buyer,
       lineItems: invoice.preview.lineItems.map((item) => ({
-        description: item.description,
+        fabric: item.fabric,
+        construction: item.construction,
+        width: item.width,
         style: item.style,
         color: item.color,
         quantity: item.quantity,

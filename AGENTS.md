@@ -38,8 +38,9 @@ server-side execution performance.
 10. **Code Formatting** After completing the changes format the code files using
     prettier.
 11. **Testing and Code Review** After completing a feature whether it's small or
-    big, test it and review the code using `coderabbitai` (if `coderaabbitai` is
-    not available use code review skill).
+    big, test it in dev and build version and review the code using
+    `coderabbitai` (if `coderaabbitai` is not available use code review skill).
+    Also use ESLint for unused imports or others.
 
 ## Project Stack (as implemented)
 
@@ -62,16 +63,9 @@ server-side execution performance.
 
 ## This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may
-all differ from your training data. Read the relevant guide in
-`node_modules/next/dist/docs/` (resolved from this file's directory; in
-monorepos the `next` package may not be visible from the repo root) before
-writing any code. Heed deprecation notices.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
-This block is written and re-added by `next dev` — verify at
-`node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a
-diff only re-creates the uncommitted change; committing it with your work keeps
-the tree clean.
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
 
@@ -146,6 +140,9 @@ All invoice mutations go through Next.js Server Actions:
 - The invoice workspace validates the full payload with Zod, presents database
   records in an owner-scoped table, supports preview and PDF export, and
   requires confirmation before deletion.
+- Line items store fabric, construction, and a numeric width string from 40 to
+  80 inches. The form supports fabric catalog presets and custom values; preview
+  and PDF compose these values into a three-line goods description.
 - Goods delivery/banking/shipping notes and terms use application defaults in
   the invoice payload; keep these static details out of the user-facing form
   until editable terms are requested. The initial product row uses editable
@@ -156,9 +153,9 @@ All invoice mutations go through Next.js Server Actions:
   from `public/mm-fabrics-seal.png`.
 - Preview and PDF share the same mapped document model via
   `buildInvoiceDocument()`. Both follow the supplied A4 design, use the company
-  logo and seal, and keep the signature and thank-you footer at the bottom of
-  the final page. The table includes actual line items and totals without
-  artificial blank rows.
+  logo and seal, and place the compact signature and thank-you footer directly
+  after the shipment details and terms. The table includes actual line items
+  and totals without artificial blank rows.
 - `pdfkit` is listed in `serverExternalPackages` so Next.js does not bundle it
   into the server graph.
 

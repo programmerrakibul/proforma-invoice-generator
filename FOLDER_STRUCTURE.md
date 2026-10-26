@@ -42,6 +42,7 @@ src/
 ├── data/
 │   ├── buyer.ts                # Default buyer / consignee details
 │   ├── company.ts              # M.M FABRICS seller profile
+│   ├── fabrics.ts              # Fabric and construction preset catalog
 │   └── invoice-static.ts       # Default invoice notes and terms
 ├── features/
 │   ├── auth/
@@ -89,6 +90,7 @@ src/
 │           └── __tests__/                   # Unit tests for calc utils
 ├── lib/
 │   ├── auth.ts                 # Better Auth config (mongodbAdapter, cached MongoClient)
+│   ├── pi-number.ts            # Client-safe PI number generator
 │   ├── auth/
 │   │   ├── get-current-user.ts   # Session-based user resolution (server)
 │   │   └── require-user.ts       # Requires authenticated user (server)
