@@ -20,7 +20,7 @@ const WHITE = "#ffffff";
 const PAGE_MARGIN_X = 42;
 const PAGE_MARGIN_TOP = 38;
 const CONTENT_BOTTOM = 674;
-const FOOTER_TOP = 690;
+const FOOTER_HEIGHT = 108;
 const LOGO_PATH = join(process.cwd(), "src", "assets", "logo.png");
 const SEAL_PATH = join(process.cwd(), "public", "mm-fabrics-seal.png");
 const BANKING_NOTE_KEYS: Array<keyof InvoiceDocumentNotes> = [
@@ -129,10 +129,7 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
       .fontSize(8)
       .fillColor(DARK)
       .text(`${label}:`, x, y, { continued: true });
-    doc
-      .font("Helvetica")
-      .fillColor(MUTED)
-      .text(` ${value}`, { width });
+    doc.font("Helvetica").fillColor(MUTED).text(` ${value}`, { width });
   });
   const buyerY = doc.y + 20;
   const half = width * 0.58;
@@ -290,11 +287,22 @@ function drawNumberedList(
   return y;
 }
 
-function numberedListHeight(doc: PdfDoc, lines: string[], width: number): number {
+function numberedListHeight(
+  doc: PdfDoc,
+  lines: string[],
+  width: number,
+): number {
   doc.font("Helvetica").fontSize(7.5);
   return lines.reduce((height, line, index) => {
     const text = `${index + 1}. ${line}`;
-    return height + Math.max(11, doc.heightOfString(text, { width: width - 12, lineGap: 1 }) + 1) + 2;
+    return (
+      height +
+      Math.max(
+        11,
+        doc.heightOfString(text, { width: width - 12, lineGap: 1 }) + 1,
+      ) +
+      2
+    );
   }, 0);
 }
 
@@ -313,7 +321,7 @@ function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
     numberedListHeight(doc, notes, columnWidth),
     numberedListHeight(doc, terms, columnWidth),
   );
-  ensureSpace(doc, listHeight + 30);
+  ensureSpace(doc, listHeight + FOOTER_HEIGHT + 12);
   const top = doc.y;
   doc
     .font("Helvetica-Bold")
@@ -330,7 +338,12 @@ function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
   doc.y = top + 20;
   const leftY = drawNumberedList(doc, notes, PAGE_MARGIN_X, columnWidth);
   doc.y = top + 20;
-  const rightY = drawNumberedList(doc, terms, PAGE_MARGIN_X + columnWidth + gap, columnWidth);
+  const rightY = drawNumberedList(
+    doc,
+    terms,
+    PAGE_MARGIN_X + columnWidth + gap,
+    columnWidth,
+  );
   doc.y = Math.max(leftY, rightY) + 8;
 }
 
@@ -339,7 +352,7 @@ function drawLastPageFooter(doc: PdfDoc): void {
   const half = (width - 52) / 2;
   const leftX = PAGE_MARGIN_X;
   const rightX = PAGE_MARGIN_X + half + 52;
-  const signatureY = FOOTER_TOP;
+  const signatureY = doc.y + 48;
   [leftX, rightX].forEach((x) => {
     doc
       .moveTo(x, signatureY)
@@ -372,7 +385,7 @@ function drawLastPageFooter(doc: PdfDoc): void {
       align: "center",
       valign: "center",
     });
-  const ruleY = doc.page.height - 80;
+  const ruleY = signatureY + 27;
   doc
     .moveTo(PAGE_MARGIN_X, ruleY)
     .lineTo(PAGE_MARGIN_X + width, ruleY)

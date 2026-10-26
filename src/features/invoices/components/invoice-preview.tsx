@@ -209,7 +209,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
         <p className="font-bold text-[#253b36]">{data.sayTotal}</p>
       </div>
 
-      <section className="mb-6 grid grid-cols-2 gap-10 text-[8pt] leading-relaxed">
+      <section className="mb-3 grid grid-cols-2 gap-10 text-[8pt] leading-relaxed">
         <div>
           <h2 className="mb-3 text-[11pt] font-extrabold tracking-wide text-[#164b3a]">
             Shipment &amp; banking
@@ -237,24 +237,24 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
         </div>
       </section>
 
-      <footer className="mt-auto pt-3">
-        <div className="mb-8 grid grid-cols-2 gap-12 text-center text-[8pt] font-bold text-[#253b36]">
+      <footer className="pt-2">
+        <div className="mb-4 grid grid-cols-2 gap-12 text-center text-[8pt] font-bold text-[#253b36]">
           <div>
             <div
-              className="mb-1 flex h-[16mm] items-end justify-center"
+              className="mb-1 flex h-[11mm] items-end justify-center"
               aria-hidden="true"
             />
             <Separator className="mb-2 border-t border-dashed border-[#9eafa8] bg-transparent" />
             <p>Buyer authorized signature</p>
           </div>
           <div>
-            <div className="mb-1 flex h-[16mm] items-end justify-center">
+            <div className="mb-1 flex h-[11mm] items-end justify-center">
               <Image
                 src="/mm-fabrics-seal.png"
                 alt="M.M FABRICS company seal"
                 width={100}
                 height={80}
-                className="h-[16mm] w-[22mm] object-contain"
+                className="h-[11mm] w-[18mm] object-contain"
               />
             </div>
             <Separator className="mb-2 border-t border-dashed border-[#9eafa8] bg-transparent" />
