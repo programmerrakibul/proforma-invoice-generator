@@ -149,7 +149,7 @@ All invoice mutations go through Next.js Server Actions:
 
 ## PDF generation and live preview
 
-- Live preview is a single-page JSX/HTML A4 document with 1-inch margins that follows the M.M FABRICS invoice design and updates as the form changes
+- Live preview is a single-page JSX/HTML A4 document with a compact 12 mm page inset that follows the M.M FABRICS invoice design and updates as the form changes
 - Seller address, corporate office, contact number, and email appear as four stacked rows in both the preview and PDF
 - PDF files are generated on the server with PDFKit and downloaded via
   `exportInvoicePdfAction` (guests can export without signing in)
@@ -179,8 +179,9 @@ All invoice mutations go through Next.js Server Actions:
   search waits 350 ms after typing before requesting updated results
 - Invoice list rows can export saved invoices to PDF and mark them exported
 - Invoice generator with live A4 JSX preview matching the M.M FABRICS invoice design (HTML, updates as the form changes)
-- Multi-line-item support with searchable fabric suggestions, explicit custom
-  fabric entry, editable construction, a single 40–80 inch width dropdown,
+- Multi-line-item support with searchable fabric and common textile color
+  suggestions, explicit custom fabric/color entry, editable construction, a
+  single 40–80 inch width dropdown,
   required-field validation, and a guarded add-item flow
 - Buyer/consignee details and invoice line items; delivery, banking, shipment,
   payment notes, and terms are populated from application defaults in the

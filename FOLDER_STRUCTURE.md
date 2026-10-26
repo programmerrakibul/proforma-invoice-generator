@@ -68,6 +68,8 @@ src/
 │       │   ├── invoice-form.tsx        # PI metadata and buyer form (RHF + Zod)
 │       │   ├── invoice-generator.tsx   # Page-level form orchestration + save/export
 │       │   ├── invoice-line-items.tsx  # Editable items with guarded add-item flow
+│       │   ├── fabric-suggest-input.tsx # Searchable fabric catalog + custom entry
+│       │   ├── color-suggest-input.tsx  # Common textile colors + custom entry
 │       │   ├── invoice-list-table.tsx  # Table with preview, PDF export, confirmed delete
 │       │   └── invoice-preview.tsx     # JSX A4 live preview (HTML, not PDF)
 │       ├── services/

@@ -19,8 +19,7 @@ const BORDER = "#d4e1dc";
 const WHITE = "#ffffff";
 const PAGE_MARGIN_X = 42;
 const PAGE_MARGIN_TOP = 38;
-const CONTENT_BOTTOM = 674;
-const FOOTER_HEIGHT = 108;
+const FOOTER_HEIGHT = 76;
 const LOGO_PATH = join(process.cwd(), "src", "assets", "logo.png");
 const SEAL_PATH = join(process.cwd(), "public", "mm-fabrics-seal.png");
 const BANKING_NOTE_KEYS: Array<keyof InvoiceDocumentNotes> = [
@@ -62,7 +61,7 @@ function addContentPage(doc: PdfDoc): void {
 }
 
 function ensureSpace(doc: PdfDoc, height: number): void {
-  if (doc.y + height > CONTENT_BOTTOM) addContentPage(doc);
+  if (doc.y + height > doc.page.height - PAGE_MARGIN_X) addContentPage(doc);
 }
 
 function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
@@ -122,7 +121,7 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
       .text(`${label}:`, x, y, { continued: true });
     doc.font("Helvetica").fillColor(MUTED).text(` ${value}`, { width });
   });
-  const buyerY = doc.y + 20;
+  const buyerY = doc.y + 12;
   const half = width * 0.58;
   doc
     .font("Helvetica-Bold")
@@ -164,14 +163,14 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
         align: "right",
       });
   });
-  doc.y = Math.max(doc.y, buyerY + 68) + 17;
+  doc.y = Math.max(doc.y, buyerY + 62) + 10;
 }
 
 function drawTableHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
   const widths = columnWidths(doc);
   const x = PAGE_MARGIN_X;
   const y = doc.y;
-  const height = 38;
+  const height = 34;
   const labels = [
     "Description of goods",
     "Style",
@@ -256,7 +255,7 @@ function drawSayTotal(doc: PdfDoc, data: InvoiceDocumentData): void {
     .text(data.sayTotal, PAGE_MARGIN_X + 82, y + 12, {
       width: contentWidth(doc) - 95,
     });
-  doc.y = y + height + 12;
+  doc.y = y + height + 8;
 }
 
 function drawNumberedList(
@@ -312,7 +311,7 @@ function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
     numberedListHeight(doc, notes, columnWidth),
     numberedListHeight(doc, terms, columnWidth),
   );
-  ensureSpace(doc, listHeight + FOOTER_HEIGHT + 12);
+  ensureSpace(doc, listHeight + FOOTER_HEIGHT + 8);
   const top = doc.y;
   doc
     .font("Helvetica-Bold")
@@ -343,7 +342,7 @@ function drawLastPageFooter(doc: PdfDoc): void {
   const half = (width - 52) / 2;
   const leftX = PAGE_MARGIN_X;
   const rightX = PAGE_MARGIN_X + half + 52;
-  const signatureY = doc.y + 48;
+  const signatureY = doc.y + 12;
   [leftX, rightX].forEach((x) => {
     doc
       .moveTo(x, signatureY)

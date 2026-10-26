@@ -20,6 +20,7 @@ import {
   useWatch,
 } from "react-hook-form";
 import FabricSuggestInput from "./fabric-suggest-input";
+import { ColorSuggestInput } from "./color-suggest-input";
 
 type InvoiceFormValues = CreateInvoiceInput;
 
@@ -237,11 +238,22 @@ export function InvoiceLineItems() {
                 <FieldLabel htmlFor={`lineItems.${index}.color`}>
                   Color
                 </FieldLabel>
-                <Input
+                <ColorSuggestInput
                   id={`lineItems.${index}.color`}
-                  aria-invalid={Boolean(errors.lineItems?.[index]?.color)}
-                  {...register(`lineItems.${index}.color`)}
-                  placeholder="Color"
+                  value={lineItems[index]?.color ?? ""}
+                  invalid={Boolean(errors.lineItems?.[index]?.color)}
+                  onCommit={(color) =>
+                    setValue(`lineItems.${index}.color`, color, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                  onDraft={() =>
+                    setValue(`lineItems.${index}.color`, "", {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
                 />
                 {errors.lineItems?.[index]?.color?.message ? (
                   <p className="text-xs text-destructive">

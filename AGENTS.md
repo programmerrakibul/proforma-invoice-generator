@@ -128,8 +128,8 @@ All invoice mutations go through Next.js Server Actions:
 ## PDF generation and live preview
 
 - Live preview is a single-page JSX/HTML A4 document (`invoice-preview.tsx`)
-  with 1-inch margins that updates from React Hook Form `useWatch`. It uses the
-  shadcn table and separator, the company logo, paired shipment/banking and
+  with a compact 12 mm page inset that updates from React Hook Form `useWatch`.
+  It uses the shadcn table and separator, the company logo, paired shipment/banking and
   terms columns, and a signature and thank-you footer.
 - Seller address, corporate office, contact number, and email are shown as four
   stacked rows in the HTML preview and generated PDF.
@@ -142,9 +142,10 @@ All invoice mutations go through Next.js Server Actions:
   requires confirmation before deletion.
 - Line items store fabric, construction, and a numeric width string from 40 to
   80 inches. The fabric field offers searchable catalog suggestions and an
-  explicit custom-value action; construction remains a text input, and width
-  is selected from a 40–80 dropdown. Preview and PDF compose these values into
-  a three-line goods description.
+  explicit custom-value action; color offers common textile color suggestions
+  and custom entry, construction remains a text input, and width is selected
+  from a 40–80 dropdown. Preview and PDF compose fabric, construction, and
+  width into a three-line goods description.
 - Goods delivery/banking/shipping notes and terms use application defaults in
   the invoice payload; keep these static details out of the user-facing form
   until editable terms are requested. The initial product row uses editable
@@ -156,8 +157,9 @@ All invoice mutations go through Next.js Server Actions:
 - Preview and PDF share the same mapped document model via
   `buildInvoiceDocument()`. Both follow the supplied A4 design, use the company
   logo and seal, and place the compact signature and thank-you footer directly
-  after the shipment details and terms. The table includes actual line items
-  and totals without artificial blank rows.
+  after the shipment details and terms. PDF layout measures against the A4 page
+  bottom margin so the terms and signature area use available page space. The
+  table includes actual line items and totals without artificial blank rows.
 - `pdfkit` is listed in `serverExternalPackages` so Next.js does not bundle it
   into the server graph.
 

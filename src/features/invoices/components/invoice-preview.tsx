@@ -47,8 +47,8 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
   });
 
   return (
-    <article className="mx-auto flex min-h-[297mm] w-[210mm] flex-col bg-white p-[15.4mm] font-sans text-[#253b36] shadow-lg print:min-h-[297mm] print:shadow-none">
-      <header className="flex items-start justify-between gap-6 pb-5">
+    <article className="mx-auto flex min-h-[297mm] w-[210mm] flex-col bg-white p-[12mm] font-sans text-[#253b36] shadow-lg print:min-h-[297mm] print:shadow-none">
+      <header className="flex items-start justify-between gap-6 pb-3">
         <div className="flex items-center gap-3">
           <Image
             src={logo}
@@ -79,7 +79,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
 
       <Separator className="h-[1.2mm] rounded-full bg-[#164b3a]" />
 
-      <section className="py-5 text-[8pt] leading-relaxed text-[#657770]">
+      <section className="py-3 text-[8pt] leading-snug text-[#657770]">
         <p>
           <strong className="text-[#253b36]">Contact:</strong>{" "}
           {data.seller.contactNumber}
@@ -97,7 +97,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
         </p>
       </section>
 
-      <section className="mb-7 grid grid-cols-[1.35fr_0.65fr] gap-8 text-[8.5pt]">
+      <section className="mb-4 grid grid-cols-[1.35fr_0.65fr] gap-6 text-[8.5pt]">
         <div>
           <p className="font-extrabold tracking-[0.15em] text-[#164b3a]">
             BILL TO / CONSIGNEE
@@ -125,29 +125,29 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
         </dl>
       </section>
 
-      <div className="mb-5 overflow-hidden rounded-[3mm] border border-[#d4e1dc]">
+      <div className="mb-3 overflow-hidden rounded-[3mm] border border-[#d4e1dc]">
         <Table className="text-[8pt]">
           <TableHeader className="bg-[#164b3a] hover:bg-[#164b3a]">
             <TableRow className="border-0 hover:bg-transparent">
-              <TableHead className="w-[30%] whitespace-normal px-3 py-3 font-bold text-white">
+              <TableHead className="w-[30%] whitespace-normal px-3 py-2 font-bold text-white">
                 Description of goods
               </TableHead>
-              <TableHead className="w-[24%] whitespace-normal px-3 py-3 font-bold text-white">
+              <TableHead className="w-[24%] whitespace-normal px-3 py-2 font-bold text-white">
                 Style
               </TableHead>
-              <TableHead className="w-[12%] whitespace-normal px-3 py-3 font-bold text-white">
+              <TableHead className="w-[12%] whitespace-normal px-3 py-2 font-bold text-white">
                 Color
               </TableHead>
-              <TableHead className="w-[12%] whitespace-normal px-2 py-3 text-right font-bold text-white">
+              <TableHead className="w-[12%] whitespace-normal px-2 py-2 text-right font-bold text-white">
                 Quantity
                 <br />
                 (Yds)
               </TableHead>
-              <TableHead className="w-[11%] whitespace-normal px-2 py-3 text-right font-bold text-white">
+              <TableHead className="w-[11%] whitespace-normal px-2 py-2 text-right font-bold text-white">
                 Unit price
                 <br />({data.currency})
               </TableHead>
-              <TableHead className="w-[13%] whitespace-normal px-2 py-3 text-right font-bold text-white">
+              <TableHead className="w-[13%] whitespace-normal px-2 py-2 text-right font-bold text-white">
                 Total amount
                 <br />({data.currency})
               </TableHead>
@@ -159,22 +159,22 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
                 key={`${item.fabric}-${item.construction}-${item.width}-${index}`}
                 className="border-[#d4e1dc] hover:bg-transparent"
               >
-                <TableCell className="whitespace-pre-line px-3 py-3 align-top font-medium text-[#253b36]">
+                <TableCell className="whitespace-pre-line px-3 py-2 align-top font-medium text-[#253b36]">
                   {item.description}
                 </TableCell>
-                <TableCell className="whitespace-pre-line px-3 py-3 align-top text-[#253b36]">
+                <TableCell className="whitespace-pre-line px-3 py-2 align-top text-[#253b36]">
                   {item.style}
                 </TableCell>
-                <TableCell className="px-3 py-3 align-top text-[#253b36]">
+                <TableCell className="px-3 py-2 align-top text-[#253b36]">
                   {item.color}
                 </TableCell>
-                <TableCell className="px-2 py-3 text-right align-top text-[#253b36]">
+                <TableCell className="px-2 py-2 text-right align-top text-[#253b36]">
                   {new Intl.NumberFormat("en-US").format(item.quantity)}
                 </TableCell>
-                <TableCell className="px-2 py-3 text-right align-top text-[#253b36]">
+                <TableCell className="px-2 py-2 text-right align-top text-[#253b36]">
                   {formatInvoiceMoney(item.unitPrice, data.currency)}
                 </TableCell>
-                <TableCell className="px-2 py-3 text-right align-top text-[#253b36]">
+                <TableCell className="px-2 py-2 text-right align-top text-[#253b36]">
                   {formatInvoiceMoney(item.totalAmount, data.currency)}
                 </TableCell>
               </TableRow>
@@ -182,16 +182,16 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
           </TableBody>
           <TableFooter className="border-t-2 border-[#164b3a] bg-[#f1f7f4] text-[#164b3a]">
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={3} className="px-3 py-3 text-right font-bold">
+              <TableCell colSpan={3} className="px-3 py-2 text-right font-bold">
                 Total:
               </TableCell>
-              <TableCell className="px-2 py-3 text-right font-bold">
+              <TableCell className="px-2 py-2 text-right font-bold">
                 {new Intl.NumberFormat("en-US").format(data.totalQuantity)}
               </TableCell>
-              <TableCell className="px-2 py-3 text-right font-bold">
+              <TableCell className="px-2 py-2 text-right font-bold">
                 {formatInvoiceMoney(data.totalUnitPrice, data.currency)}
               </TableCell>
-              <TableCell className="px-2 py-3 text-right font-bold">
+              <TableCell className="px-2 py-2 text-right font-bold">
                 {formatInvoiceMoney(data.totalAmount, data.currency)}
               </TableCell>
             </TableRow>
@@ -199,19 +199,19 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
         </Table>
       </div>
 
-      <div className="mb-7 flex items-center gap-4 rounded-r-[3mm] border-l-[2mm] border-[#164b3a] bg-[#f1f7f4] px-4 py-3 text-[8.5pt]">
+      <div className="mb-4 flex items-center gap-4 rounded-r-[3mm] border-l-[2mm] border-[#164b3a] bg-[#f1f7f4] px-4 py-2.5 text-[8.5pt]">
         <span className="shrink-0 text-[7pt] font-extrabold tracking-[0.14em] text-[#164b3a]">
           SAY TOTAL
         </span>
         <p className="font-bold text-[#253b36]">{data.sayTotal}</p>
       </div>
 
-      <section className="mb-3 grid grid-cols-2 gap-10 text-[8pt] leading-relaxed">
+      <section className="mb-2 grid grid-cols-2 gap-8 text-[7.5pt] leading-snug">
         <div>
-          <h2 className="mb-3 text-[11pt] font-extrabold tracking-wide text-[#164b3a]">
+          <h2 className="mb-1.5 text-[10pt] font-extrabold tracking-wide text-[#164b3a]">
             Shipment &amp; banking
           </h2>
-          <ol className="flex list-decimal flex-col gap-0.5 pl-5 marker:font-bold marker:text-[#164b3a]">
+          <ol className="flex list-decimal flex-col gap-0 pl-5 marker:font-bold marker:text-[#164b3a]">
             {bankingNotes.map((note) => (
               <li key={note.key} className="text-[#657770]">
                 <strong className="text-[#253b36]">{note.label}:</strong>{" "}
@@ -221,10 +221,10 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
           </ol>
         </div>
         <div>
-          <h2 className="mb-3 text-[11pt] font-extrabold tracking-wide text-[#164b3a]">
+          <h2 className="mb-1.5 text-[10pt] font-extrabold tracking-wide text-[#164b3a]">
             Terms &amp; conditions
           </h2>
-          <ol className="flex list-decimal flex-col gap-0.5 pl-5 marker:font-bold marker:text-[#164b3a]">
+          <ol className="flex list-decimal flex-col gap-0 pl-5 marker:font-bold marker:text-[#164b3a]">
             {data.termsAndConditions.map((term, index) => (
               <li key={`${term}-${index}`} className="text-[#657770]">
                 {stripLeadingNumber(term)}
@@ -234,31 +234,31 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
         </div>
       </section>
 
-      <footer className="pt-2">
-        <div className="mb-4 grid grid-cols-2 gap-12 text-center text-[8pt] font-bold text-[#253b36]">
+      <footer className="pt-1">
+        <div className="mb-2 grid grid-cols-2 gap-12 text-center text-[8pt] font-bold text-[#253b36]">
           <div>
             <div
-              className="mb-1 flex h-[11mm] items-end justify-center"
+              className="mb-1 flex h-[8mm] items-end justify-center"
               aria-hidden="true"
             />
-            <Separator className="mb-2 border-t border-dashed border-[#9eafa8] bg-transparent" />
+            <Separator className="mb-1 border-t border-dashed border-[#9eafa8] bg-transparent" />
             <p>Buyer authorized signature</p>
           </div>
           <div>
-            <div className="mb-1 flex h-[11mm] items-end justify-center">
+            <div className="mb-1 flex h-[8mm] items-end justify-center">
               <Image
                 src="/mm-fabrics-seal.png"
                 alt="M.M FABRICS company seal"
                 width={100}
                 height={80}
-                className="h-[11mm] w-[18mm] object-contain"
+                className="h-[8mm] w-[14mm] object-contain"
               />
             </div>
-            <Separator className="mb-2 border-t border-dashed border-[#9eafa8] bg-transparent" />
+            <Separator className="mb-1 border-t border-dashed border-[#9eafa8] bg-transparent" />
             <p>For M.M FABRICS</p>
           </div>
         </div>
-        <Separator className="mb-3 bg-[#d4e1dc]" />
+        <Separator className="mb-2 bg-[#d4e1dc]" />
         <div className="flex justify-between text-[7pt] text-[#657770]">
           <p>Thank you for your business.</p>
           <p>Prepared by M.M Fabrics · Bangladesh</p>
