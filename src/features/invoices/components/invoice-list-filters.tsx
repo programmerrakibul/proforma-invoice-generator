@@ -80,7 +80,11 @@ export function InvoiceListFilters({
         <option value="highest">Highest amount</option>
         <option value="lowest">Lowest amount</option>
       </select>
-      <Button type="submit" variant="secondary" className="h-10 rounded-xl px-5">
+      <Button
+        type="submit"
+        variant="secondary"
+        className="h-10 rounded-xl px-5"
+      >
         Apply
       </Button>
     </form>

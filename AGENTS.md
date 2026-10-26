@@ -20,7 +20,7 @@ server-side execution performance.
 3. **Performance & DRY Principles:** Leverage Next.js App Router performance
    optimizations (parallel routes, streaming, selective server-side rendering,
    caching strategies). Build clean reusable higher-order functions (HOFs) and
-   wrappers.
+   wrappers. Break large components into small reusable components.
 4. **Data Handling & Validation:** Always use Zod schemas for runtime validation
    on both client (via React Hook Form) and server (within Server Actions).
 5. **State Management:** Isolate client UI states using Redux Toolkit where
@@ -35,6 +35,11 @@ server-side execution performance.
    commit the changes and update the relevant Markdown files (`README.md`,
    `AGENTS.md`, and `FOLDER_STRUCTURE.md`) when behavior, conventions, or the
    source tree changes.
+10. **Code Formatting** After completing the changes format the code files using
+    prettier.
+11. **Testing and Code Review** After completing a feature whether it's small or
+    big, test it and review the code using `coderabbitai` (if `coderaabbitai` is
+    not available use code review skill).
 
 ## Project Stack (as implemented)
 

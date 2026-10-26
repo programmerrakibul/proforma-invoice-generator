@@ -171,7 +171,7 @@ export function InvoiceListTable({ items }: InvoiceListTableProps) {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
-                  {new Intl.NumberFormat("en-ES").format(invoice.totalQuantity)}
+                  {new Intl.NumberFormat("en-US").format(invoice.totalQuantity)}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
                   {formatInvoiceMoney(invoice.totalUnitPrice, invoice.currency)}
