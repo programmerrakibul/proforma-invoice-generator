@@ -110,14 +110,25 @@ export async function listInvoicesAction(
     if (validatedInput.sort === "highest") sort.totalAmount = -1;
     if (validatedInput.sort === "lowest") sort.totalAmount = 1;
 
-    const total = await InvoiceModel.countDocuments(filter);
-    const totalPages = Math.ceil(total / pageSize);
-    const page = totalPages === 0 ? 1 : Math.min(requestedPage, totalPages);
-    const rawItems = await InvoiceModel.find(filter)
-      .sort(sort)
-      .skip((page - 1) * pageSize)
-      .limit(pageSize)
-      .lean<RawInvoice[]>();
+    const pageResult = await InvoiceModel.paginate<RawInvoice>(filter, {
+      page: requestedPage,
+      limit: pageSize,
+      sort,
+      lean: true,
+    });
+    const totalPages = pageResult.totalPages;
+    const page = totalPages ? Math.min(pageResult.page ?? 1, totalPages) : 1;
+    const rawItems =
+      page === pageResult.page
+        ? pageResult.docs
+        : (
+            await InvoiceModel.paginate<RawInvoice>(filter, {
+              page,
+              limit: pageSize,
+              sort,
+              lean: true,
+            })
+          ).docs;
 
     const items: InvoiceListItem[] = rawItems.map((item) => {
       const issueDate = item.issueDate.toISOString();
@@ -151,7 +162,7 @@ export async function listInvoicesAction(
       ok: true,
       data: {
         items,
-        total,
+        total: pageResult.totalDocs,
         page,
         pageSize,
         totalPages,

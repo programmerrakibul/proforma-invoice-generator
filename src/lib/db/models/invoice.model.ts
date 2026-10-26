@@ -1,5 +1,6 @@
 import { getModel } from "@/lib/db/model-helpers";
-import mongoose, { type InferSchemaType, type Model } from "mongoose";
+import mongoose, { type InferSchemaType, type PaginateModel } from "mongoose";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 export interface LineItem {
   _id?: mongoose.Types.ObjectId;
@@ -146,7 +147,9 @@ invoiceSchema.set("toObject", {
   versionKey: false,
 });
 
-export const InvoiceModel = getModel("invoice", invoiceSchema) as Model<
+invoiceSchema.plugin(mongoosePaginate);
+
+export const InvoiceModel = getModel("invoice", invoiceSchema) as PaginateModel<
   InferSchemaType<typeof invoiceSchema>
 >;
 

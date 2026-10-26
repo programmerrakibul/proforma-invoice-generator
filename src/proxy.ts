@@ -24,10 +24,7 @@ export async function proxy(
   const isAuthenticated = await hasSessionCookie(request);
   const pathname = request.nextUrl.pathname;
 
-  if (
-    (pathname.startsWith("/invoices") || pathname.startsWith("/customers")) &&
-    !isAuthenticated
-  ) {
+  if (pathname.startsWith("/dashboard") && !isAuthenticated) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set(
       "redirect",
@@ -37,12 +34,12 @@ export async function proxy(
   }
 
   if (pathname.startsWith("/auth/") && isAuthenticated) {
-    return NextResponse.redirect(new URL("/invoices", request.url));
+    return NextResponse.redirect(new URL("/dashboard/invoices", request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/invoices/:path*", "/customers/:path*", "/auth/:path*"],
+  matcher: ["/dashboard/:path*", "/auth/:path*"],
 };

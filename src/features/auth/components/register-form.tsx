@@ -19,7 +19,7 @@ interface RegisterFormProps {
   redirectTo: string;
 }
 
-export function RegisterForm({ redirectTo = "/invoices" }: RegisterFormProps) {
+export function RegisterForm({ redirectTo = "/dashboard/invoices" }: RegisterFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const {

@@ -51,8 +51,8 @@ export async function exportInvoicePdfAction(
         invoiceId,
       );
       persisted = true;
-      revalidatePath("/invoices");
-      revalidatePath(`/invoices/${savedInvoiceId}`);
+      revalidatePath("/dashboard/invoices");
+      revalidatePath(`/dashboard/invoices/${savedInvoiceId}`);
     }
 
     return {

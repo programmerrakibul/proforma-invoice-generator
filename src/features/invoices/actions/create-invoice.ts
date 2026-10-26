@@ -46,8 +46,8 @@ export async function createInvoiceAction(
       invoiceId,
     );
 
-    revalidatePath("/invoices");
-    revalidatePath(`/invoices/${savedInvoiceId}`);
+    revalidatePath("/dashboard/invoices");
+    revalidatePath(`/dashboard/invoices/${savedInvoiceId}`);
 
     return {
       ok: true,

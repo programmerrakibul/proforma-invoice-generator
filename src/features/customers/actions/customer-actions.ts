@@ -27,6 +27,13 @@ export interface CustomerPageResult {
   pageSize: number;
   totalPages: number;
 }
+interface CustomerPageDocument {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  address: string;
+  email?: string | null;
+  phone?: string | null;
+}
 type CustomerSearchField = "name" | "address" | "email" | "phone";
 interface CustomerSearchFilter {
   ownerId: mongoose.Types.ObjectId;
@@ -52,7 +59,7 @@ export async function createCustomerAction(
       ...values,
       ownerId: new mongoose.Types.ObjectId(user.id),
     });
-    revalidatePath("/customers");
+    revalidatePath("/dashboard/customers");
     return {
       ok: true,
       data: { customerId: String(customer._id) },
@@ -105,14 +112,25 @@ export async function listCustomersAction(
         : {
             createdAt: values.sort === "oldest" ? (1 as const) : (-1 as const),
           };
-    const total = await CustomerModel.countDocuments(filter);
-    const totalPages = Math.ceil(total / values.pageSize);
-    const page = totalPages ? Math.min(values.page, totalPages) : 1;
-    const rows = await CustomerModel.find(filter)
-      .sort(sort)
-      .skip((page - 1) * values.pageSize)
-      .limit(values.pageSize)
-      .lean();
+    const result = await CustomerModel.paginate<CustomerPageDocument>(filter, {
+      page: values.page,
+      limit: values.pageSize,
+      sort,
+      lean: true,
+    });
+    const totalPages = result.totalPages;
+    const page = totalPages ? Math.min(result.page ?? 1, totalPages) : 1;
+    const rows =
+      page === result.page
+        ? result.docs
+        : (
+            await CustomerModel.paginate<CustomerPageDocument>(filter, {
+              page,
+              limit: values.pageSize,
+              sort,
+              lean: true,
+            })
+          ).docs;
     const items: CustomerListItem[] = rows.map((row) => ({
       id: String(row._id),
       name: row.name,
@@ -124,7 +142,7 @@ export async function listCustomersAction(
       ok: true,
       data: {
         items,
-        total,
+        total: result.totalDocs,
         page,
         pageSize: values.pageSize,
         totalPages,

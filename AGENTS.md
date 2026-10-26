@@ -85,12 +85,12 @@ duplication (DRY).
   cookie
 - **Route:** `GET/POST/PUT/PATCH/DELETE /api/auth/[...all]`
 - **Invoice flow:** Invoice creation and PDF export require an authenticated session; no guest invoice generation is allowed
-- **Route redirects:** `src/proxy.ts` protects `/invoices/*` and `/customers/*`; the dashboard layout and server actions enforce authoritative session checks and ownership.
+- **Route redirects:** `src/proxy.ts` protects `/dashboard/*`; the dashboard layout and server actions enforce authoritative session checks and ownership.
 
 ## Dashboard and customer management
 
-- `/invoices`, `/invoices/new`, `/customers`, and `/customers/new` are grouped under `src/app/(dashboard)` and share an authenticated dashboard layout.
-- Customer records are owner-scoped and validated with `createCustomerSchema`; the customer list supports search, field filtering, sorting, and pagination.
+- `/dashboard` redirects to `/dashboard/invoices`; invoice and customer pages live under `src/app/dashboard` and share an authenticated dashboard layout.
+- Customer records are owner-scoped and validated with `createCustomerSchema`; customer and invoice queries use mongoose-paginate-v2. Both lists share query utilities, filter/sort controls, and a responsive table with pagination.
 - Invoice creation requires a saved customer ID. The server verifies that customer belongs to the session owner, persists its reference, and snapshots its name and address for invoice preview/PDF stability.
 
 ## Server Actions
@@ -107,7 +107,7 @@ All invoice mutations go through Next.js Server Actions:
 
 - `listInvoicesAction` validates page, page size, search, status, and sort with
   Zod, then applies owner-scoped search/filter/sort and pagination in MongoDB.
-  The `/invoices` page debounces search input, reads URL search parameters on
+  The `/dashboard/invoices` page debounces search input, reads URL search parameters on
   the server, and renders only the requested page of results.
 
 **Security rules enforced:**
@@ -181,7 +181,7 @@ All invoice mutations go through Next.js Server Actions:
   module import
 - Cache tags follow `user:${userId}:invoices` and
   `user:${userId}:invoice:${invoiceId}` convention
-- `revalidatePath` is called after mutations for `/invoices` and detail paths
+- `revalidatePath` is called after mutations for `/dashboard/invoices` and detail paths
 
 ## Verification Order
 

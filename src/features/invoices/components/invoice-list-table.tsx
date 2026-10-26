@@ -20,13 +20,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  ResponsiveDataTable,
+  type DataTableColumn,
+} from "@/components/shared/responsive-data-table";
 import { defaultNotes } from "@/data/invoice-static";
 import { deleteInvoiceAction } from "@/features/invoices/actions/delete-invoice";
 import { exportInvoicePdfAction } from "@/features/invoices/actions/export-invoice-pdf";
@@ -42,6 +38,10 @@ import { toast } from "sonner";
 
 interface InvoiceListTableProps {
   items: InvoiceListItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  query: Record<string, string | undefined>;
 }
 
 const STATUS_LABELS: Record<InvoiceListItem["status"], string> = {
@@ -64,7 +64,13 @@ const SUPPORTED_CURRENCIES: ReadonlyArray<CreateInvoiceInput["currency"]> = [
   "BDT",
 ];
 
-export function InvoiceListTable({ items }: InvoiceListTableProps) {
+export function InvoiceListTable({
+  items,
+  page,
+  pageSize,
+  total,
+  query,
+}: InvoiceListTableProps) {
   const router = useRouter();
   const [previewInvoice, setPreviewInvoice] = useState<InvoiceListItem | null>(
     null,
@@ -136,94 +142,121 @@ export function InvoiceListTable({ items }: InvoiceListTableProps) {
     }
   };
 
+  const columns: DataTableColumn<InvoiceListItem>[] = [
+    {
+      id: "invoiceNumber",
+      label: "PI number",
+      render: (invoice) => (
+        <span className="font-semibold">{invoice.invoiceNumber}</span>
+      ),
+    },
+    {
+      id: "buyer",
+      label: "Buyer / Consignee",
+      render: (invoice) => (
+        <span className="block max-w-56 truncate">{invoice.buyerName}</span>
+      ),
+    },
+    {
+      id: "issueDate",
+      label: "Issue date",
+      render: (invoice) =>
+        new Intl.DateTimeFormat("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }).format(new Date(invoice.issueDate)),
+    },
+    {
+      id: "status",
+      label: "Status",
+      render: (invoice) => (
+        <Badge variant={STATUS_VARIANTS[invoice.status]}>
+          {STATUS_LABELS[invoice.status]}
+        </Badge>
+      ),
+    },
+    {
+      id: "quantity",
+      label: "Total quantity",
+      align: "right",
+      render: (invoice) =>
+        new Intl.NumberFormat("en-US").format(invoice.totalQuantity),
+    },
+    {
+      id: "unitPrice",
+      label: "Unit price total",
+      align: "right",
+      render: (invoice) =>
+        formatInvoiceMoney(invoice.totalUnitPrice, invoice.currency),
+    },
+    {
+      id: "amount",
+      label: "Total amount",
+      align: "right",
+      render: (invoice) => (
+        <span className="font-semibold">
+          {formatInvoiceMoney(invoice.totalAmount, invoice.currency)}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      label: "Actions",
+      align: "right",
+      render: (invoice) => (
+        <div className="flex justify-end gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Preview ${invoice.invoiceNumber}`}
+            onClick={() => setPreviewInvoice(invoice)}
+          >
+            <Eye />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Export ${invoice.invoiceNumber} as PDF`}
+            title="Export PDF"
+            disabled={exportingInvoiceId === invoice.id}
+            onClick={() => void handleExport(invoice)}
+          >
+            {exportingInvoiceId === invoice.id ? (
+              <LoaderCircle className="animate-spin" />
+            ) : (
+              <Download />
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Delete ${invoice.invoiceNumber}`}
+            onClick={() => setDeleteInvoice(invoice)}
+          >
+            <Trash2 className="text-destructive" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <>
-      <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
-        <Table>
-          <TableHeader className="bg-muted/40">
-            <TableRow>
-              <TableHead>PI number</TableHead>
-              <TableHead>Buyer / Consignee</TableHead>
-              <TableHead>Issue date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Total quantity</TableHead>
-              <TableHead className="text-right">Unit price total</TableHead>
-              <TableHead className="text-right">Total amount</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((invoice) => (
-              <TableRow key={invoice.id}>
-                <TableCell className="font-semibold">
-                  {invoice.invoiceNumber}
-                </TableCell>
-                <TableCell className="max-w-56 truncate">
-                  {invoice.buyerName}
-                </TableCell>
-                <TableCell>
-                  {new Intl.DateTimeFormat("en-GB", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  }).format(new Date(invoice.issueDate))}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={STATUS_VARIANTS[invoice.status]}>
-                    {STATUS_LABELS[invoice.status]}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right tabular-nums">
-                  {new Intl.NumberFormat("en-US").format(invoice.totalQuantity)}
-                </TableCell>
-                <TableCell className="text-right tabular-nums">
-                  {formatInvoiceMoney(invoice.totalUnitPrice, invoice.currency)}
-                </TableCell>
-                <TableCell className="text-right font-semibold tabular-nums">
-                  {formatInvoiceMoney(invoice.totalAmount, invoice.currency)}
-                </TableCell>
-                <TableCell>
-                  <div className="flex justify-end gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Preview ${invoice.invoiceNumber}`}
-                      onClick={() => setPreviewInvoice(invoice)}
-                    >
-                      <Eye />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Export ${invoice.invoiceNumber} as PDF`}
-                      title="Export PDF"
-                      disabled={exportingInvoiceId === invoice.id}
-                      onClick={() => void handleExport(invoice)}
-                    >
-                      {exportingInvoiceId === invoice.id ? (
-                        <LoaderCircle className="animate-spin" />
-                      ) : (
-                        <Download />
-                      )}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Delete ${invoice.invoiceNumber}`}
-                      onClick={() => setDeleteInvoice(invoice)}
-                    >
-                      <Trash2 className="text-destructive" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <ResponsiveDataTable
+        columns={columns}
+        rows={items}
+        getRowKey={(invoice) => invoice.id}
+        emptyMessage="No invoices found."
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        basePath="/dashboard/invoices"
+        query={query}
+      />
 
       <Dialog
         open={previewInvoice !== null}

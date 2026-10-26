@@ -82,7 +82,7 @@ export default function Home() {
                 draft persistence.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link href="/invoices/new">
+                <Link href="/dashboard/invoices/new">
                   <Button size="lg">Create your first invoice</Button>
                 </Link>
                 <Link href="#features">
@@ -210,7 +210,7 @@ export default function Home() {
                   Join M.M FABRICS and start generating professional proforma
                   invoices today.
                 </p>
-                <Link href="/invoices/new">
+                <Link href="/dashboard/invoices/new">
                   <Button
                     variant="outline"
                     size="lg"

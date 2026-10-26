@@ -13,8 +13,8 @@ import { MobileNavigation } from "./mobile-navigation";
 
 const NAVIGATION = [
   { href: "/", label: "Home" },
-  { href: "/invoices/new", label: "Create invoice" },
-  { href: "/invoices", label: "Invoice list", authenticated: true },
+  { href: "/dashboard/invoices/new", label: "Create invoice" },
+  { href: "/dashboard/invoices", label: "Invoice list", authenticated: true },
   { href: "/#features", label: "Features" },
   { href: "/#how-it-works", label: "How it works" },
 ];
@@ -79,7 +79,7 @@ export function SiteHeader() {
           ) : user ? (
             <>
               <Link
-                href="/invoices"
+                href="/dashboard/invoices"
                 aria-label={`Signed in as ${user.name || user.email}`}
                 title={user.name || user.email}
                 className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold text-foreground sm:size-9"

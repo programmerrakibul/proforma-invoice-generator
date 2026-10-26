@@ -17,8 +17,9 @@ import { useState } from "react";
 
 const NAVIGATION = [
   { href: "/", label: "Home" },
-  { href: "/invoices/new", label: "Create invoice" },
-  { href: "/invoices", label: "Invoice list", authenticated: true },
+  { href: "/dashboard/invoices/new", label: "Create invoice" },
+  { href: "/dashboard/invoices", label: "Invoice list", authenticated: true },
+  { href: "/dashboard/customers", label: "Customers", authenticated: true },
   { href: "/#features", label: "Features" },
   { href: "/#how-it-works", label: "How it works" },
 ];
@@ -68,7 +69,7 @@ export function MobileNavigation() {
         <div className="mt-auto border-t border-border p-4">
           <div className="flex flex-col gap-2">
             <Link
-              href={user ? "/invoices" : "/auth/login"}
+              href={user ? "/dashboard/invoices" : "/auth/login"}
               onClick={() => setOpen(false)}
               className={buttonVariants({
                 className: "w-full justify-center rounded-full",

@@ -26,7 +26,7 @@ export default function NotFound() {
               Home
               <ArrowRight data-icon="inline-end" />
             </Link>
-            <Link href="/invoices/new" className={buttonVariants({ variant: "secondary", className: "h-10 rounded-full px-5" })}>
+            <Link href="/dashboard/invoices/new" className={buttonVariants({ variant: "secondary", className: "h-10 rounded-full px-5" })}>
               Create invoice
             </Link>
           </div>

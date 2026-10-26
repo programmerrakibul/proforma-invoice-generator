@@ -14,7 +14,7 @@ sign-out controls on both mobile and desktop.
 - **React:** 19.3
 - **Styling:** Tailwind CSS v4, shadcn/ui (base-mira), lucide-react icons
 - **Forms:** React Hook Form v7 + @hookform/resolvers/zod + Zod v4
-- **Database:** MongoDB + Mongoose v9 (cached connection)
+- **Database:** MongoDB + Mongoose v9 with mongoose-paginate-v2 (cached connection)
 - **Authentication:** Better Auth (emailAndPassword provider,
   `@better-auth/mongo-adapter`, 30-day sessions)
 - **State:** Redux Toolkit (client UI state only)
@@ -85,13 +85,13 @@ pnpm dev
 - **Server helpers:** `getCurrentUser()` (optional), `requireUser()` (throws
   when unauthenticated)
 - **Route redirects:** `src/proxy.ts` performs optimistic session-cookie checks
-  for the protected invoice list and redirects signed-in users away from login
+  for the protected `/dashboard/*` workspace and redirects signed-in users away from login
   and registration; the invoice page still verifies the Better Auth session
   server-side
 - **Server session lookup:** Both helpers forward `await headers()` to
   `auth.api.getSession()` so Better Auth can read the incoming session cookie
 - **Redirect behavior:** Login and registration accept a validated same-site
-  `redirect` query value and fall back to `/invoices`
+  `redirect` query value and fall back to `/dashboard/invoices`
 - **Invoice flow:** Invoice creation and PDF export require an authenticated session; guest invoice generation is disabled
 
 ## Database Models
@@ -128,8 +128,8 @@ pnpm dev
 
 ## Dashboard and customer management
 
-- `/invoices`, `/invoices/new`, `/customers`, and `/customers/new` share an authenticated dashboard layout.
-- Customers are owner-scoped. The customer list supports server-side search, field filtering, sorting, and pagination.
+- `/dashboard` redirects to `/dashboard/invoices`; invoice and customer pages live under the authenticated `/dashboard/*` route tree.
+- Customers are owner-scoped. The customer list supports server-side search, field filtering, sorting, and `mongoose-paginate-v2` pagination. Invoice and customer tables share reusable filters, query utilities, responsive table/card layouts, and pagination.
 - Invoice creation requires selecting a saved customer; saved invoices retain the owner-scoped customer reference and a name/address snapshot.
 
 ## Server Actions
@@ -173,7 +173,7 @@ All invoice mutations go through Next.js Server Actions:
   module import
 - Cache tags follow `user:${userId}:invoices` and
   `user:${userId}:invoice:${invoiceId}` convention
-- `revalidatePath` is called after mutations for `/invoices` and detail paths
+- `revalidatePath` is called after mutations for `/dashboard/invoices` and detail paths
 
 ## Features
 

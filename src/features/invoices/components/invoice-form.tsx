@@ -125,7 +125,7 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
                 {customers.length === 0 ? (
                   <Link
                     className="text-xs font-medium text-primary hover:underline"
-                    href="/customers/new"
+                    href="/dashboard/customers/new"
                   >
                     Create a customer
                   </Link>

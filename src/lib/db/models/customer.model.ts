@@ -1,5 +1,6 @@
 import { getModel } from "@/lib/db/model-helpers";
-import mongoose, { type InferSchemaType, type Model } from "mongoose";
+import mongoose, { type InferSchemaType, type PaginateModel } from "mongoose";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 const customerSchema = new mongoose.Schema(
   {
@@ -20,7 +21,10 @@ customerSchema.index({ ownerId: 1, name: 1 });
 customerSchema.set("toJSON", { virtuals: true, versionKey: false });
 customerSchema.set("toObject", { virtuals: true, versionKey: false });
 
-export const CustomerModel = getModel("Customer", customerSchema) as Model<
-  InferSchemaType<typeof customerSchema>
->;
+customerSchema.plugin(mongoosePaginate);
+
+export const CustomerModel = getModel(
+  "Customer",
+  customerSchema,
+) as PaginateModel<InferSchemaType<typeof customerSchema>>;
 export type CustomerDocument = InferSchemaType<typeof customerSchema>;

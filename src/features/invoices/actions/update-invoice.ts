@@ -81,8 +81,8 @@ export async function updateInvoiceAction(
 
     await InvoiceModel.updateOne({ _id: invoiceId, ownerId: user.id }, updates);
 
-    revalidatePath("/invoices");
-    revalidatePath(`/invoices/${invoiceId}`);
+    revalidatePath("/dashboard/invoices");
+    revalidatePath(`/dashboard/invoices/${invoiceId}`);
 
     return {
       ok: true,

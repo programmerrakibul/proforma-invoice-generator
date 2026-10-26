@@ -104,7 +104,7 @@ export function InvoiceGenerator({ customers }: InvoiceGeneratorProps) {
         setTimeout(() => setSaveStatus("idle"), 1500);
 
         router.refresh();
-        router.push("/invoices");
+        router.push("/dashboard/invoices");
       } else {
         setSaveStatus("error");
         toast.error("Couldn’t save draft", { description: result.message });
@@ -152,7 +152,7 @@ export function InvoiceGenerator({ customers }: InvoiceGeneratorProps) {
 
       setExportStatus("idle");
       router.refresh();
-      router.push("/invoices");
+      router.push("/dashboard/invoices");
     } catch {
       setExportStatus("error");
       toast.error("PDF export failed", { description: "Please try again." });

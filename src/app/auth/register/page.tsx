@@ -16,7 +16,7 @@ export default async function RegisterPage({
   const redirect = Array.isArray(params.redirect)
     ? params.redirect[0]
     : params.redirect;
-  const destination = getSafeAuthRedirect(redirect ?? "/invoices");
+  const destination = getSafeAuthRedirect(redirect ?? "/dashboard/invoices");
 
   return (
     <AuthPage

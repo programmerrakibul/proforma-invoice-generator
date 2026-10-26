@@ -12,16 +12,16 @@ import Link from "next/link";
 
 const NAVIGATION = [
   {
-    href: "/invoices",
+    href: "/dashboard/invoices",
     label: "Invoices",
     icon: FileText,
   },
   {
-    href: "/invoices/new",
+    href: "/dashboard/invoices/new",
     label: "New invoice",
     icon: LayoutDashboard,
   },
-  { href: "/customers", label: "Customers", icon: Users },
+  { href: "/dashboard/customers", label: "Customers", icon: Users },
 ];
 
 export function AppSidebar() {
@@ -35,11 +35,10 @@ export function AppSidebar() {
   return (
     <aside
       className={[
-        "fixed z-20 top-0 bottom-0 border-r border-border bg-background flex flex-col transition-all duration-300",
+        "fixed top-16 bottom-0 z-20 hidden flex-col border-r border-border bg-background transition-all duration-300 md:flex",
         isTablet && !isSidebarOpen
           ? "w-16 translate-x-0"
           : "w-60 translate-x-0",
-        isTablet && !isSidebarOpen ? "md:hidden" : "",
       ].join(" ")}
       aria-label="Main navigation"
     >
@@ -68,7 +67,8 @@ export function AppSidebar() {
           const Icon = item.icon;
           const isActive =
             pathname === item.href ||
-            (item.href === "/invoices" && pathname.startsWith("/invoices/"));
+            (item.href === "/dashboard/invoices" &&
+              pathname.startsWith("/dashboard/invoices/"));
           return (
             <Link
               key={item.href}
@@ -86,16 +86,18 @@ export function AppSidebar() {
           );
         })}
       </nav>
-      <div className="p-2 border-t border-border">
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full text-xs"
-          onClick={() => dispatch(setIsSidebarOpen(!isSidebarOpen))}
-        >
-          {isSidebarOpen ? "Collapse" : "Expand"}
-        </Button>
-      </div>
+      {isTablet ? (
+        <div className="p-2 border-t border-border">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-xs"
+            onClick={() => dispatch(setIsSidebarOpen(!isSidebarOpen))}
+          >
+            {isSidebarOpen ? "Collapse" : "Expand"}
+          </Button>
+        </div>
+      ) : null}
     </aside>
   );
 }

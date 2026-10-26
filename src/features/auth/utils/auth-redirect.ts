@@ -1,4 +1,4 @@
-const DEFAULT_AUTH_REDIRECT = "/invoices";
+const DEFAULT_AUTH_REDIRECT = "/dashboard/invoices";
 
 const baseURL = process.env.BETTER_AUTH_URL;
 

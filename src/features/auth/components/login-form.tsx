@@ -19,7 +19,7 @@ interface LoginFormProps {
   redirectTo: string;
 }
 
-export function LoginForm({ redirectTo = "/invoices" }: LoginFormProps) {
+export function LoginForm({ redirectTo = "/dashboard/invoices" }: LoginFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const {

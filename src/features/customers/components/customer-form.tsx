@@ -32,7 +32,7 @@ export function CustomerForm() {
       return;
     }
     toast.success("Customer created");
-    router.push("/customers");
+    router.push("/dashboard/customers");
     router.refresh();
   };
   return (
