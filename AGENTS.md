@@ -143,8 +143,8 @@ All invoice mutations go through Next.js Server Actions:
 - Line items store fabric, construction, and a numeric width string from 40 to
   80 inches. The fabric field offers searchable catalog suggestions and an
   explicit custom-value action; construction remains a text input, and width
-  can be typed or selected from 40–80. Preview and PDF compose these values
-  into a three-line goods description.
+  is selected from a 40–80 dropdown. Preview and PDF compose these values into
+  a three-line goods description.
 - Goods delivery/banking/shipping notes and terms use application defaults in
   the invoice payload; keep these static details out of the user-facing form
   until editable terms are requested. The initial product row uses editable

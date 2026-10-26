@@ -180,7 +180,7 @@ All invoice mutations go through Next.js Server Actions:
 - Invoice list rows can export saved invoices to PDF and mark them exported
 - Invoice generator with live A4 JSX preview matching the M.M FABRICS invoice design (HTML, updates as the form changes)
 - Multi-line-item support with searchable fabric suggestions, explicit custom
-  fabric entry, editable construction, 40–80 inch width input/dropdown,
+  fabric entry, editable construction, a single 40–80 inch width dropdown,
   required-field validation, and a guarded add-item flow
 - Buyer/consignee details and invoice line items; delivery, banking, shipment,
   payment notes, and terms are populated from application defaults in the
