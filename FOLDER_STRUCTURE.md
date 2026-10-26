@@ -125,6 +125,10 @@ public/
 └── mm-fabrics-seal.png              # Company seal for invoice preview and PDF
 ```
 
+## Dashboard and customer feature files
+
+The authenticated route group is `src/app/(dashboard)/`: `layout.tsx` provides the dashboard shell, `invoices/page.tsx` and `invoices/new/page.tsx` provide invoice listing and creation, and `customers/page.tsx` plus `customers/new/page.tsx` provide customer listing and creation. Customer behavior lives in `src/features/customers/actions/customer-actions.ts`, `components/customer-form.tsx`, and `schemas/customer.schema.ts`. The Mongoose models are `src/lib/db/models/customer.model.ts` and `invoice.model.ts`.
+
 ## Root config files
 
 | File                  | Purpose                                       |

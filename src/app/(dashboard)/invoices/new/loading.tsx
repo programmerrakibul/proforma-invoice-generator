@@ -3,7 +3,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function NewInvoiceLoading() {
   return (
-    <section className="min-h-screen bg-muted/25" aria-busy="true" aria-label="Loading invoice studio">
+    <section
+      className="min-h-screen bg-muted/25"
+      aria-busy="true"
+      aria-label="Loading invoice studio"
+    >
       <Container className="flex h-full flex-col py-6 lg:py-8">
         <div className="mb-6 flex flex-col gap-2">
           <Skeleton className="h-3 w-28" />
@@ -123,7 +127,9 @@ export default function NewInvoiceLoading() {
               </div>
             </div>
           </div>
-          <span className="sr-only">Preparing the invoice editor and live preview.</span>
+          <span className="sr-only">
+            Preparing the invoice editor and live preview.
+          </span>
         </div>
       </Container>
     </section>

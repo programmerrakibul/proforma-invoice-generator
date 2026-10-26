@@ -46,6 +46,7 @@ export interface Invoice {
   currency: string;
   status: "draft" | "exported";
   seller: Seller;
+  buyerId: mongoose.Types.ObjectId;
   buyer: Buyer;
   lineItems: LineItem[];
   subtotal: number;
@@ -100,6 +101,12 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
       corporateOffice: { type: String, required: true, trim: true },
       contactNumber: { type: String, required: true, trim: true },
       email: { type: String, required: true, trim: true },
+    },
+    buyerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+      required: true,
+      index: true,
     },
     buyer: {
       name: { type: String, required: true, trim: true },

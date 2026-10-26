@@ -61,6 +61,7 @@ export const invoiceLineItemSchema = z.object({
 });
 
 export const createInvoiceSchema = z.object({
+  customerId: z.string().regex(/^[a-f\d]{24}$/i, "Select a customer."),
   piNumber: z
     .string()
     .trim()

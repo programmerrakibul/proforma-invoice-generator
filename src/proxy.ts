@@ -24,7 +24,10 @@ export async function proxy(
   const isAuthenticated = await hasSessionCookie(request);
   const pathname = request.nextUrl.pathname;
 
-  if (pathname.startsWith("/invoices") && !isAuthenticated) {
+  if (
+    (pathname.startsWith("/invoices") || pathname.startsWith("/customers")) &&
+    !isAuthenticated
+  ) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set(
       "redirect",
@@ -41,5 +44,5 @@ export async function proxy(
 }
 
 export const config = {
-  matcher: ["/invoices", "/auth/:path*"],
+  matcher: ["/invoices/:path*", "/customers/:path*", "/auth/:path*"],
 };

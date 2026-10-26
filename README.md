@@ -92,8 +92,7 @@ pnpm dev
   `auth.api.getSession()` so Better Auth can read the incoming session cookie
 - **Redirect behavior:** Login and registration accept a validated same-site
   `redirect` query value and fall back to `/invoices`
-- **Guest flow:** Unauthenticated users can preview/generate invoices
-  client-side; persistence to MongoDB requires sign-in
+- **Invoice flow:** Invoice creation and PDF export require an authenticated session; guest invoice generation is disabled
 
 ## Database Models
 
@@ -104,14 +103,19 @@ pnpm dev
   corporateOffice, contactNumber, email, logoUrl)
 - `createdAt`, `updatedAt`
 
-### Invoice (belongs to User via `ownerId`)
+### Customer (belongs to User via `ownerId`)
+
+- `ownerId` (ObjectId ref User, required, indexed)
+- `name`, `address`, optional `email` and `phone` (Zod validated)
+- Timestamps; owner and name index
+
+### Invoice (belongs to User via `ownerId`; references Customer via `buyerId`)
 
 - `ownerId` (ObjectId ref User, required, indexed)
 - `piNumber` (`MMF/###/YY` format, e.g. `MMF/001/26`)
 - `issueDate`, `currency` (default `USD`)
 - `status` (`draft` \| `ready` \| `exported` \| `archived`, indexed)
-- `seller`, `buyer` (embedded contact info, including consignee address and
-  destination country)
+- `seller`, `buyer` (embedded customer name/address snapshot), and `buyerId` (owner-scoped Customer reference)
 - `lineItems[]` (fabric, construction, width in inches, style, color, quantity,
   unitPrice, totalAmount, unit)
 - `subtotal`, `totalAmount`, `totalQuantity` (calculated server-side)
@@ -122,17 +126,23 @@ pnpm dev
 - Indexes: `{ownerId, updatedAt}`, `{ownerId, status, updatedAt}`,
   `{ownerId, piNumber}`
 
+## Dashboard and customer management
+
+- `/invoices`, `/invoices/new`, `/customers`, and `/customers/new` share an authenticated dashboard layout.
+- Customers are owner-scoped. The customer list supports server-side search, field filtering, sorting, and pagination.
+- Invoice creation requires selecting a saved customer; saved invoices retain the owner-scoped customer reference and a name/address snapshot.
+
 ## Server Actions
 
 All invoice mutations go through Next.js Server Actions:
 
-| Action                   | File                                              | Auth                     | Ownership                               |
-| ------------------------ | ------------------------------------------------- | ------------------------ | --------------------------------------- |
-| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Optional (guest allowed) | Derived from session when authenticated |
-| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required                 | Query by `_id` + `ownerId`              |
-| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required                 | Query by `_id` + `ownerId`              |
-| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                     |
-| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | Session owner when persisted            |
+| Action                   | File                                              | Auth     | Ownership                  |
+| ------------------------ | ------------------------------------------------- | -------- | -------------------------- |
+| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Required | Derived from session       |
+| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required | Query by `_id` + `ownerId` |
+| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required | Query by `_id` + `ownerId` |
+| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required | Filter by `ownerId`        |
+| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Required | Session owner              |
 
 **Security rules enforced:**
 
@@ -152,7 +162,7 @@ All invoice mutations go through Next.js Server Actions:
 - Live preview is a single-page JSX/HTML A4 document with a compact 12 mm page inset that follows the M.M FABRICS invoice design and updates as the form changes
 - Seller address, corporate office, contact number, and email appear as four stacked rows in both the preview and PDF
 - PDF files are generated on the server with PDFKit and downloaded via
-  `exportInvoicePdfAction` (guests can export without signing in)
+  `exportInvoicePdfAction` (authentication required)
 - Preview and PDF share the same mapped document model and matching A4 layout, company logo, seal, and compact signature/footer directly below shipment details and terms
 
 ## Caching Strategy
@@ -173,7 +183,7 @@ All invoice mutations go through Next.js Server Actions:
   login/user placeholder; auth screens include back navigation and support a
   safe same-site `redirect` query parameter
 - Auth success feedback with toast notifications and destination navigation
-- Landing page and protected invoice table with search, status filter, sorting,
+- Landing page and protected dashboard invoice table with search, status filter, sorting,
   pagination, preview, and confirmed deletion; search/filter/sort/page queries
   are validated and executed server-side against the owner-scoped MongoDB data;
   search waits 350 ms after typing before requesting updated results
@@ -191,6 +201,8 @@ All invoice mutations go through Next.js Server Actions:
   recomputed from quantity and unit price
 - Decimal-safe money calculations (integer-cent arithmetic)
 - "Say total" verbal amount rendering
+- Customer management with owner-scoped creation, search, field filtering, sorting, and pagination
+- Invoice creation requires a saved customer and snapshots the selected customer details
 - Draft saving with Server Actions
 - Save/saved/error states with toast notifications
 - Unsaved-changes navigation guard (`beforeunload`)

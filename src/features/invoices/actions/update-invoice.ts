@@ -5,7 +5,7 @@ import { ZodError } from "zod";
 
 import { connectToDatabase } from "@/lib/db/mongoose";
 import { requireUser } from "@/lib/auth/require-user";
-import { InvoiceModel } from "@/lib/db/models";
+import { CustomerModel, InvoiceModel } from "@/lib/db/models";
 import {
   ActionResult,
   zodErrorToActionResult,
@@ -39,6 +39,11 @@ export async function updateInvoiceAction(
         message: "Invoice not found or you do not own it.",
       };
     }
+    const customer = await CustomerModel.findOne({
+      _id: validated.customerId,
+      ownerId: user.id,
+    });
+    if (!customer) return { ok: false, message: "Customer not found." };
 
     const updates: Record<string, unknown> = {};
 
@@ -53,7 +58,8 @@ export async function updateInvoiceAction(
       validated.lineItems,
     );
     updates.currency = validated.currency;
-    updates.buyer = validated.buyer;
+    updates.buyerId = customer._id;
+    updates.buyer = { name: customer.name, address: customer.address };
     updates.lineItems = lineItems.map((item) => ({
       fabric: item.fabric,
       construction: item.construction,

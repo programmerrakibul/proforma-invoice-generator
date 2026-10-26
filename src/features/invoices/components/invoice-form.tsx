@@ -13,10 +13,22 @@ import { InvoiceLineItems } from "@/features/invoices/components/invoice-line-it
 import type { CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
 import { Building2, CalendarDays, Hash, MapPin } from "lucide-react";
 import { useFormContext } from "react-hook-form";
+import Link from "next/link";
 
-export function InvoiceForm() {
+export interface InvoiceFormProps {
+  customers: Array<{
+    id: string;
+    name: string;
+    address: string;
+    email?: string;
+    phone?: string;
+  }>;
+}
+
+export function InvoiceForm({ customers }: InvoiceFormProps) {
   const {
     register,
+    setValue,
     formState: { errors },
   } = useFormContext<CreateInvoiceInput>();
 
@@ -74,10 +86,61 @@ export function InvoiceForm() {
                 <Building2 className="size-4 text-primary" /> Buyer / Consignee
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                These details appear on the invoice.
+                Choose a saved customer. Their saved details appear on the
+                invoice.
               </p>
             </div>
             <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field
+                className="sm:col-span-2"
+                data-invalid={Boolean(errors.customerId)}
+              >
+                <FieldLabel htmlFor="customerId">Select customer</FieldLabel>
+                <select
+                  id="customerId"
+                  className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  {...register("customerId", {
+                    onChange: (event) => {
+                      const customer = customers.find(
+                        (item) => item.id === event.target.value,
+                      );
+                      if (customer) {
+                        setValue("buyer.name", customer.name, {
+                          shouldValidate: true,
+                        });
+                        setValue("buyer.address", customer.address, {
+                          shouldValidate: true,
+                        });
+                      }
+                    },
+                  })}
+                >
+                  <option value="">Choose a saved customer</option>
+                  {customers.map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </option>
+                  ))}
+                </select>
+                {customers.length === 0 ? (
+                  <Link
+                    className="text-xs font-medium text-primary hover:underline"
+                    href="/customers/new"
+                  >
+                    Create a customer
+                  </Link>
+                ) : null}
+                {errors.customerId?.message ? (
+                  <p className="text-xs text-destructive">
+                    {errors.customerId.message}
+                  </p>
+                ) : null}
+                {customers.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    Add a customer before creating an invoice.
+                  </p>
+                ) : null}
+              </Field>
               <Field
                 className="sm:col-span-2"
                 data-invalid={Boolean(errors.buyer?.name)}
@@ -86,6 +149,7 @@ export function InvoiceForm() {
                 <Input
                   id="buyer.name"
                   aria-invalid={Boolean(errors.buyer?.name)}
+                  readOnly
                   {...register("buyer.name")}
                 />
                 {errors.buyer?.name?.message ? (
@@ -104,6 +168,7 @@ export function InvoiceForm() {
                 <Textarea
                   id="buyer.address"
                   aria-invalid={Boolean(errors.buyer?.address)}
+                  readOnly
                   {...register("buyer.address")}
                 />
                 {errors.buyer?.address?.message ? (

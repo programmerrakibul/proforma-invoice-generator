@@ -84,25 +84,26 @@ duplication (DRY).
   forward the incoming request headers so Better Auth can read the session
   cookie
 - **Route:** `GET/POST/PUT/PATCH/DELETE /api/auth/[...all]`
-- **Guest flow:** Unauthenticated users can preview/generate invoices
-  client-side; persistence to MongoDB requires sign-in
-- **Route redirects:** `src/proxy.ts` performs optimistic Better Auth cookie
-  checks for the protected invoice list and redirects signed-in users away from
-  login and registration. Server pages/actions remain responsible for
-  authoritative session and ownership checks. The guest-accessible invoice
-  studio (`/invoices/new`) is not blocked by the proxy.
+- **Invoice flow:** Invoice creation and PDF export require an authenticated session; no guest invoice generation is allowed
+- **Route redirects:** `src/proxy.ts` protects `/invoices/*` and `/customers/*`; the dashboard layout and server actions enforce authoritative session checks and ownership.
+
+## Dashboard and customer management
+
+- `/invoices`, `/invoices/new`, `/customers`, and `/customers/new` are grouped under `src/app/(dashboard)` and share an authenticated dashboard layout.
+- Customer records are owner-scoped and validated with `createCustomerSchema`; the customer list supports search, field filtering, sorting, and pagination.
+- Invoice creation requires a saved customer ID. The server verifies that customer belongs to the session owner, persists its reference, and snapshots its name and address for invoice preview/PDF stability.
 
 ## Server Actions
 
 All invoice mutations go through Next.js Server Actions:
 
-| Action                   | File                                              | Auth                     | Ownership                                 |
-| ------------------------ | ------------------------------------------------- | ------------------------ | ----------------------------------------- |
-| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Optional (guest allowed) | Derived from session when authenticated   |
-| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                |
-| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                |
-| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                       |
-| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | Owner derived from session when persisted |
+| Action                   | File                                              | Auth     | Ownership                               |
+| ------------------------ | ------------------------------------------------- | -------- | --------------------------------------- |
+| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Required | Derived from session when authenticated |
+| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required | Query by `_id` + `ownerId`              |
+| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required | Query by `_id` + `ownerId`              |
+| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required | Filter by `ownerId`                     |
+| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Required | Session owner                           |
 
 - `listInvoicesAction` validates page, page size, search, status, and sort with
   Zod, then applies owner-scoped search/filter/sort and pagination in MongoDB.
@@ -135,8 +136,7 @@ All invoice mutations go through Next.js Server Actions:
   stacked rows in the HTML preview and generated PDF.
 - PDF files are generated server-side with PDFKit
   (`features/invoices/pdf/generate-invoice-pdf.ts`) and downloaded from
-  `exportInvoicePdfAction`. Guests can export without persisting; authenticated
-  exports are persisted with `exported` status.
+  `exportInvoicePdfAction`. Exports require authentication and are persisted with `exported` status.
 - The invoice workspace validates the full payload with Zod, presents database
   records in an owner-scoped table, supports preview and PDF export, and
   requires confirmation before deletion.

@@ -10,7 +10,7 @@ import {
   buildInvoiceDocument,
   toInvoiceDocumentInput,
 } from "@/features/invoices/utils/build-invoice-document";
-import { getCurrentUser } from "@/lib/auth/get-current-user";
+import { requireUser } from "@/lib/auth/require-user";
 import type { ActionResult } from "@/lib/validations/action-result";
 import { zodErrorToActionResult } from "@/lib/validations/action-result";
 import { revalidatePath } from "next/cache";
@@ -33,17 +33,17 @@ export async function exportInvoicePdfAction(
   }>
 > {
   try {
+    const user = await requireUser();
     const validated = createInvoiceSchema.parse(input);
     const documentData = buildInvoiceDocument(
       toInvoiceDocumentInput(validated),
     );
     const pdfBuffer = await generateInvoicePdfBuffer(documentData);
     const fileName = `${toSafeFileName(documentData.piNumber)}.pdf`;
-    const user = await getCurrentUser();
     let persisted = false;
     let savedInvoiceId: string | undefined;
 
-    if (user) {
+    {
       savedInvoiceId = await persistInvoice(
         user.id,
         validated,

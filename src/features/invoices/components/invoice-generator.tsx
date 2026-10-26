@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { buyerProfile } from "@/data/buyer";
 import { defaultNotes, defaultTermsAndConditions } from "@/data/invoice-static";
 import { createInvoiceAction } from "@/features/invoices/actions/create-invoice";
 import { exportInvoicePdfAction } from "@/features/invoices/actions/export-invoice-pdf";
@@ -16,12 +15,24 @@ import { downloadPdfFromBase64 } from "@/features/invoices/utils/download-pdf";
 import { useSession } from "@/lib/auth-client";
 import { getPINumber } from "@/lib/pi-number";
 import { DownloadIcon, SaveIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { CreateInvoiceInput } from "../schemas/invoice.schema";
 
-export function InvoiceGenerator() {
+export interface InvoiceGeneratorProps {
+  customers: Array<{
+    id: string;
+    name: string;
+    address: string;
+    email?: string;
+    phone?: string;
+  }>;
+}
+
+export function InvoiceGenerator({ customers }: InvoiceGeneratorProps) {
+  const router = useRouter();
   const { data } = useSession();
   const canSaveDraft = Boolean(data);
   const piNumber = getPINumber();
@@ -30,7 +41,8 @@ export function InvoiceGenerator() {
       piNumber: piNumber,
       issueDate: new Date().toISOString().split("T")[0],
       currency: "USD",
-      buyer: buyerProfile,
+      customerId: "",
+      buyer: { name: "", address: "" },
       notes: defaultNotes,
       termsAndConditions: defaultTermsAndConditions,
       lineItems: [
@@ -90,6 +102,9 @@ export function InvoiceGenerator() {
           });
         }
         setTimeout(() => setSaveStatus("idle"), 1500);
+
+        router.refresh();
+        router.push("/invoices");
       } else {
         setSaveStatus("error");
         toast.error("Couldn’t save draft", { description: result.message });
@@ -120,6 +135,7 @@ export function InvoiceGenerator() {
         setExportStatus("error");
         toast.error("PDF export failed", { description: result.message });
         setTimeout(() => setExportStatus("idle"), 2000);
+
         return;
       }
 
@@ -133,7 +149,10 @@ export function InvoiceGenerator() {
           ? "The PDF is downloaded and the invoice is saved to your account."
           : "Your PDF is ready to share.",
       });
+
       setExportStatus("idle");
+      router.refresh();
+      router.push("/invoices");
     } catch {
       setExportStatus("error");
       toast.error("PDF export failed", { description: "Please try again." });
@@ -151,7 +170,7 @@ export function InvoiceGenerator() {
                 onSubmit={handleSubmit(onSave)}
                 className="flex flex-col gap-6"
               >
-                <InvoiceForm />
+                <InvoiceForm customers={customers} />
                 <div className="sticky bottom-0 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border/70 bg-card/95 px-4 pb-2 pt-4 backdrop-blur sm:-mx-6 sm:px-6">
                   {canSaveDraft ? (
                     <Button

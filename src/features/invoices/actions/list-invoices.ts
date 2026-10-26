@@ -27,6 +27,7 @@ interface RawLineItem {
 
 interface RawInvoice {
   _id: mongoose.Types.ObjectId;
+  buyerId: mongoose.Types.ObjectId;
   piNumber: string;
   issueDate: Date;
   status: string;
@@ -43,6 +44,7 @@ interface RawInvoice {
 
 export interface InvoiceListItem {
   id: string;
+  customerId: string;
   invoiceNumber: string;
   issueDate: string;
   status: "draft" | "exported";
@@ -132,6 +134,7 @@ export async function listInvoicesAction(
 
       return {
         id: String(item._id),
+        customerId: String(item.buyerId),
         invoiceNumber: item.piNumber,
         issueDate,
         status: (item.status ?? "draft") as InvoiceListItem["status"],

@@ -7,24 +7,21 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { RootState } from "@/store/index";
 import { setIsSidebarOpen } from "@/features/invoices/store/invoice-ui.slice";
 import { Button } from "@/components/ui/button";
-import {
-  LayoutDashboard,
-  FileText,
-  ChevronRight,
-} from "lucide-react";
+import { LayoutDashboard, FileText, ChevronRight, Users } from "lucide-react";
 import Link from "next/link";
 
 const NAVIGATION = [
   {
-    href: "/(dashboard)/invoices",
+    href: "/invoices",
     label: "Invoices",
     icon: FileText,
   },
   {
-    href: "/(dashboard)/invoices/new",
+    href: "/invoices/new",
     label: "New invoice",
     icon: LayoutDashboard,
   },
+  { href: "/customers", label: "Customers", icon: Users },
 ];
 
 export function AppSidebar() {
@@ -33,9 +30,7 @@ export function AppSidebar() {
   );
   const dispatch = useDispatch();
   const pathname = usePathname();
-  const isTablet = useMediaQuery(
-    "(min-width: 768px) and (max-width: 1023px)",
-  );
+  const isTablet = useMediaQuery("(min-width: 768px) and (max-width: 1023px)");
 
   return (
     <aside
@@ -50,8 +45,12 @@ export function AppSidebar() {
     >
       <div className="flex h-12 items-center justify-between px-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <span className=" font-bold text-ink tracking-tight text-xs md:text-sm">M.M</span>
-          <span className=" font-bold text-ink tracking-tight text-xs md:text-sm">FABRICS</span>
+          <span className=" font-bold text-ink tracking-tight text-xs md:text-sm">
+            M.M
+          </span>
+          <span className=" font-bold text-ink tracking-tight text-xs md:text-sm">
+            FABRICS
+          </span>
         </div>
         {isTablet && !isSidebarOpen && (
           <Button
@@ -67,7 +66,9 @@ export function AppSidebar() {
       <nav className="flex-1 flex flex-col gap-1 px-2 pt-4">
         {NAVIGATION.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive =
+            pathname === item.href ||
+            (item.href === "/invoices" && pathname.startsWith("/invoices/"));
           return (
             <Link
               key={item.href}

@@ -96,6 +96,7 @@ export function InvoiceListTable({ items }: InvoiceListTableProps) {
     const currency =
       SUPPORTED_CURRENCIES.find((value) => value === invoice.currency) ?? "USD";
     const exportInput: CreateInvoiceInput = {
+      customerId: invoice.customerId,
       piNumber: invoice.preview.piNumber,
       issueDate: invoice.issueDate,
       currency,

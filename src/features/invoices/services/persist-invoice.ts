@@ -3,7 +3,7 @@ import "server-only";
 import type { CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
 import { DEFAULT_SELLER } from "@/features/invoices/utils/build-invoice-document";
 import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
-import { InvoiceModel } from "@/lib/db/models";
+import { CustomerModel, InvoiceModel } from "@/lib/db/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
 
 export type PersistedInvoiceStatus = "draft" | "exported";
@@ -16,6 +16,11 @@ export async function persistInvoice(
 ): Promise<string> {
   await connectToDatabase();
   const totals = calculateInvoiceTotals(input.lineItems);
+  const customer = await CustomerModel.findOne({
+    _id: input.customerId,
+    ownerId,
+  }).lean();
+  if (!customer) throw new Error("Customer not found.");
   const totalQuantity = totals.lineItems.reduce(
     (sum, item) => sum + item.quantity,
     0,
@@ -28,7 +33,8 @@ export async function persistInvoice(
     currency: input.currency,
     status,
     seller: DEFAULT_SELLER,
-    buyer: input.buyer,
+    buyerId: customer._id,
+    buyer: { name: customer.name, address: customer.address },
     lineItems: totals.lineItems.map((item) => ({
       fabric: item.fabric,
       construction: item.construction,

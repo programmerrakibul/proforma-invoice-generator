@@ -1,7 +1,9 @@
 import Container from "@/components/shared/container";
+import { getCustomersForInvoiceAction } from "@/features/customers/actions/customer-actions";
 import { InvoiceGenerator } from "@/features/invoices/components/invoice-generator";
 
-export default function NewInvoicePage() {
+export default async function NewInvoicePage() {
+  const result = await getCustomersForInvoiceAction();
   return (
     <section className="min-h-screen bg-muted/25">
       <Container className="flex h-full flex-col py-6 lg:py-8">
@@ -13,12 +15,11 @@ export default function NewInvoicePage() {
             New Proforma Invoice
           </h1>
           <p className="max-w-xl text-sm leading-6 text-muted-foreground">
-            Shape the details on the left and watch your polished, print-ready
-            document come together on the right.
+            Choose a saved customer and build your print-ready document.
           </p>
         </div>
         <div className="min-h-[calc(100vh-13rem)]">
-          <InvoiceGenerator />
+          <InvoiceGenerator customers={result.ok ? result.data : []} />
         </div>
       </Container>
     </section>
