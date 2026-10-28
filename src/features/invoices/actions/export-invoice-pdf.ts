@@ -11,6 +11,10 @@ import {
   toInvoiceDocumentInput,
 } from "@/features/invoices/utils/build-invoice-document";
 import { requireUser } from "@/lib/auth/require-user";
+import { InvoiceModel } from "@/lib/db/models";
+import { connectToDatabase } from "@/lib/db/mongoose";
+import { isInvoiceCurrency } from "@/config/bank-accounts";
+import mongoose from "mongoose";
 import type { ActionResult } from "@/lib/validations/action-result";
 import { zodErrorToActionResult } from "@/lib/validations/action-result";
 import { revalidatePath } from "next/cache";
@@ -65,6 +69,7 @@ export async function exportInvoicePdfAction(
       },
     };
   } catch (error) {
+    console.error("Invoice PDF export failed.", error);
     if (error instanceof ZodError) {
       return zodErrorToActionResult<{
         fileName: string;
@@ -73,6 +78,68 @@ export async function exportInvoicePdfAction(
         invoiceId?: string;
       }>(error, "Please fix the highlighted fields.");
     }
+    return { ok: false, message: "Failed to generate PDF." };
+  }
+}
+
+export async function exportSavedInvoicePdfAction(invoiceId: string): Promise<
+  ActionResult<{
+    fileName: string;
+    pdfBase64: string;
+    persisted: true;
+    invoiceId: string;
+  }>
+> {
+  try {
+    const user = await requireUser();
+    if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
+      return { ok: false, message: "Invoice not found." };
+    }
+    await connectToDatabase();
+
+    const invoice = await InvoiceModel.findOne({
+      _id: invoiceId,
+      ownerId: user.id,
+    }).lean();
+    if (!invoice) {
+      return { ok: false, message: "Invoice not found." };
+    }
+
+    const documentData = buildInvoiceDocument({
+      piNumber: invoice.piNumber,
+      issueDate: invoice.issueDate.toISOString(),
+      deliveryDate: invoice.deliveryDate,
+      currency: isInvoiceCurrency(invoice.currency) ? invoice.currency : "USD",
+      seller: invoice.seller,
+      buyer: invoice.buyer,
+      lineItems: invoice.lineItems,
+      notes: invoice.notes,
+      termsAndConditions: invoice.termsAndConditions,
+    });
+    const pdfBuffer = await generateInvoicePdfBuffer(documentData);
+    const updateResult = await InvoiceModel.updateOne(
+      { _id: invoice._id, ownerId: user.id },
+      { $set: { status: "exported" } },
+      { runValidators: true },
+    );
+    if (updateResult.matchedCount !== 1) {
+      return { ok: false, message: "Invoice not found." };
+    }
+
+    revalidatePath("/dashboard/invoices");
+    revalidatePath(`/dashboard/invoices/${invoiceId}`);
+
+    return {
+      ok: true,
+      data: {
+        fileName: `${toSafeFileName(documentData.piNumber)}.pdf`,
+        pdfBase64: pdfBuffer.toString("base64"),
+        persisted: true,
+        invoiceId,
+      },
+    };
+  } catch (error) {
+    console.error("Saved invoice PDF export failed.", error);
     return { ok: false, message: "Failed to generate PDF." };
   }
 }
