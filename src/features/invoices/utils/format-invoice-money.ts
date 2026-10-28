@@ -9,5 +9,6 @@ export function formatInvoiceMoney(
     currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
+    currencyDisplay: "narrowSymbol",
   }).format(amount);
 }

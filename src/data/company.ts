@@ -1,7 +1,7 @@
 export const companyProfile = {
   companyName: "M.M FABRICS",
   address:
-    "Sobhan Super Market, South Birampur, Madhabdi, Narsingdi, Bangladesh",
+    "South Birampur, Madhabdi, Narsingdi, Bangladesh",
   corporateOffice:
     "House#16, B-Road, 16, Sector: 13, Uttara, Dhaka-1230, Bangladesh",
   contactNumber: "+880 177758-9989",

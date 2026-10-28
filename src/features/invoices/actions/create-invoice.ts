@@ -23,7 +23,7 @@ export async function getNextPiNumber(): Promise<string> {
   await requireUser();
   await connectToDatabase();
   await ensureGeneratedPiNumberIndex();
-  const date = format(new Date(), "ddMMyy");
+  const date = format(new Date(), "ddMMyyyy");
 
   for (let attempt = 0; attempt < 100; attempt += 1) {
     const piNumber = `MMF-${date}-${randomInt(1000, 10000)}`;
