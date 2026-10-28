@@ -147,10 +147,14 @@ All invoice mutations go through Next.js Server Actions:
   from a 40–80 dropdown. Preview and PDF compose fabric, construction, and
   width into a three-line goods description.
 - Goods delivery/banking/shipping notes and terms use application defaults in
-  the invoice payload; keep these static details out of the user-facing form
-  until editable terms are requested. The initial product row uses editable
-  values from the supplied invoice sample; calculate all totals from quantity
-  and unit price rather than trusting the client-provided total.
+  the initial invoice payload and remain editable in the invoice form. Currency
+  changes refresh the advising bank and payment defaults from
+  `src/config/bank-accounts.ts`; only verified USD bank details are configured,
+  so other currencies require user-entered verified details. Delivery date is
+  optional and must persist through invoice updates, preview, and PDF export.
+  The initial product row uses editable values from the supplied invoice sample;
+  calculate all totals from quantity and unit price rather than trusting the
+  client-provided total.
 - Currency values in the invoice preview, list, and PDF use the `en-US` number
   format; invoice-list quantities use `en-ES`. The seller seal asset is served
   from `public/mm-fabrics-seal.png`.

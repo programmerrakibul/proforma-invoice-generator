@@ -12,13 +12,13 @@ import {
 } from "@/lib/validations/action-result";
 import {
   createInvoiceSchema,
-  type CreateInvoiceInput,
+  type InvoiceFormValues,
 } from "@/features/invoices/schemas/invoice.schema";
 import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
 
 export async function updateInvoiceAction(
   invoiceId: string,
-  input: CreateInvoiceInput,
+  input: InvoiceFormValues,
 ): Promise<ActionResult<{ invoiceId: string }>> {
   "use server";
 
@@ -58,6 +58,9 @@ export async function updateInvoiceAction(
       validated.lineItems,
     );
     updates.currency = validated.currency;
+    if (validated.deliveryDate) {
+      updates.deliveryDate = validated.deliveryDate;
+    }
     updates.buyerId = customer._id;
     updates.buyer = { name: customer.name, address: customer.address };
     updates.lineItems = lineItems.map((item) => ({
@@ -79,7 +82,13 @@ export async function updateInvoiceAction(
     updates.notes = validated.notes;
     updates.termsAndConditions = validated.termsAndConditions;
 
-    await InvoiceModel.updateOne({ _id: invoiceId, ownerId: user.id }, updates);
+    await InvoiceModel.updateOne(
+      { _id: invoiceId, ownerId: user.id },
+      {
+        $set: updates,
+        ...(validated.deliveryDate ? {} : { $unset: { deliveryDate: "" } }),
+      },
+    );
 
     revalidatePath("/dashboard/invoices");
     revalidatePath(`/dashboard/invoices/${invoiceId}`);

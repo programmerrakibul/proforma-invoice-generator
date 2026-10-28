@@ -3,7 +3,7 @@
 import { Field, FieldLabel } from "@/components/ui/field";
 import Link from "next/link";
 import { useFormContext } from "react-hook-form";
-import { CreateInvoiceInput } from "../schemas/invoice.schema";
+import type { InvoiceFormValues } from "../schemas/invoice.schema";
 
 export interface CustomerSelectProps {
   customers: Array<{
@@ -20,7 +20,7 @@ const CustomerSelect = ({ customers }: CustomerSelectProps) => {
     register,
     setValue,
     formState: { errors },
-  } = useFormContext<CreateInvoiceInput>();
+  } = useFormContext<InvoiceFormValues>();
 
   return (
     <>

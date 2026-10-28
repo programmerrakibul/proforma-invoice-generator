@@ -1,4 +1,8 @@
 import { getModel } from "@/lib/db/model-helpers";
+import {
+  INVOICE_CURRENCIES,
+  type InvoiceCurrency,
+} from "@/config/bank-accounts";
 import mongoose, { type InferSchemaType, type PaginateModel } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
@@ -44,7 +48,8 @@ export interface Invoice {
   ownerId: mongoose.Types.ObjectId;
   piNumber: string;
   issueDate: Date;
-  currency: string;
+  deliveryDate?: Date;
+  currency: InvoiceCurrency;
   status: "draft" | "exported";
   seller: Seller;
   buyerId: mongoose.Types.ObjectId;
@@ -85,11 +90,15 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
       type: String,
       required: true,
       trim: true,
-      unique: true,
-      index: true,
     },
     issueDate: { type: Date, required: true },
-    currency: { type: String, required: true, default: "USD" },
+    deliveryDate: { type: Date, required: false },
+    currency: {
+      type: String,
+      enum: [...INVOICE_CURRENCIES],
+      required: true,
+      default: "USD",
+    },
     status: {
       type: String,
       enum: ["draft", "exported"],
@@ -118,24 +127,49 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
     totalQuantity: { type: Number, default: 0, min: 0 },
     totalAmount: { type: Number, default: 0, min: 0 },
     notes: {
-      goodsDeliveryDestination: { type: String, required: true },
-      goodsOrigin: { type: String, required: true },
-      advisingBank: { type: String, required: true },
-      allowance: { type: String, required: true },
-      packing: { type: String, required: true },
-      shipmentDate: { type: String, required: true },
-      payment: { type: String, required: true },
-      partialShipment: { type: String, required: true },
-      piValidity: { type: String, required: true },
+      goodsDeliveryDestination: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 2000,
+      },
+      goodsOrigin: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 2000,
+      },
+      advisingBank: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 2000,
+      },
+      allowance: { type: String, required: true, trim: true, maxlength: 2000 },
+      packing: { type: String, required: true, trim: true, maxlength: 2000 },
+      shipmentDate: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 2000,
+      },
+      payment: { type: String, required: true, trim: true, maxlength: 2000 },
+      partialShipment: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 2000,
+      },
+      piValidity: { type: String, required: true, trim: true, maxlength: 2000 },
     },
-    termsAndConditions: [{ type: String }],
+    termsAndConditions: [{ type: String, trim: true, maxlength: 1000 }],
   },
   { timestamps: true, collection: "invoice" },
 );
 
 invoiceSchema.index({ ownerId: 1, updatedAt: -1 });
 invoiceSchema.index({ ownerId: 1, status: 1, updatedAt: -1 });
-invoiceSchema.index({ ownerId: 1, piNumber: 1 });
+invoiceSchema.index({ ownerId: 1, piNumber: 1 }, { unique: true });
 
 invoiceSchema.set("toJSON", {
   virtuals: true,

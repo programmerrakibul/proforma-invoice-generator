@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { INVOICE_CURRENCIES } from "@/config/bank-accounts";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +29,7 @@ import { deleteInvoiceAction } from "@/features/invoices/actions/delete-invoice"
 import { exportInvoicePdfAction } from "@/features/invoices/actions/export-invoice-pdf";
 import type { InvoiceListItem } from "@/features/invoices/actions/list-invoices";
 import { InvoicePreview } from "@/features/invoices/components/invoice-preview";
-import type { CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
+import type { InvoiceFormValues } from "@/features/invoices/schemas/invoice.schema";
 import { downloadPdfFromBase64 } from "@/features/invoices/utils/download-pdf";
 import { formatInvoiceMoney } from "@/features/invoices/utils/format-invoice-money";
 import { Download, Eye, LoaderCircle, Trash2 } from "lucide-react";
@@ -57,12 +58,8 @@ const STATUS_VARIANTS: Record<
   exported: "secondary",
 };
 
-const SUPPORTED_CURRENCIES: ReadonlyArray<CreateInvoiceInput["currency"]> = [
-  "USD",
-  "EUR",
-  "GBP",
-  "BDT",
-];
+const SUPPORTED_CURRENCIES: ReadonlyArray<InvoiceFormValues["currency"]> =
+  INVOICE_CURRENCIES;
 
 export function InvoiceListTable({
   items,
@@ -101,10 +98,11 @@ export function InvoiceListTable({
     setExportingInvoiceId(invoice.id);
     const currency =
       SUPPORTED_CURRENCIES.find((value) => value === invoice.currency) ?? "USD";
-    const exportInput: CreateInvoiceInput = {
+    const exportInput: InvoiceFormValues = {
       customerId: invoice.customerId,
       piNumber: invoice.preview.piNumber,
       issueDate: invoice.issueDate,
+      deliveryDate: invoice.deliveryDate,
       currency,
       buyer: invoice.preview.buyer,
       lineItems: invoice.preview.lineItems.map((item) => ({

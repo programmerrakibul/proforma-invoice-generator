@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
+import type { InvoiceFormValues } from "@/features/invoices/schemas/invoice.schema";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import {
   Controller,
@@ -21,8 +21,6 @@ import {
 } from "react-hook-form";
 import { ColorSuggestInput } from "./color-suggest-input";
 import FabricSuggestInput from "./fabric-suggest-input";
-
-type InvoiceFormValues = CreateInvoiceInput;
 
 const widthOptions: string[] = Array.from({ length: 41 }, (_, index) =>
   String(index + 40),

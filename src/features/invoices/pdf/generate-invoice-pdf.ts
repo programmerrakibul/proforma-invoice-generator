@@ -44,8 +44,10 @@ function columnWidths(doc: PdfDoc): number[] {
   return COLUMN_RATIOS.map((ratio) => width * ratio);
 }
 
-function money(value: number): string {
+function money(value: number, currency: string): string {
   return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);
@@ -145,9 +147,11 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
   const metaWidth = width - half - 18;
   const rows: Array<[string, string]> = [
     ["Date", data.issueDateLabel || "—"],
-    ["Currency", data.currency],
-    ["Terms", "As agreed"],
   ];
+  if (data.deliveryDateLabel) {
+    rows.push(["Delivery date", data.deliveryDateLabel]);
+  }
+  rows.push(["Currency", data.currency], ["Terms", "As agreed"]);
   rows.forEach(([label, value], index) => {
     const y = buyerY + 10 + index * 19;
     doc
@@ -163,7 +167,7 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
         align: "right",
       });
   });
-  doc.y = Math.max(doc.y, buyerY + 62) + 10;
+  doc.y = Math.max(doc.y, buyerY + (data.deliveryDateLabel ? 81 : 62)) + 10;
 }
 
 function drawTableHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
@@ -406,8 +410,8 @@ function renderInvoice(doc: PdfDoc, data: InvoiceDocumentData): void {
       item.style,
       item.color,
       new Intl.NumberFormat("en-US").format(item.quantity),
-      money(item.unitPrice),
-      money(item.totalAmount),
+      money(item.unitPrice, data.currency),
+      money(item.totalAmount, data.currency),
     ]),
   );
   drawTableRow(
@@ -417,8 +421,8 @@ function renderInvoice(doc: PdfDoc, data: InvoiceDocumentData): void {
       "",
       "Total:",
       new Intl.NumberFormat("en-US").format(data.totalQuantity),
-      money(data.totalUnitPrice),
-      money(data.totalAmount),
+      money(data.totalUnitPrice, data.currency),
+      money(data.totalAmount, data.currency),
     ],
     { bold: true, total: true },
   );

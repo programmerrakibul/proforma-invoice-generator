@@ -1,5 +1,6 @@
 import { buyerProfile } from "@/data/buyer";
 import { defaultNotes, defaultTermsAndConditions } from "@/data/invoice-static";
+import type { InvoiceCurrency } from "@/config/bank-accounts";
 import type {
   InvoiceDocumentData,
   InvoiceDocumentNotes,
@@ -14,7 +15,8 @@ import { numberToWords } from "@/features/invoices/utils/number-to-words";
 export interface InvoiceDocumentInput {
   piNumber?: string;
   issueDate?: string;
-  currency?: string;
+  deliveryDate?: string | Date;
+  currency?: InvoiceCurrency;
   seller?: Partial<InvoiceDocumentData["seller"]>;
   buyer?: Partial<InvoiceDocumentData["buyer"]>;
   notes?: Partial<InvoiceDocumentNotes>;
@@ -81,23 +83,24 @@ function formatWidth(width: string): string {
   return /^\d+(?:\.\d+)?$/.test(width) ? `${width}\"` : width;
 }
 
-export function formatInvoiceIssueDate(value?: string): string {
+export function formatInvoiceDate(value?: string | Date): string {
   if (!value) {
     return "";
   }
 
-  const parsed = new Date(value);
+  const parsed = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(parsed.getTime())) {
-    return value;
+    return typeof value === "string" ? value : "";
   }
 
-  return parsed.toLocaleDateString("en-GB");
+  return parsed.toLocaleDateString("en-GB", { timeZone: "UTC" });
 }
 
 export function toInvoiceDocumentInput(values: {
   piNumber?: string;
   issueDate?: string;
-  currency?: string;
+  deliveryDate?: string | Date;
+  currency?: InvoiceCurrency;
   seller?: Partial<InvoiceDocumentData["seller"]>;
   buyer?: Partial<InvoiceDocumentData["buyer"]>;
   notes?: Partial<InvoiceDocumentNotes>;
@@ -119,6 +122,7 @@ export function toInvoiceDocumentInput(values: {
   return {
     piNumber: values.piNumber,
     issueDate: values.issueDate,
+    deliveryDate: values.deliveryDate,
     currency: values.currency,
     seller: values.seller,
     buyer: values.buyer,
@@ -159,9 +163,10 @@ export function buildInvoiceDocument(
 
   return {
     piNumber: input.piNumber?.trim() || "MMF/000/00",
-    issueDateLabel: formatInvoiceIssueDate(
+    issueDateLabel: formatInvoiceDate(
       typeof input.issueDate === "string" ? input.issueDate : undefined,
     ),
+    deliveryDateLabel: formatInvoiceDate(input.deliveryDate),
     currency: input.currency ?? "USD",
     seller: { ...DEFAULT_SELLER, ...input.seller },
     buyer: {
@@ -194,8 +199,14 @@ export function buildInvoiceDocument(
     totalUnitPrice,
     totalAmount,
     totalQuantity,
-    sayTotal: numberToWords(totalAmount, "USD"),
+    sayTotal: numberToWords(totalAmount, input.currency ?? "USD"),
     notes: { ...defaultNotes, ...input.notes },
-    termsAndConditions: input.termsAndConditions ?? defaultTermsAndConditions,
+    termsAndConditions: (
+      input.termsAndConditions ?? defaultTermsAndConditions
+    ).map((term) =>
+      term === "Payment to be made on maturity date in US Dollar."
+        ? "Payment to be made on maturity date in the invoice currency."
+        : term,
+    ),
   };
 }

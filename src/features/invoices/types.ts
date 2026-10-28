@@ -1,3 +1,5 @@
+import type { InvoiceCurrency } from "@/config/bank-accounts";
+
 export interface InvoiceLineItemView {
   id: string;
   fabric: string;
@@ -51,7 +53,8 @@ export interface InvoiceDocumentNotes {
 export interface InvoiceDocumentData {
   piNumber: string;
   issueDateLabel: string;
-  currency: string;
+  deliveryDateLabel: string;
+  currency: InvoiceCurrency;
   seller: InvoiceDocumentSeller;
   buyer: InvoiceDocumentBuyer;
   lineItems: InvoiceDocumentLineItem[];

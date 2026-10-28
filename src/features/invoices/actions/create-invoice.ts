@@ -5,7 +5,7 @@ import { ZodError } from "zod";
 
 import {
   createInvoiceSchema,
-  type CreateInvoiceInput,
+  type InvoiceFormValues,
 } from "@/features/invoices/schemas/invoice.schema";
 import { persistInvoice } from "@/features/invoices/services/persist-invoice";
 import { requireUser } from "@/lib/auth/require-user";
@@ -30,7 +30,7 @@ export async function getNextPiNumber(): Promise<string> {
 }
 
 export async function createInvoiceAction(
-  input: CreateInvoiceInput,
+  input: InvoiceFormValues,
   invoiceId?: string,
 ): Promise<ActionResult<{ invoiceId: string; persisted: true }>> {
   "use server";

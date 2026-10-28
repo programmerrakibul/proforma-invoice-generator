@@ -114,6 +114,14 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
               {data.issueDateLabel || "—"}
             </dd>
           </div>
+          {data.deliveryDateLabel ? (
+            <div className="flex justify-between gap-3">
+              <dt>Delivery date</dt>
+              <dd className="font-bold text-[#253b36]">
+                {data.deliveryDateLabel}
+              </dd>
+            </div>
+          ) : null}
           <div className="flex justify-between gap-3">
             <dt>Currency</dt>
             <dd className="font-bold text-[#253b36]">{data.currency}</dd>

@@ -8,6 +8,10 @@ import type {
   InvoiceDocumentNotes,
 } from "@/features/invoices/types";
 import { buildInvoiceDocument } from "@/features/invoices/utils/build-invoice-document";
+import {
+  isInvoiceCurrency,
+  type InvoiceCurrency,
+} from "@/config/bank-accounts";
 import { requireUser } from "@/lib/auth/require-user";
 import { InvoiceModel } from "@/lib/db/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
@@ -30,6 +34,7 @@ interface RawInvoice {
   buyerId: mongoose.Types.ObjectId;
   piNumber: string;
   issueDate: Date;
+  deliveryDate?: Date;
   status: string;
   currency: string;
   buyer: { name: string; address: string; destinationCountry?: string };
@@ -47,9 +52,10 @@ export interface InvoiceListItem {
   customerId: string;
   invoiceNumber: string;
   issueDate: string;
+  deliveryDate?: string;
   status: "draft" | "exported";
   buyerName: string;
-  currency: string;
+  currency: InvoiceCurrency;
   totalQuantity: number;
   totalUnitPrice: number;
   totalAmount: number;
@@ -132,10 +138,12 @@ export async function listInvoicesAction(
 
     const items: InvoiceListItem[] = rawItems.map((item) => {
       const issueDate = item.issueDate.toISOString();
+      const deliveryDate = item.deliveryDate?.toISOString();
       const preview = buildInvoiceDocument({
         piNumber: item.piNumber,
         issueDate,
-        currency: item.currency ?? "USD",
+        deliveryDate: item.deliveryDate,
+        currency: isInvoiceCurrency(item.currency) ? item.currency : "USD",
         seller: item.seller,
         buyer: item.buyer,
         lineItems: item.lineItems,
@@ -148,6 +156,7 @@ export async function listInvoicesAction(
         customerId: String(item.buyerId),
         invoiceNumber: item.piNumber,
         issueDate,
+        ...(deliveryDate ? { deliveryDate } : {}),
         status: (item.status ?? "draft") as InvoiceListItem["status"],
         buyerName: item.buyer.name,
         currency: preview.currency,

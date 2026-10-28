@@ -113,18 +113,19 @@ pnpm dev
 
 - `ownerId` (ObjectId ref User, required, indexed)
 - `piNumber` (`MMF/###/YY` format, e.g. `MMF/001/26`)
-- `issueDate`, `currency` (default `USD`)
+- `issueDate`, optional `deliveryDate`, and currency (`USD`, `EUR`, `GBP`, or
+  `BDT`; default `USD`)
 - `status` (`draft` \| `ready` \| `exported` \| `archived`, indexed)
 - `seller`, `buyer` (embedded customer name/address snapshot), and `buyerId` (owner-scoped Customer reference)
 - `lineItems[]` (fabric, construction, width in inches, style, color, quantity,
   unitPrice, totalAmount, unit)
 - `subtotal`, `totalAmount`, `totalQuantity` (calculated server-side)
-- `notes` (sayTotal, goodsDeliveryDestination, goodsOrigin, advisingBank,
-  allowance, packing, shipmentDate, payment, partialShipment, piValidity)
-- `termsAndConditions[]`, `signatures` (buyerLabel, sellerLabel, stampUrl,
-  include flags)
+- `notes` (goodsDeliveryDestination, goodsOrigin, advisingBank, allowance,
+  packing, shipmentDate, payment, partialShipment, piValidity); users can edit
+  these values and invoice terms in the invoice form
+- `termsAndConditions[]`
 - Indexes: `{ownerId, updatedAt}`, `{ownerId, status, updatedAt}`,
-  `{ownerId, piNumber}`
+  `{ownerId, piNumber}` (PI number unique within each owner)
 
 ## Dashboard and customer management
 
@@ -193,9 +194,12 @@ All invoice mutations go through Next.js Server Actions:
   suggestions, explicit custom fabric/color entry, editable construction, a
   single 40–80 inch width dropdown,
   required-field validation, and a guarded add-item flow
-- Buyer/consignee details and invoice line items; delivery, banking, shipment,
-  payment notes, and terms are populated from application defaults in the
-  background rather than exposed as form fields
+- Buyer/consignee details, optional delivery date, and invoice line items
+- Editable delivery, banking, shipment, payment notes, and terms; changing
+  currency refreshes the advising-bank and payment defaults
+- Verified NRBC bank details are configured for USD. EUR, GBP, and BDT bank
+  account/payment defaults must be entered by the user until verified details
+  are supplied in `src/config/bank-accounts.ts`.
 - The first line item starts with the editable fabric, style, color, quantity,
   and unit-price values from the invoice sample; calculated totals are always
   recomputed from quantity and unit price

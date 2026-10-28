@@ -30,6 +30,7 @@ export async function persistInvoice(
     ownerId,
     piNumber: input.piNumber,
     issueDate: new Date(input.issueDate),
+    ...(input.deliveryDate ? { deliveryDate: input.deliveryDate } : {}),
     currency: input.currency,
     status,
     seller: DEFAULT_SELLER,
@@ -55,7 +56,10 @@ export async function persistInvoice(
   if (invoiceId) {
     const updatedInvoice = await InvoiceModel.findOneAndUpdate(
       { _id: invoiceId, ownerId },
-      { $set: invoiceValues },
+      {
+        $set: invoiceValues,
+        ...(input.deliveryDate ? {} : { $unset: { deliveryDate: "" } }),
+      },
       { new: true, runValidators: true },
     );
     if (!updatedInvoice) throw new Error("Invoice not found.");

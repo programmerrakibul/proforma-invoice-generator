@@ -1,6 +1,13 @@
 "use client";
 
+import {
+  BANK_ACCOUNT_DEFAULTS,
+  INVOICE_CURRENCIES,
+  isInvoiceCurrency,
+} from "@/config/bank-accounts";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Field,
   FieldDescription,
@@ -8,10 +15,26 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { InvoiceNotesAndTerms } from "@/features/invoices/components/invoice-notes-and-terms";
 import { InvoiceLineItems } from "@/features/invoices/components/invoice-line-items";
-import type { CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
+import type { InvoiceFormValues } from "@/features/invoices/schemas/invoice.schema";
+import { format } from "date-fns";
 import { Building2, CalendarDays, Hash } from "lucide-react";
-import { useFormContext } from "react-hook-form";
+import { useEffect, useRef } from "react";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 import CustomerSelect from "./customer-select";
 
 export interface InvoiceFormProps {
@@ -24,11 +47,50 @@ export interface InvoiceFormProps {
   }>;
 }
 
+function getLocalDate(value?: string | Date): Date | undefined {
+  if (!value) return undefined;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime())
+      ? undefined
+      : new Date(
+          value.getUTCFullYear(),
+          value.getUTCMonth(),
+          value.getUTCDate(),
+        );
+  }
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime())
+    ? undefined
+    : new Date(
+        parsed.getUTCFullYear(),
+        parsed.getUTCMonth(),
+        parsed.getUTCDate(),
+      );
+}
+
 export function InvoiceForm({ customers }: InvoiceFormProps) {
   const {
+    control,
     register,
+    setValue,
     formState: { errors },
-  } = useFormContext<CreateInvoiceInput>();
+  } = useFormContext<InvoiceFormValues>();
+  const currency = useWatch({ control, name: "currency" }) ?? "USD";
+  const previousCurrency = useRef(currency);
+
+  useEffect(() => {
+    if (!currency || currency === previousCurrency.current) return;
+    previousCurrency.current = currency;
+    const defaults = BANK_ACCOUNT_DEFAULTS[currency];
+    setValue("notes.advisingBank", defaults.advisingBank, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    setValue("notes.payment", defaults.payment, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }, [currency, setValue]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -43,7 +105,7 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
           </FieldDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6 p-5">
-          <FieldGroup className="grid grid-cols-2 gap-4">
+          <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field data-invalid={Boolean(errors.piNumber)}>
               <FieldLabel htmlFor="piNumber">
                 <Hash /> PI number
@@ -76,6 +138,102 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
                 </p>
               ) : null}
             </Field>
+            <Field data-invalid={Boolean(errors.currency)}>
+              <FieldLabel htmlFor="currency">Currency</FieldLabel>
+              <Controller
+                control={control}
+                name="currency"
+                render={({ field }) => (
+                  <Select
+                    value={field.value ?? "USD"}
+                    onValueChange={(value) => {
+                      if (
+                        typeof value === "string" &&
+                        isInvoiceCurrency(value)
+                      ) {
+                        field.onChange(value);
+                      }
+                    }}
+                  >
+                    <SelectTrigger
+                      id="currency"
+                      aria-invalid={Boolean(errors.currency)}
+                    >
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {INVOICE_CURRENCIES.map((value) => (
+                          <SelectItem key={value} value={value}>
+                            {value}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.currency?.message ? (
+                <p className="text-xs text-destructive">
+                  {errors.currency.message}
+                </p>
+              ) : null}
+            </Field>
+            <Controller
+              control={control}
+              name="deliveryDate"
+              render={({ field }) => {
+                const selectedDate = getLocalDate(field.value);
+                return (
+                  <Field data-invalid={Boolean(errors.deliveryDate)}>
+                    <FieldLabel htmlFor="deliveryDate">
+                      <CalendarDays /> Delivery date
+                    </FieldLabel>
+                    <Popover>
+                      <PopoverTrigger
+                        render={
+                          <Button
+                            id="deliveryDate"
+                            type="button"
+                            variant="outline"
+                            aria-invalid={Boolean(errors.deliveryDate)}
+                            className="w-full justify-start text-left font-normal"
+                          />
+                        }
+                      >
+                        <CalendarDays data-icon="inline-start" />
+                        {selectedDate ? (
+                          format(selectedDate, "PPP")
+                        ) : (
+                          <span className="text-muted-foreground">
+                            Choose a delivery date
+                          </span>
+                        )}
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={(date) =>
+                            field.onChange(
+                              date ? format(date, "yyyy-MM-dd") : undefined,
+                            )
+                          }
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FieldDescription>
+                      Optional date shown on the invoice.
+                    </FieldDescription>
+                    {errors.deliveryDate?.message ? (
+                      <p className="text-xs text-destructive">
+                        {errors.deliveryDate.message}
+                      </p>
+                    ) : null}
+                  </Field>
+                );
+              }}
+            />
           </FieldGroup>
 
           <div className="flex flex-col gap-4 border-t border-border/60 pt-5">
@@ -94,6 +252,7 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
       </Card>
 
       <InvoiceLineItems />
+      <InvoiceNotesAndTerms currency={currency} />
     </div>
   );
 }

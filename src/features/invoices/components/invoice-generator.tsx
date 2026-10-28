@@ -14,12 +14,17 @@ import {
 import { downloadPdfFromBase64 } from "@/features/invoices/utils/download-pdf";
 import { useSession } from "@/lib/auth-client";
 import { getPINumber } from "@/lib/pi-number";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { DownloadIcon, SaveIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import type { CreateInvoiceInput } from "../schemas/invoice.schema";
+import {
+  createInvoiceSchema,
+  type CreateInvoiceInput,
+  type InvoiceFormValues,
+} from "../schemas/invoice.schema";
 
 export interface InvoiceGeneratorProps {
   customers: Array<{
@@ -36,11 +41,13 @@ export function InvoiceGenerator({ customers }: InvoiceGeneratorProps) {
   const { data } = useSession();
   const canSaveDraft = Boolean(data);
   const piNumber = getPINumber();
-  const methods = useForm<CreateInvoiceInput>({
+  const methods = useForm<InvoiceFormValues, undefined, CreateInvoiceInput>({
+    resolver: zodResolver(createInvoiceSchema),
     defaultValues: {
       piNumber: piNumber,
       issueDate: new Date().toISOString().split("T")[0],
       currency: "USD",
+      deliveryDate: undefined,
       customerId: "",
       buyer: { name: "", address: "" },
       notes: defaultNotes,

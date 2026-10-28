@@ -3,7 +3,7 @@
 import { generateInvoicePdfBuffer } from "@/features/invoices/pdf/generate-invoice-pdf";
 import {
   createInvoiceSchema,
-  type CreateInvoiceInput,
+  type InvoiceFormValues,
 } from "@/features/invoices/schemas/invoice.schema";
 import { persistInvoice } from "@/features/invoices/services/persist-invoice";
 import {
@@ -22,7 +22,7 @@ function toSafeFileName(piNumber: string): string {
 }
 
 export async function exportInvoicePdfAction(
-  input: CreateInvoiceInput,
+  input: InvoiceFormValues,
   invoiceId?: string,
 ): Promise<
   ActionResult<{

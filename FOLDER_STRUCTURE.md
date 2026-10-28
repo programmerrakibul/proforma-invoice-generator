@@ -6,6 +6,8 @@ Referenced by AGENTS.md and README.md.
 ```plaintext
 src/
 ├── proxy.ts                    # Auth redirects for protected dashboard and auth pages
+├── config/
+│   └── bank-accounts.ts         # Supported currencies and verified bank/payment defaults
 ├── app/
 │   ├── globals.css
 │   ├── loading.tsx              # Global branded loading fallback
@@ -79,6 +81,7 @@ src/
 │       ├── components/
 │       │   ├── list-toolbar.tsx # Reusable search/filter/sort form
 │       │   ├── invoice-form.tsx        # PI metadata and buyer form (RHF + Zod)
+│       │   ├── invoice-notes-and-terms.tsx # Editable shipment/bank notes and terms
 │       │   ├── invoice-generator.tsx   # Page-level form orchestration + save/export
 │       │   ├── invoice-line-items.tsx  # Editable items with guarded add-item flow
 │       │   ├── fabric-suggest-input.tsx # Searchable fabric catalog + custom entry

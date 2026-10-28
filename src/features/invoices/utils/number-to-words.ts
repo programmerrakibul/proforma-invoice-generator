@@ -90,21 +90,31 @@ export function numberToWordsWhole(amount: number): string {
  * Convert a monetary amount to words with currency.
  * e.g. numberToWords(1234.56, "USD") -> "one thousand two hundred thirty-four USD and 56 cents"
  */
-export function numberToWords(amount: number, currency = "USD"): string {
+const MINOR_CURRENCY_UNITS: Record<InvoiceCurrency, string> = {
+  USD: "cents",
+  EUR: "cents",
+  GBP: "pence",
+  BDT: "poisha",
+};
+
+export function numberToWords(
+  amount: number,
+  currency: InvoiceCurrency = "USD",
+): string {
   const rounded = Math.round(amount * 100) / 100;
   const whole = Math.floor(rounded);
   const cents = Math.round((rounded - whole) * 100);
 
   const wholeWords = numberToWordsWhole(whole);
-  const capitalized =
-    wholeWords.charAt(0).toUpperCase() + wholeWords.slice(1);
+  const capitalized = wholeWords.charAt(0).toUpperCase() + wholeWords.slice(1);
 
   let result = `${capitalized} ${currency}`;
   if (cents > 0) {
     const centsWord = numberToWordsWhole(cents);
-    result += ` and ${centsWord} cents`;
+    result += ` and ${centsWord} ${MINOR_CURRENCY_UNITS[currency]}`;
   } else {
     result += " only";
   }
   return result.trim();
 }
+import type { InvoiceCurrency } from "@/config/bank-accounts";
