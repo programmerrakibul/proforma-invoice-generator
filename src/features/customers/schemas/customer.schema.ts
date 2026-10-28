@@ -13,7 +13,7 @@ export const createCustomerSchema = z.object({
     .trim()
     .min(1, "Address is required!")
     .min(3, "Address must be at least 3 characters!")
-    .max(50, "Address must be 50 characters or fewer!"),
+    .max(100, "Address must be 100 characters or fewer!"),
 
   email: z
     .email("Invalid email address!")
@@ -24,8 +24,8 @@ export const createCustomerSchema = z.object({
   phone: z
     .string()
     .trim()
-    .min(12, "Phone number must be 12 characters!")
-    .max(12, "Phone number must be 12 characters!")
+    .min(11, "Phone number must be 11 characters!")
+    .max(11, "Phone number must be 11 characters!")
     .regex(/^\d{3}-\d{3}-\d{4}$/, "Invalid phone number!")
     .optional(),
 });

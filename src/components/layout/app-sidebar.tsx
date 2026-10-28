@@ -1,14 +1,13 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
+import { Button } from "@/components/ui/button";
+import { setIsSidebarOpen } from "@/features/invoices/store/invoice-ui.slice";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { RootState } from "@/store/index";
-import { setIsSidebarOpen } from "@/features/invoices/store/invoice-ui.slice";
-import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FileText, ChevronRight, Users } from "lucide-react";
+import { ChevronRight, FileText, LayoutDashboard, Users } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
 
 const NAVIGATION = [
   {
@@ -65,10 +64,7 @@ export function AppSidebar() {
       <nav className="flex-1 flex flex-col gap-1 px-2 pt-4">
         {NAVIGATION.map((item) => {
           const Icon = item.icon;
-          const isActive =
-            pathname === item.href ||
-            (item.href === "/dashboard/invoices" &&
-              pathname.startsWith("/dashboard/invoices/"));
+          const isActive = pathname === item.href;
           return (
             <Link
               key={item.href}

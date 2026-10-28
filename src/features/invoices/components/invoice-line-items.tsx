@@ -19,8 +19,8 @@ import {
   useFormContext,
   useWatch,
 } from "react-hook-form";
-import FabricSuggestInput from "./fabric-suggest-input";
 import { ColorSuggestInput } from "./color-suggest-input";
+import FabricSuggestInput from "./fabric-suggest-input";
 
 type InvoiceFormValues = CreateInvoiceInput;
 
@@ -192,7 +192,7 @@ export function InvoiceLineItems() {
                       >
                         <SelectValue placeholder="Select width from 40 to 80" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent alignItemWithTrigger={false}>
                         <SelectGroup>
                           {widthOptions.map((width) => (
                             <SelectItem key={width} value={width}>
