@@ -15,10 +15,10 @@ const BORDER = "#d4e1dc";
 const WHITE = "#ffffff";
 const PAGE_MARGIN_X = 42;
 const PAGE_MARGIN_TOP = 38;
-const FOOTER_HEIGHT = 76;
+const FOOTER_HEIGHT = 88;
 const LOGO_PATH = join(process.cwd(), "src", "assets", "logo.png");
 const SEAL_PATH = join(process.cwd(), "public", "mm-fabrics-seal.png");
-const COLUMN_RATIOS = [0.3, 0.24, 0.12, 0.12, 0.11, 0.11] as const;
+const COLUMN_RATIOS = [0.3, 0.18, 0.09, 0.14, 0.14, 0.15] as const;
 
 function contentWidth(doc: PdfDoc): number {
   return doc.page.width - PAGE_MARGIN_X * 2;
@@ -337,7 +337,7 @@ function drawLastPageFooter(doc: PdfDoc): void {
   const half = (width - 52) / 2;
   const leftX = PAGE_MARGIN_X;
   const rightX = PAGE_MARGIN_X + half + 52;
-  const signatureY = doc.y + 12;
+  const signatureY = doc.y + 24;
   [leftX, rightX].forEach((x) => {
     doc
       .moveTo(x, signatureY)
