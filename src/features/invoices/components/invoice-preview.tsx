@@ -9,13 +9,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type {
-  InvoiceDocumentData,
-  InvoiceDocumentNotes,
-} from "@/features/invoices/types";
-import { INVOICE_NOTE_FIELDS } from "@/features/invoices/utils/build-invoice-document";
+import type { InvoiceDocumentData } from "@/features/invoices/types";
 import { formatInvoiceMoney } from "@/features/invoices/utils/format-invoice-money";
 import Image from "next/image";
+import { cn } from "cn";
 
 interface InvoicePreviewProps {
   data: InvoiceDocumentData;
@@ -25,27 +22,7 @@ function stripLeadingNumber(term: string): string {
   return term.replace(/^\d+\.\s*/, "");
 }
 
-const BANKING_NOTE_KEYS: Array<keyof InvoiceDocumentNotes> = [
-  "goodsDeliveryDestination",
-  "goodsOrigin",
-  "advisingBank",
-  "allowance",
-  "packing",
-  "shipmentDate",
-  "payment",
-  "partialShipment",
-  "piValidity",
-];
-
 export function InvoicePreview({ data }: InvoicePreviewProps) {
-  const bankingNotes = BANKING_NOTE_KEYS.flatMap((key) => {
-    const field = INVOICE_NOTE_FIELDS.find(
-      (candidate) => candidate.key === key,
-    );
-    const value = data.notes[key];
-    return field && value?.trim() ? [{ ...field, value }] : [];
-  });
-
   return (
     <article className="mx-auto flex min-h-[297mm] w-[210mm] flex-col bg-white p-[12mm] font-sans text-[#253b36] shadow-lg print:min-h-[297mm] print:shadow-none">
       <header className="flex items-start justify-between gap-6 pb-3">
@@ -125,10 +102,6 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
           <div className="flex justify-between gap-3">
             <dt>Currency</dt>
             <dd className="font-bold text-[#253b36]">{data.currency}</dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt>Terms</dt>
-            <dd className="font-bold text-[#253b36]">As agreed</dd>
           </div>
         </dl>
       </section>
@@ -214,32 +187,41 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
         <p className="font-bold text-[#253b36]">{data.sayTotal}</p>
       </div>
 
-      <section className="mb-2 grid grid-cols-2 gap-8 text-[7.5pt] leading-snug">
+      <section
+        className={cn(
+          "mb-2 grid gap-8 text-[7.5pt] leading-snug",
+          data.termsAndConditions.length > 0 ? "grid-cols-2" : "grid-cols-1",
+        )}
+      >
         <div>
           <h2 className="mb-1.5 text-[10pt] font-extrabold tracking-wide text-[#164b3a]">
             Shipment &amp; banking
           </h2>
           <ol className="flex list-decimal flex-col gap-0 pl-5 marker:font-bold marker:text-[#164b3a]">
-            {bankingNotes.map((note) => (
-              <li key={note.key} className="text-[#657770]">
-                <strong className="text-[#253b36]">{note.label}:</strong>{" "}
-                {note.value}
-              </li>
-            ))}
+            {data.notes
+              .filter((note) => note.label.trim() && note.value.trim())
+              .map((note, index) => (
+                <li key={`${note.key}-${index}`} className="text-[#657770]">
+                  <strong className="text-[#253b36]">{note.label}:</strong>{" "}
+                  {note.value}
+                </li>
+              ))}
           </ol>
         </div>
-        <div>
-          <h2 className="mb-1.5 text-[10pt] font-extrabold tracking-wide text-[#164b3a]">
-            Terms &amp; conditions
-          </h2>
-          <ol className="flex list-decimal flex-col gap-0 pl-5 marker:font-bold marker:text-[#164b3a]">
-            {data.termsAndConditions.map((term, index) => (
-              <li key={`${term}-${index}`} className="text-[#657770]">
-                {stripLeadingNumber(term)}
-              </li>
-            ))}
-          </ol>
-        </div>
+        {data.termsAndConditions.length > 0 ? (
+          <div>
+            <h2 className="mb-1.5 text-[10pt] font-extrabold tracking-wide text-[#164b3a]">
+              Terms &amp; conditions
+            </h2>
+            <ol className="flex list-decimal flex-col gap-0 pl-5 marker:font-bold marker:text-[#164b3a]">
+              {data.termsAndConditions.map((term, index) => (
+                <li key={`${term}-${index}`} className="text-[#657770]">
+                  {stripLeadingNumber(term)}
+                </li>
+              ))}
+            </ol>
+          </div>
+        ) : null}
       </section>
 
       <footer className="pt-1">

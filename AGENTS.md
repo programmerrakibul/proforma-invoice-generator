@@ -146,12 +146,17 @@ All invoice mutations go through Next.js Server Actions:
   and custom entry, construction remains a text input, and width is selected
   from a 40–80 dropdown. Preview and PDF compose fabric, construction, and
   width into a three-line goods description.
-- Goods delivery/banking/shipping notes and terms use application defaults in
-  the initial invoice payload and remain editable in the invoice form. Currency
-  changes refresh the advising bank and payment defaults from
-  `src/config/bank-accounts.ts`; only verified USD bank details are configured,
-  so other currencies require user-entered verified details. Delivery date is
-  optional and must persist through invoice updates, preview, and PDF export.
+- Goods delivery/banking/shipping notes and terms use shared application
+  defaults from `src/data/` and remain editable in the invoice form. Users can
+  edit shipment/banking labels and values; the selected customer name is always
+  used for the delivery destination. Currency is limited to USD and BDT, and
+  currency changes refresh the advising-bank and payment defaults from
+  `src/data/bank-accounts.ts`. BDT invoices omit terms in the form, preview, PDF,
+  and database. Delivery date is optional and must persist through invoice
+  updates, preview, and PDF export.
+- New PI numbers are generated server-side as `MMF-ddmmyy-random4digits`.
+  Collision checks and a partial unique MongoDB index enforce global
+  uniqueness for generated numbers while preserving legacy invoice numbers.
   The initial product row uses editable values from the supplied invoice sample;
   calculate all totals from quantity and unit price rather than trusting the
   client-provided total.

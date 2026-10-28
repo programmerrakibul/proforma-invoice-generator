@@ -2,7 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { defaultNotes, defaultTermsAndConditions } from "@/data/invoice-static";
+import { defaultGoods, getDefaultGoodsDetails } from "@/data/goods";
+import { defaultTermsAndConditions } from "@/data/terms-and-conditions";
+import { getNextPiNumber } from "@/features/invoices/actions/create-invoice";
 import { createInvoiceAction } from "@/features/invoices/actions/create-invoice";
 import { exportInvoicePdfAction } from "@/features/invoices/actions/export-invoice-pdf";
 import { InvoiceForm } from "@/features/invoices/components/invoice-form";
@@ -13,11 +15,10 @@ import {
 } from "@/features/invoices/utils/build-invoice-document";
 import { downloadPdfFromBase64 } from "@/features/invoices/utils/download-pdf";
 import { useSession } from "@/lib/auth-client";
-import { getPINumber } from "@/lib/pi-number";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DownloadIcon, SaveIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import {
@@ -40,30 +41,18 @@ export function InvoiceGenerator({ customers }: InvoiceGeneratorProps) {
   const router = useRouter();
   const { data } = useSession();
   const canSaveDraft = Boolean(data);
-  const piNumber = getPINumber();
   const methods = useForm<InvoiceFormValues, undefined, CreateInvoiceInput>({
     resolver: zodResolver(createInvoiceSchema),
     defaultValues: {
-      piNumber: piNumber,
+      piNumber: "",
       issueDate: new Date().toISOString().split("T")[0],
       currency: "USD",
       deliveryDate: undefined,
       customerId: "",
       buyer: { name: "", address: "" },
-      notes: defaultNotes,
-      termsAndConditions: defaultTermsAndConditions,
-      lineItems: [
-        {
-          fabric: "35% Cotton 65% Polyester TC",
-          construction: "45x45/90x60",
-          width: "56",
-          style: "Buyer: MAX DUBAI - B27MCSFEWB250B",
-          color: "Navy",
-          quantity: 1958,
-          unitPrice: 0.7,
-          totalPrice: 1370.6,
-        },
-      ],
+      notes: getDefaultGoodsDetails("USD"),
+      termsAndConditions: [...defaultTermsAndConditions],
+      lineItems: defaultGoods,
     },
     mode: "onChange" as const,
   });
@@ -72,8 +61,36 @@ export function InvoiceGenerator({ customers }: InvoiceGeneratorProps) {
     handleSubmit,
     control,
     getValues,
+    setValue,
     formState: { isSubmitting },
   } = methods;
+  const [piNumberStatus, setPiNumberStatus] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
+  const numberRequestStarted = useRef(false);
+
+  const generatePiNumber = useCallback(async (): Promise<void> => {
+    setPiNumberStatus("loading");
+    try {
+      const piNumber = await getNextPiNumber();
+      setValue("piNumber", piNumber, {
+        shouldDirty: false,
+        shouldValidate: true,
+      });
+      setPiNumberStatus("ready");
+    } catch {
+      setPiNumberStatus("error");
+      toast.error("Couldn’t generate an invoice number", {
+        description: "Please retry before saving or exporting this invoice.",
+      });
+    }
+  }, [setValue]);
+
+  useEffect(() => {
+    if (numberRequestStarted.current) return;
+    numberRequestStarted.current = true;
+    void generatePiNumber();
+  }, [generatePiNumber]);
 
   const watchedValues = useWatch({ control });
   const previewData = useMemo(
@@ -177,14 +194,22 @@ export function InvoiceGenerator({ customers }: InvoiceGeneratorProps) {
                 onSubmit={handleSubmit(onSave)}
                 className="flex flex-col gap-6"
               >
-                <InvoiceForm customers={customers} />
+                <InvoiceForm
+                  customers={customers}
+                  piNumberStatus={piNumberStatus}
+                  onRetryPiNumber={() => void generatePiNumber()}
+                />
                 <div className="sticky bottom-0 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border/70 bg-card/95 px-4 pb-2 pt-4 backdrop-blur sm:-mx-6 sm:px-6">
                   {canSaveDraft ? (
                     <Button
                       type="submit"
                       variant="outline"
                       size="sm"
-                      disabled={isSubmitting || saveStatus === "saving"}
+                      disabled={
+                        piNumberStatus !== "ready" ||
+                        isSubmitting ||
+                        saveStatus === "saving"
+                      }
                     >
                       <SaveIcon data-icon="inline-start" />
                       {saveStatus === "saving"
@@ -198,7 +223,9 @@ export function InvoiceGenerator({ customers }: InvoiceGeneratorProps) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={exportStatus === "exporting"}
+                    disabled={
+                      piNumberStatus !== "ready" || exportStatus === "exporting"
+                    }
                     onClick={onExportPdf}
                   >
                     <DownloadIcon data-icon="inline-start" />

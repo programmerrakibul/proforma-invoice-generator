@@ -1,4 +1,5 @@
 import type { InvoiceCurrency } from "@/config/bank-accounts";
+import type { InvoiceGoodsDetail } from "@/data/goods";
 
 export interface InvoiceLineItemView {
   id: string;
@@ -38,7 +39,10 @@ export interface InvoiceDocumentBuyer {
   address: string;
 }
 
-export interface InvoiceDocumentNotes {
+export type InvoiceDocumentNotes = InvoiceGoodsDetail[];
+export type InvoiceDocumentNotesInput = Array<Partial<InvoiceGoodsDetail>>;
+
+export interface LegacyInvoiceDocumentNotes {
   goodsDeliveryDestination?: string;
   goodsOrigin?: string;
   advisingBank?: string;

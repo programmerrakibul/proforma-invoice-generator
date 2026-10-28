@@ -20,7 +20,7 @@ sign-out controls on both mobile and desktop.
 - **State:** Redux Toolkit (client UI state only)
 - **PDF:** PDFKit (server-side generation) + JSX live preview
 - **Theme:** next-themes (light/dark/system)
-- **Package Manager:** pnpm 12.14.0
+- **Package Manager:** pnpm 12.15.0
 
 ## Project Structure
 
@@ -112,20 +112,20 @@ pnpm dev
 ### Invoice (belongs to User via `ownerId`; references Customer via `buyerId`)
 
 - `ownerId` (ObjectId ref User, required, indexed)
-- `piNumber` (`MMF/###/YY` format, e.g. `MMF/001/26`)
-- `issueDate`, optional `deliveryDate`, and currency (`USD`, `EUR`, `GBP`, or
-  `BDT`; default `USD`)
+- `piNumber` (`MMF-ddmmyy-random4digits`; globally unique for newly generated
+  invoice numbers)
+- `issueDate`, optional `deliveryDate`, and currency (`USD` or `BDT`; default
+  `USD`)
 - `status` (`draft` \| `ready` \| `exported` \| `archived`, indexed)
 - `seller`, `buyer` (embedded customer name/address snapshot), and `buyerId` (owner-scoped Customer reference)
 - `lineItems[]` (fabric, construction, width in inches, style, color, quantity,
   unitPrice, totalAmount, unit)
 - `subtotal`, `totalAmount`, `totalQuantity` (calculated server-side)
-- `notes` (goodsDeliveryDestination, goodsOrigin, advisingBank, allowance,
-  packing, shipmentDate, payment, partialShipment, piValidity); users can edit
-  these values and invoice terms in the invoice form
+- `notes[]` (editable shipment and banking labels/values); delivery destination
+  is always the selected customer's name
 - `termsAndConditions[]`
 - Indexes: `{ownerId, updatedAt}`, `{ownerId, status, updatedAt}`,
-  `{ownerId, piNumber}` (PI number unique within each owner)
+  `{ownerId, piNumber}` and a partial unique index for generated PI numbers
 
 ## Dashboard and customer management
 
@@ -196,10 +196,12 @@ All invoice mutations go through Next.js Server Actions:
   required-field validation, and a guarded add-item flow
 - Buyer/consignee details, optional delivery date, and invoice line items
 - Editable delivery, banking, shipment, payment notes, and terms; changing
-  currency refreshes the advising-bank and payment defaults
-- Verified NRBC bank details are configured for USD. EUR, GBP, and BDT bank
-  account/payment defaults must be entered by the user until verified details
-  are supplied in `src/config/bank-accounts.ts`.
+  currency updates the bank/payment defaults from `src/data/bank-accounts.ts`
+- Currency is limited to USD (NRBC Bank) and BDT (BRAC Bank PLC); terms are
+  omitted for BDT invoices and are stored as an empty list
+- Company, initial goods, bank-account mappings, and default terms are
+  maintained under `src/data/` and reused by the form, preview, PDF, and
+  persistence paths
 - The first line item starts with the editable fabric, style, color, quantity,
   and unit-price values from the invoice sample; calculated totals are always
   recomputed from quantity and unit price

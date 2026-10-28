@@ -7,7 +7,7 @@ Referenced by AGENTS.md and README.md.
 src/
 ├── proxy.ts                    # Auth redirects for protected dashboard and auth pages
 ├── config/
-│   └── bank-accounts.ts         # Supported currencies and verified bank/payment defaults
+│   └── bank-accounts.ts         # USD and BDT currency definitions
 ├── app/
 │   ├── globals.css
 │   ├── loading.tsx              # Global branded loading fallback
@@ -54,7 +54,9 @@ src/
 │   ├── buyer.ts                # Default buyer / consignee details
 │   ├── company.ts              # M.M FABRICS seller profile
 │   ├── fabrics.ts              # Fabric and construction preset catalog
-│   └── invoice-static.ts       # Default invoice notes and terms
+│   ├── bank-accounts.ts        # Bank-account records and currency mapping
+│   ├── goods.ts                # Initial line item and shipment/banking details
+│   └── terms-and-conditions.ts # Shared USD invoice terms
 ├── features/
 │   ├── auth/
 │   │   ├── components/
@@ -102,13 +104,12 @@ src/
 │           ├── calculate-invoice-total.ts   # Decimal-safe money math
 │           ├── download-pdf.ts              # Client download helper for PDFKit output
 │           ├── format-invoice-money.ts      # en-US currency formatting
-│           ├── format-invoice-number.ts     # MMF/###/YY numbering
 │           ├── number-to-words.ts           # "Say total" verbal amount
 │           ├── products.ts                  # Searchable description options
 │           └── __tests__/                   # Unit tests for calc utils
 ├── lib/
 │   ├── auth.ts                 # Better Auth config (mongodbAdapter, cached MongoClient)
-│   ├── pi-number.ts            # Client-safe PI number generator
+│   ├── pi-number-format.ts     # Generated PI number format validator
 │   ├── auth/
 │   │   ├── get-current-user.ts   # Session-based user resolution (server)
 │   │   └── require-user.ts       # Requires authenticated user (server)

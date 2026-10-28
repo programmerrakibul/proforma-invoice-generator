@@ -6,6 +6,7 @@ import { z } from "zod";
 import type {
   InvoiceDocumentData,
   InvoiceDocumentNotes,
+  LegacyInvoiceDocumentNotes,
 } from "@/features/invoices/types";
 import { buildInvoiceDocument } from "@/features/invoices/utils/build-invoice-document";
 import {
@@ -40,7 +41,7 @@ interface RawInvoice {
   buyer: { name: string; address: string; destinationCountry?: string };
   seller?: InvoiceDocumentData["seller"];
   lineItems: RawLineItem[];
-  notes?: Partial<InvoiceDocumentNotes>;
+  notes?: InvoiceDocumentNotes | LegacyInvoiceDocumentNotes;
   termsAndConditions?: string[];
   totalAmount: number;
   totalQuantity?: number;

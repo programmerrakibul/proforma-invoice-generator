@@ -24,7 +24,6 @@ import {
   ResponsiveDataTable,
   type DataTableColumn,
 } from "@/components/shared/responsive-data-table";
-import { defaultNotes } from "@/data/invoice-static";
 import { deleteInvoiceAction } from "@/features/invoices/actions/delete-invoice";
 import { exportInvoicePdfAction } from "@/features/invoices/actions/export-invoice-pdf";
 import type { InvoiceListItem } from "@/features/invoices/actions/list-invoices";
@@ -115,7 +114,7 @@ export function InvoiceListTable({
         unitPrice: item.unitPrice,
         totalPrice: item.totalAmount,
       })),
-      notes: { ...defaultNotes, ...invoice.preview.notes },
+      notes: invoice.preview.notes,
       termsAndConditions: invoice.preview.termsAndConditions,
     };
 

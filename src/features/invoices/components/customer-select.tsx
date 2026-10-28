@@ -1,6 +1,7 @@
 "use client";
 
 import { Field, FieldLabel } from "@/components/ui/field";
+import { getDefaultGoodsDetails } from "@/data/goods";
 import Link from "next/link";
 import { useFormContext } from "react-hook-form";
 import type { InvoiceFormValues } from "../schemas/invoice.schema";
@@ -17,6 +18,7 @@ export interface CustomerSelectProps {
 
 const CustomerSelect = ({ customers }: CustomerSelectProps) => {
   const {
+    getValues,
     register,
     setValue,
     formState: { errors },
@@ -41,6 +43,27 @@ const CustomerSelect = ({ customers }: CustomerSelectProps) => {
                 setValue("buyer.address", customer.address, {
                   shouldValidate: true,
                 });
+                const notes = getValues("notes");
+                const destinationIndex = notes.findIndex(
+                  (note) => note.key === "goodsDeliveryDestination",
+                );
+                if (destinationIndex >= 0) {
+                  setValue(`notes.${destinationIndex}.value`, customer.name, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                } else {
+                  const destination = getDefaultGoodsDetails(
+                    getValues("currency") ?? "USD",
+                  ).find((note) => note.key === "goodsDeliveryDestination");
+                  if (destination) {
+                    setValue(
+                      "notes",
+                      [...notes, { ...destination, value: customer.name }],
+                      { shouldDirty: true, shouldValidate: true },
+                    );
+                  }
+                }
               }
             },
           })}

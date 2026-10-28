@@ -1,10 +1,6 @@
 import "server-only";
 
-import type {
-  InvoiceDocumentData,
-  InvoiceDocumentNotes,
-} from "@/features/invoices/types";
-import { INVOICE_NOTE_FIELDS } from "@/features/invoices/utils/build-invoice-document";
+import type { InvoiceDocumentData } from "@/features/invoices/types";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import PDFDocument from "pdfkit";
@@ -22,17 +18,6 @@ const PAGE_MARGIN_TOP = 38;
 const FOOTER_HEIGHT = 76;
 const LOGO_PATH = join(process.cwd(), "src", "assets", "logo.png");
 const SEAL_PATH = join(process.cwd(), "public", "mm-fabrics-seal.png");
-const BANKING_NOTE_KEYS: Array<keyof InvoiceDocumentNotes> = [
-  "goodsDeliveryDestination",
-  "goodsOrigin",
-  "advisingBank",
-  "allowance",
-  "packing",
-  "shipmentDate",
-  "payment",
-  "partialShipment",
-  "piValidity",
-];
 const COLUMN_RATIOS = [0.3, 0.24, 0.12, 0.12, 0.11, 0.11] as const;
 
 function contentWidth(doc: PdfDoc): number {
@@ -145,13 +130,11 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
     .text(data.buyer.address, x, doc.y + 3, { width: half });
   const metaX = x + half + 18;
   const metaWidth = width - half - 18;
-  const rows: Array<[string, string]> = [
-    ["Date", data.issueDateLabel || "—"],
-  ];
+  const rows: Array<[string, string]> = [["Date", data.issueDateLabel || "—"]];
   if (data.deliveryDateLabel) {
     rows.push(["Delivery date", data.deliveryDateLabel]);
   }
-  rows.push(["Currency", data.currency], ["Terms", "As agreed"]);
+  rows.push(["Currency", data.currency]);
   rows.forEach(([label, value], index) => {
     const y = buyerY + 10 + index * 19;
     doc
@@ -301,20 +284,22 @@ function numberedListHeight(
 }
 
 function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
-  const notes = BANKING_NOTE_KEYS.flatMap((key) => {
-    const field = INVOICE_NOTE_FIELDS.find(
-      (candidate) => candidate.key === key,
-    );
-    const value = data.notes[key];
-    return field && value?.trim() ? [`${field.label}: ${value}`] : [];
-  });
+  const notes = data.notes.flatMap((note) =>
+    note.label.trim() && note.value.trim()
+      ? [`${note.label}: ${note.value}`]
+      : [],
+  );
   const gap = 25;
   const columnWidth = (contentWidth(doc) - gap) / 2;
   const terms = data.termsAndConditions.map(stripLeadingNumber);
-  const listHeight = Math.max(
-    numberedListHeight(doc, notes, columnWidth),
-    numberedListHeight(doc, terms, columnWidth),
-  );
+  const showTerms = terms.length > 0;
+  const notesWidth = showTerms ? columnWidth : contentWidth(doc);
+  const listHeight = showTerms
+    ? Math.max(
+        numberedListHeight(doc, notes, columnWidth),
+        numberedListHeight(doc, terms, columnWidth),
+      )
+    : numberedListHeight(doc, notes, notesWidth);
   ensureSpace(doc, listHeight + FOOTER_HEIGHT + 8);
   const top = doc.y;
   doc
@@ -322,23 +307,29 @@ function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
     .fontSize(10)
     .fillColor(GREEN)
     .text("Shipment & banking", PAGE_MARGIN_X, top, { width: columnWidth });
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(10)
-    .fillColor(GREEN)
-    .text("Terms & conditions", PAGE_MARGIN_X + columnWidth + gap, top, {
-      width: columnWidth,
-    });
+  if (showTerms) {
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(10)
+      .fillColor(GREEN)
+      .text("Terms & conditions", PAGE_MARGIN_X + columnWidth + gap, top, {
+        width: columnWidth,
+      });
+  }
   doc.y = top + 20;
-  const leftY = drawNumberedList(doc, notes, PAGE_MARGIN_X, columnWidth);
-  doc.y = top + 20;
-  const rightY = drawNumberedList(
-    doc,
-    terms,
-    PAGE_MARGIN_X + columnWidth + gap,
-    columnWidth,
-  );
-  doc.y = Math.max(leftY, rightY) + 8;
+  const notesY = drawNumberedList(doc, notes, PAGE_MARGIN_X, notesWidth);
+  if (showTerms) {
+    doc.y = top + 20;
+    const termsY = drawNumberedList(
+      doc,
+      terms,
+      PAGE_MARGIN_X + columnWidth + gap,
+      columnWidth,
+    );
+    doc.y = Math.max(notesY, termsY) + 8;
+  } else {
+    doc.y = notesY + 8;
+  }
 }
 
 function drawLastPageFooter(doc: PdfDoc): void {

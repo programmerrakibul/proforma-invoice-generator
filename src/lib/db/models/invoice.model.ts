@@ -3,6 +3,7 @@ import {
   INVOICE_CURRENCIES,
   type InvoiceCurrency,
 } from "@/config/bank-accounts";
+import type { InvoiceGoodsDetail } from "@/data/goods";
 import mongoose, { type InferSchemaType, type PaginateModel } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
@@ -31,22 +32,13 @@ export interface Buyer {
   address: string;
 }
 
-export interface InvoiceNotes {
-  goodsDeliveryDestination: string;
-  goodsOrigin: string;
-  advisingBank: string;
-  allowance: string;
-  packing: string;
-  shipmentDate: string;
-  payment: string;
-  partialShipment: string;
-  piValidity: string;
-}
+export type InvoiceNotes = InvoiceGoodsDetail[];
 
 export interface Invoice {
   _id: mongoose.Types.ObjectId;
   ownerId: mongoose.Types.ObjectId;
   piNumber: string;
+  piNumberVersion?: number;
   issueDate: Date;
   deliveryDate?: Date;
   currency: InvoiceCurrency;
@@ -78,6 +70,15 @@ const lineItemSchema = new mongoose.Schema<LineItem>(
   { _id: true },
 );
 
+const invoiceGoodsDetailSchema = new mongoose.Schema<InvoiceGoodsDetail>(
+  {
+    key: { type: String, required: true, trim: true, maxlength: 100 },
+    label: { type: String, required: true, trim: true, maxlength: 100 },
+    value: { type: String, required: true, trim: true, maxlength: 2000 },
+  },
+  { _id: false },
+);
+
 const invoiceSchema = new mongoose.Schema<Invoice>(
   {
     ownerId: {
@@ -91,6 +92,7 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
       required: true,
       trim: true,
     },
+    piNumberVersion: { type: Number, required: false },
     issueDate: { type: Date, required: true },
     deliveryDate: { type: Date, required: false },
     currency: {
@@ -126,42 +128,7 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
     subtotal: { type: Number, default: 0, min: 0 },
     totalQuantity: { type: Number, default: 0, min: 0 },
     totalAmount: { type: Number, default: 0, min: 0 },
-    notes: {
-      goodsDeliveryDestination: {
-        type: String,
-        required: true,
-        trim: true,
-        maxlength: 2000,
-      },
-      goodsOrigin: {
-        type: String,
-        required: true,
-        trim: true,
-        maxlength: 2000,
-      },
-      advisingBank: {
-        type: String,
-        required: true,
-        trim: true,
-        maxlength: 2000,
-      },
-      allowance: { type: String, required: true, trim: true, maxlength: 2000 },
-      packing: { type: String, required: true, trim: true, maxlength: 2000 },
-      shipmentDate: {
-        type: String,
-        required: true,
-        trim: true,
-        maxlength: 2000,
-      },
-      payment: { type: String, required: true, trim: true, maxlength: 2000 },
-      partialShipment: {
-        type: String,
-        required: true,
-        trim: true,
-        maxlength: 2000,
-      },
-      piValidity: { type: String, required: true, trim: true, maxlength: 2000 },
-    },
+    notes: { type: [invoiceGoodsDetailSchema], default: [] },
     termsAndConditions: [{ type: String, trim: true, maxlength: 1000 }],
   },
   { timestamps: true, collection: "invoice" },
@@ -170,6 +137,14 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
 invoiceSchema.index({ ownerId: 1, updatedAt: -1 });
 invoiceSchema.index({ ownerId: 1, status: 1, updatedAt: -1 });
 invoiceSchema.index({ ownerId: 1, piNumber: 1 }, { unique: true });
+invoiceSchema.index(
+  { piNumberVersion: 1, piNumber: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { piNumberVersion: 2 },
+    name: "unique_generated_pi_number",
+  },
+);
 
 invoiceSchema.set("toJSON", {
   virtuals: true,
@@ -188,3 +163,25 @@ export const InvoiceModel = getModel("invoice", invoiceSchema) as PaginateModel<
 >;
 
 export type InvoiceDocument = InferSchemaType<typeof invoiceSchema>;
+
+let generatedPiNumberIndexPromise: Promise<string> | null = null;
+
+export async function ensureGeneratedPiNumberIndex(): Promise<void> {
+  if (!generatedPiNumberIndexPromise) {
+    generatedPiNumberIndexPromise = InvoiceModel.collection.createIndex(
+      { piNumberVersion: 1, piNumber: 1 },
+      {
+        unique: true,
+        partialFilterExpression: { piNumberVersion: 2 },
+        name: "unique_generated_pi_number",
+      },
+    );
+  }
+
+  try {
+    await generatedPiNumberIndexPromise;
+  } catch (error) {
+    generatedPiNumberIndexPromise = null;
+    throw error;
+  }
+}

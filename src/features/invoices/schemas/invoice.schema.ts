@@ -2,51 +2,20 @@ import { z } from "zod";
 import { INVOICE_CURRENCIES } from "@/config/bank-accounts";
 
 const invoiceNoteSchema = z.object({
-  goodsDeliveryDestination: z
+  key: z
     .string()
     .trim()
-    .min(1, "Delivery destination is required.")
-    .max(2000, "Delivery destination must be 2000 characters or fewer."),
-  goodsOrigin: z
+    .min(1, "A goods field key is required.")
+    .max(100, "A goods field key must be 100 characters or fewer."),
+  label: z
     .string()
     .trim()
-    .min(1, "Goods origin is required.")
-    .max(2000, "Goods origin must be 2000 characters or fewer."),
-  advisingBank: z
+    .min(1, "A goods field label is required.")
+    .max(100, "A goods field label must be 100 characters or fewer."),
+  value: z
     .string()
     .trim()
-    .min(1, "Advising bank details are required.")
-    .max(2000, "Advising bank details must be 2000 characters or fewer."),
-  allowance: z
-    .string()
-    .trim()
-    .min(1, "Allowance is required.")
-    .max(2000, "Allowance must be 2000 characters or fewer."),
-  packing: z
-    .string()
-    .trim()
-    .min(1, "Packing details are required.")
-    .max(2000, "Packing details must be 2000 characters or fewer."),
-  shipmentDate: z
-    .string()
-    .trim()
-    .min(1, "Shipment date is required.")
-    .max(2000, "Shipment date must be 2000 characters or fewer."),
-  payment: z
-    .string()
-    .trim()
-    .min(1, "Payment terms are required.")
-    .max(2000, "Payment terms must be 2000 characters or fewer."),
-  partialShipment: z
-    .string()
-    .trim()
-    .min(1, "Partial shipment terms are required.")
-    .max(2000, "Partial shipment terms must be 2000 characters or fewer."),
-  piValidity: z
-    .string()
-    .trim()
-    .min(1, "PI validity is required.")
-    .max(2000, "PI validity must be 2000 characters or fewer."),
+    .max(2000, "A goods field value must be 2000 characters or fewer."),
 });
 
 export const invoiceLineItemSchema = z.object({
@@ -126,14 +95,16 @@ export const createInvoiceSchema = z.object({
   lineItems: z
     .array(invoiceLineItemSchema)
     .min(1, "Add at least one complete line item."),
-  notes: invoiceNoteSchema,
-  termsAndConditions: z.array(
-    z
-      .string()
-      .trim()
-      .min(1, "Terms cannot be empty.")
-      .max(1000, "Each term must be 1000 characters or fewer."),
-  ),
+  notes: z.array(invoiceNoteSchema).max(30, "Use 30 goods details or fewer."),
+  termsAndConditions: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1, "Terms cannot be empty.")
+        .max(1000, "Each term must be 1000 characters or fewer."),
+    )
+    .max(30, "Use 30 terms or fewer."),
 });
 
 export type InvoiceLineItem = z.infer<typeof invoiceLineItemSchema>;

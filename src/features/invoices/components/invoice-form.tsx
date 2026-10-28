@@ -1,10 +1,8 @@
 "use client";
 
-import {
-  BANK_ACCOUNT_DEFAULTS,
-  INVOICE_CURRENCIES,
-  isInvoiceCurrency,
-} from "@/config/bank-accounts";
+import { INVOICE_CURRENCIES, isInvoiceCurrency } from "@/config/bank-accounts";
+import { getBankAccountDetails, getPaymentTerms } from "@/data/bank-accounts";
+import { defaultTermsAndConditions } from "@/data/terms-and-conditions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -38,6 +36,8 @@ import { Controller, useFormContext, useWatch } from "react-hook-form";
 import CustomerSelect from "./customer-select";
 
 export interface InvoiceFormProps {
+  piNumberStatus: "loading" | "ready" | "error";
+  onRetryPiNumber: () => void;
   customers: Array<{
     id: string;
     name: string;
@@ -68,9 +68,14 @@ function getLocalDate(value?: string | Date): Date | undefined {
       );
 }
 
-export function InvoiceForm({ customers }: InvoiceFormProps) {
+export function InvoiceForm({
+  customers,
+  piNumberStatus,
+  onRetryPiNumber,
+}: InvoiceFormProps) {
   const {
     control,
+    getValues,
     register,
     setValue,
     formState: { errors },
@@ -80,17 +85,38 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
 
   useEffect(() => {
     if (!currency || currency === previousCurrency.current) return;
+    const previousValue = previousCurrency.current;
     previousCurrency.current = currency;
-    const defaults = BANK_ACCOUNT_DEFAULTS[currency];
-    setValue("notes.advisingBank", defaults.advisingBank, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-    setValue("notes.payment", defaults.payment, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  }, [currency, setValue]);
+    const notes = getValues("notes");
+    const bankNoteIndex = notes.findIndex(
+      (note) => note.key === "advisingBank",
+    );
+    if (bankNoteIndex >= 0) {
+      setValue(
+        `notes.${bankNoteIndex}.value`,
+        getBankAccountDetails(currency),
+        { shouldDirty: true, shouldValidate: true },
+      );
+    }
+    const paymentNoteIndex = notes.findIndex((note) => note.key === "payment");
+    if (paymentNoteIndex >= 0) {
+      setValue(`notes.${paymentNoteIndex}.value`, getPaymentTerms(currency), {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+    if (currency === "BDT") {
+      setValue("termsAndConditions", [], {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    } else if (previousValue === "BDT") {
+      setValue("termsAndConditions", [...defaultTermsAndConditions], {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [currency, getValues, setValue]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -112,10 +138,26 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
               </FieldLabel>
               <Input
                 id="piNumber"
+                readOnly
                 aria-invalid={Boolean(errors.piNumber)}
-                placeholder="MMF/001/26"
+                placeholder={
+                  piNumberStatus === "loading"
+                    ? "Generating invoice number…"
+                    : "Invoice number unavailable"
+                }
                 {...register("piNumber")}
               />
+              {piNumberStatus === "error" ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="self-start"
+                  onClick={onRetryPiNumber}
+                >
+                  Retry number generation
+                </Button>
+              ) : null}
               {errors.piNumber?.message ? (
                 <p className="text-xs text-destructive">
                   {errors.piNumber.message}

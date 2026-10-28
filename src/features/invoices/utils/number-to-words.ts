@@ -1,6 +1,6 @@
 /**
  * Convert a monetary amount to English words for the "say total" callout.
- * Supports whole dollars and cents up to 999 trillion.
+ * Supports USD and BDT amounts up to 999 trillion.
  */
 
 const ONES = [
@@ -92,8 +92,6 @@ export function numberToWordsWhole(amount: number): string {
  */
 const MINOR_CURRENCY_UNITS: Record<InvoiceCurrency, string> = {
   USD: "cents",
-  EUR: "cents",
-  GBP: "pence",
   BDT: "poisha",
 };
 

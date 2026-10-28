@@ -1,5 +1,7 @@
 "use server";
 
+import { randomInt } from "node:crypto";
+import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
 
@@ -9,24 +11,27 @@ import {
 } from "@/features/invoices/schemas/invoice.schema";
 import { persistInvoice } from "@/features/invoices/services/persist-invoice";
 import { requireUser } from "@/lib/auth/require-user";
-import { InvoiceModel } from "@/lib/db/models";
+import { ensureGeneratedPiNumberIndex, InvoiceModel } from "@/lib/db/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
+import { isGeneratedPiNumber } from "@/lib/pi-number-format";
 import {
   ActionResult,
   zodErrorToActionResult,
 } from "@/lib/validations/action-result";
 
-/**
- * Generate a PI number in the format MMF/###/YY (e.g. MMF/001/26)
- * based on the count of existing invoices for the user.
- */
 export async function getNextPiNumber(): Promise<string> {
-  const user = await requireUser();
+  await requireUser();
   await connectToDatabase();
-  const count = await InvoiceModel.countDocuments({ ownerId: user.id });
-  const sequence = (count + 1).toString().padStart(3, "0");
-  const yy = new Date().getFullYear().toString().slice(-2);
-  return `MMF/${sequence}/${yy}`;
+  await ensureGeneratedPiNumberIndex();
+  const date = format(new Date(), "ddMMyy");
+
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const piNumber = `MMF-${date}-${randomInt(1000, 10000)}`;
+    const existing = await InvoiceModel.exists({ piNumber });
+    if (!existing) return piNumber;
+  }
+
+  throw new Error("Unable to generate a unique invoice number.");
 }
 
 export async function createInvoiceAction(
@@ -37,6 +42,12 @@ export async function createInvoiceAction(
 
   try {
     const validated = createInvoiceSchema.parse(input);
+    if (!isGeneratedPiNumber(validated.piNumber)) {
+      return {
+        ok: false,
+        message: "Generate a new invoice number before saving this invoice.",
+      };
+    }
 
     const user = await requireUser();
     const savedInvoiceId = await persistInvoice(
