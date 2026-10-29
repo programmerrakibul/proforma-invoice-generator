@@ -24,9 +24,8 @@ export const createCustomerSchema = z.object({
   phone: z
     .string()
     .trim()
-    .min(12, "Phone number must be 12 characters!")
-    .max(12, "Phone number must be 12 characters!")
-    .regex(/^\d{3}-\d{3}-\d{4}$/, "Invalid phone number!")
+    .min(11, "Phone number must be 11 characters!")
+    .max(11, "Phone number must be 11 characters!")
     .optional(),
 });
 
