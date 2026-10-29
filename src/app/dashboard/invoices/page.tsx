@@ -37,7 +37,7 @@ export default async function InvoicesPage({
     "newest",
   );
   const query = { search, status, sort };
-  const result = await listInvoicesAction({ page, pageSize: 25, ...query });
+  const result = await listInvoicesAction({ page, pageSize: 12, ...query });
 
   return (
     <section className="min-w-0 py-6 sm:py-10 lg:py-14">
