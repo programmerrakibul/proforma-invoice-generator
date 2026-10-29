@@ -90,8 +90,9 @@ duplication (DRY).
 ## Dashboard and customer management
 
 - `/dashboard` redirects to `/dashboard/invoices`; invoice and customer pages live under `src/app/dashboard` and share an authenticated dashboard layout.
-- Customer records are owner-scoped and validated with `createCustomerSchema`; customer and invoice queries use mongoose-paginate-v2. Both lists share query utilities, filter/sort controls, and a responsive table with pagination.
-- Invoice creation requires a saved customer ID. The server verifies that customer belongs to the session owner, persists its reference, and snapshots its name and address for invoice preview/PDF stability.
+- Customer records are shared across users and validated with `createCustomerSchema`; customer and invoice queries use mongoose-paginate-v2 and responsive tables with pagination.
+- Customer creation and editing use the shared `CustomerForm` in a modal on `/dashboard/customers`; the table shows separate email, phone, and creation-date rows, and offers edit only.
+- Invoice creation requires a saved customer ID. The server verifies that the customer exists, persists its reference, and snapshots its name and address for invoice preview/PDF stability.
 
 ## Server Actions
 
@@ -154,7 +155,8 @@ All invoice mutations go through Next.js Server Actions:
   `src/data/bank-accounts.ts`. BDT invoices omit terms in the form, preview, PDF,
   and database. Delivery date is optional and must persist through invoice
   updates, preview, and PDF export.
-- New PI numbers are generated server-side as `MMF-ddmmyy-random4digits`.
+- New PI numbers are generated server-side as `MMF-yymm-3-digit-serial`,
+  incremented from the current month's invoice count.
   Collision checks and a partial unique MongoDB index enforce global
   uniqueness for generated numbers while preserving legacy invoice numbers.
   The initial product row uses editable values from the supplied invoice sample;
@@ -175,12 +177,13 @@ All invoice mutations go through Next.js Server Actions:
 ## Shared site header
 
 - `src/components/layout/site-header.tsx` keeps the session-aware desktop
-  navigation and account action in the shared header.
+  navigation and an account-avatar popover with profile details, dashboard and
+  invoice-list links, and logout.
 - `src/components/layout/mobile-navigation.tsx` provides the accessible drawer
-  menu below the desktop navigation breakpoint; authenticated invoice links
-  remain hidden from guests.
+  menu below the desktop navigation breakpoint; create-invoice and invoice-list
+  links are kept out of the header navigation.
 - `src/features/auth/components/logout-button.tsx` provides the Better Auth
-  sign-out action in the desktop account controls and authenticated mobile menu.
+  sign-out action in the account popover.
 
 ## Caching Strategy
 

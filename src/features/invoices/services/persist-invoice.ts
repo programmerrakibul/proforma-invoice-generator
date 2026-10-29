@@ -38,7 +38,6 @@ export async function persistInvoice(
   const totals = calculateInvoiceTotals(input.lineItems);
   const customer = await CustomerModel.findOne({
     _id: input.customerId,
-    ownerId,
   }).lean();
   if (!customer) throw new Error("Customer not found.");
   const totalQuantity = totals.lineItems.reduce(

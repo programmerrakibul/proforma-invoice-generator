@@ -9,7 +9,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { LogoutButton } from "@/features/auth/components/logout-button";
 import { useSession } from "@/lib/auth-client";
 import { ArrowUpRight, Menu } from "lucide-react";
 import Link from "next/link";
@@ -17,8 +16,6 @@ import { useState } from "react";
 
 const NAVIGATION = [
   { href: "/", label: "Home" },
-  { href: "/dashboard/invoices/new", label: "Create invoice" },
-  { href: "/dashboard/invoices", label: "Invoice list", authenticated: true },
   { href: "/dashboard/customers", label: "Customers", authenticated: true },
   { href: "/#features", label: "Features" },
   { href: "/#how-it-works", label: "How it works" },
@@ -66,21 +63,20 @@ export function MobileNavigation() {
             ),
           )}
         </nav>
-        <div className="mt-auto border-t border-border p-4">
-          <div className="flex flex-col gap-2">
+        {!user ? (
+          <div className="mt-auto border-t border-border p-4">
             <Link
-              href={user ? "/dashboard/invoices" : "/auth/login"}
+              href="/auth/login"
               onClick={() => setOpen(false)}
               className={buttonVariants({
                 className: "w-full justify-center rounded-full",
               })}
             >
-              {user ? "My invoices" : "Login"}
+              Login
               <ArrowUpRight data-icon="inline-end" />
             </Link>
-            {user ? <LogoutButton onLoggedOut={() => setOpen(false)} /> : null}
           </div>
-        </div>
+        ) : null}
       </SheetContent>
     </Sheet>
   );

@@ -1,8 +1,18 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { createCustomerAction } from "@/features/customers/actions/customer-actions";
+import {
+  createCustomerAction,
+  updateCustomerAction,
+  type CustomerListItem,
+} from "@/features/customers/actions/customer-actions";
 import {
   createCustomerSchema,
   type CreateCustomerInput,
@@ -13,7 +23,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-export function CustomerForm() {
+interface CustomerFormProps {
+  customer?: CustomerListItem;
+  onSaved: () => void;
+}
+
+export function CustomerForm({ customer, onSaved }: CustomerFormProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const {
@@ -22,64 +37,93 @@ export function CustomerForm() {
     formState: { errors },
   } = useForm<CreateCustomerInput>({
     resolver: zodResolver(createCustomerSchema),
+    defaultValues: {
+      name: customer?.name ?? "",
+      address: customer?.address ?? "",
+      email: customer?.email || undefined,
+      phone: customer?.phone || undefined,
+    },
   });
+
   const onSubmit = async (values: CreateCustomerInput): Promise<void> => {
     setSaving(true);
-    const result = await createCustomerAction(values);
-    setSaving(false);
-    if (!result.ok) {
-      toast.error(result.message);
-      return;
+    try {
+      const result = customer
+        ? await updateCustomerAction(customer.id, values)
+        : await createCustomerAction(values);
+
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
+
+      toast.success(customer ? "Customer updated" : "Customer created");
+      onSaved();
+      router.refresh();
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Unable to save customer.",
+      );
+    } finally {
+      setSaving(false);
     }
-    toast.success("Customer created");
-    router.push("/dashboard/customers");
-    router.refresh();
   };
+
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="max-w-xl space-y-5 rounded-2xl border bg-card p-6"
-    >
-      <label className="block space-y-2 text-sm">
-        Customer name
-        <Input {...register("name")} />
-        {errors.name?.message ? (
-          <span className="text-destructive">{errors.name.message}</span>
-        ) : null}
-      </label>
-      <label className="block space-y-2 text-sm">
-        Address
-        <Input {...register("address")} />
-        {errors.address?.message ? (
-          <span className="text-destructive">{errors.address.message}</span>
-        ) : null}
-      </label>
-      <label className="block space-y-2 text-sm">
-        Email (optional)
-        <Input
-          type="email"
-          {...register("email", {
-            setValueAs: (value: string) => value.trim() || undefined,
-          })}
-        />
-        {errors.email?.message ? (
-          <span className="text-destructive">{errors.email.message}</span>
-        ) : null}
-      </label>
-      <label className="block space-y-2 text-sm">
-        Phone (optional)
-        <Input
-          {...register("phone", {
-            setValueAs: (value: string) => value.trim() || undefined,
-          })}
-          placeholder="123-456-7890"
-        />
-        {errors.phone?.message ? (
-          <span className="text-destructive">{errors.phone.message}</span>
-        ) : null}
-      </label>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <FieldGroup>
+        <Field data-invalid={Boolean(errors.name)}>
+          <FieldLabel htmlFor="customer-name">Customer name</FieldLabel>
+          <Input
+            id="customer-name"
+            aria-invalid={Boolean(errors.name)}
+            {...register("name")}
+          />
+          <FieldError errors={[errors.name]} />
+        </Field>
+        <Field data-invalid={Boolean(errors.address)}>
+          <FieldLabel htmlFor="customer-address">Address</FieldLabel>
+          <Input
+            id="customer-address"
+            aria-invalid={Boolean(errors.address)}
+            {...register("address")}
+          />
+          <FieldError errors={[errors.address]} />
+        </Field>
+        <Field data-invalid={Boolean(errors.email)}>
+          <FieldLabel htmlFor="customer-email">Email (optional)</FieldLabel>
+          <Input
+            id="customer-email"
+            type="email"
+            aria-invalid={Boolean(errors.email)}
+            {...register("email", {
+              setValueAs: (value: string) => value.trim() || undefined,
+            })}
+          />
+          <FieldError errors={[errors.email]} />
+        </Field>
+        <Field data-invalid={Boolean(errors.phone)}>
+          <FieldLabel htmlFor="customer-phone">Phone (optional)</FieldLabel>
+          <Input
+            id="customer-phone"
+            type="tel"
+            placeholder="123-456-7890"
+            aria-invalid={Boolean(errors.phone)}
+            {...register("phone", {
+              setValueAs: (value: string) => value.trim() || undefined,
+            })}
+          />
+          <FieldError errors={[errors.phone]} />
+        </Field>
+      </FieldGroup>
       <Button type="submit" disabled={saving}>
-        {saving ? "Saving…" : "Create customer"}
+        {saving
+          ? customer
+            ? "Saving changes…"
+            : "Creating customer…"
+          : customer
+            ? "Save changes"
+            : "Create customer"}
       </Button>
     </form>
   );

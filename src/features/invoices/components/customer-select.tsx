@@ -78,7 +78,7 @@ const CustomerSelect = ({ customers }: CustomerSelectProps) => {
         {customers.length === 0 ? (
           <Link
             className="text-xs font-medium text-primary hover:underline"
-            href="/dashboard/customers/new"
+            href="/dashboard/customers"
           >
             Create a customer
           </Link>

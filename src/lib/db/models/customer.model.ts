@@ -4,12 +4,6 @@ import mongoosePaginate from "mongoose-paginate-v2";
 
 const customerSchema = new mongoose.Schema(
   {
-    ownerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-      index: true,
-    },
     name: { type: String, required: true, trim: true },
     address: { type: String, required: true, trim: true },
     email: { type: String, trim: true, lowercase: true },
@@ -17,7 +11,6 @@ const customerSchema = new mongoose.Schema(
   },
   { timestamps: true, collection: "customer" },
 );
-customerSchema.index({ ownerId: 1, name: 1 });
 customerSchema.set("toJSON", { virtuals: true, versionKey: false });
 customerSchema.set("toObject", { virtuals: true, versionKey: false });
 

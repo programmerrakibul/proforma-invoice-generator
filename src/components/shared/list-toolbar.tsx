@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import Form from "next/form";
 import { useEffect, useRef, useState } from "react";
 
 export interface ListToolbarOption {
@@ -42,9 +43,8 @@ export function ListToolbar({
   );
 
   return (
-    <form
+    <Form
       ref={formRef}
-      method="GET"
       action={action}
       onSubmit={() => {
         if (timerRef.current) clearTimeout(timerRef.current);
@@ -56,6 +56,7 @@ export function ListToolbar({
         <Input
           name="search"
           aria-label={searchPlaceholder}
+          type="search"
           value={search}
           onChange={(event) => {
             setSearch(event.currentTarget.value);
@@ -85,9 +86,10 @@ export function ListToolbar({
           ))}
         </select>
       ))}
+
       <Button type="submit" variant="secondary" className="h-10 rounded-xl">
         Apply
       </Button>
-    </form>
+    </Form>
   );
 }

@@ -187,7 +187,7 @@ export function buildInvoiceDocument(
   );
 
   return {
-    piNumber: input.piNumber?.trim() || "MMF-000000-0000",
+    piNumber: input.piNumber?.trim() || "MMF-0000-000",
     issueDateLabel: formatInvoiceDate(
       typeof input.issueDate === "string" ? input.issueDate : undefined,
     ),

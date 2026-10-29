@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { companyProfile } from "@/data/company";
 import { FileText, LayoutDashboard, Send, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
@@ -66,71 +67,29 @@ export default function Home() {
       <main className="flex-1 relative overflow-hidden bg-background">
         {/* Hero section */}
         <section className="relative py-24 lg:py-32">
-          <Container>
-            <div className="text-center lg:text-left lg:max-w-3xl">
-              <Badge variant="outline" className="mb-6 text-xs">
-                Proforma invoice generator
-              </Badge>
-              <h1 className=" font-bold text-ink text-4xl lg:text-6xl tracking-tight leading-tight mb-6">
-                Create professional proforma invoices
-                <br />
-                for M.M FABRICS
-              </h1>
-              <p className="text-muted-foreground text-lg lg:text-xl max-w-2xl mb-10 leading-relaxed">
-                Generate, preview, and export A4 proforma invoices with
-                line-item calculations, buyer and seller details, and secure
-                draft persistence.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link href="/dashboard/invoices/new">
-                  <Button size="lg">Create your first invoice</Button>
-                </Link>
-                <Link href="#features">
-                  <Button variant="outline" size="lg">
-                    See how it works
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Hero preview card */}
-            <div className="mt-16 lg:mt-0 lg:absolute lg:right-0 lg:top-24 lg:w-95">
-              <Card className="overflow-hidden shadow-xl ring-1 ring-border/50">
-                <CardHeader className="bg-muted p-4 border-b border-border">
-                  <div className="flex items-center gap-2">
-                    <div className="size-3 rounded-full bg-primary" />
-                    <div className="size-3 rounded-full bg-secondary" />
-                    <div className="size-3 rounded-full bg-muted" />
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6 font-sans text-xs">
-                  <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Invoice no.</span>
-                      <span className="font-medium">PI-20261017-001</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Issue date</span>
-                      <span className="font-medium">17 Oct 2026</span>
-                    </div>
-                    <Separator className="my-1" />
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Cotton Fabric</span>
-                        <span>USD 200.00</span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Polyester Fabric</span>
-                        <span>USD 150.00</span>
-                      </div>
-                    </div>
-                    <div className="pt-2 border-t border-border flex justify-between font-semibold">
-                      <span>Total</span>
-                      <span>USD 350.00</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          <Container className="flex flex-col items-center justify-center text-center lg:max-w-6xl">
+            <Badge variant="outline" className="mb-6 text-xs">
+              Proforma invoice generator
+            </Badge>
+            <h1 className="font-bold text-ink text-3xl sm:text-4xl lg:text-6xl tracking-tight leading-tight mb-6">
+              Create professional proforma invoices
+              <br />
+              for {companyProfile.companyName}
+            </h1>
+            <p className="text-muted-foreground text-lg lg:text-xl max-w-2xl mb-10 leading-relaxed">
+              Generate, preview, and export A4 proforma invoices with line-item
+              calculations, buyer and seller details, and secure draft
+              persistence.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <Link href="/dashboard/invoices/new">
+                <Button size="lg">Create your first invoice</Button>
+              </Link>
+              <Link href="#features">
+                <Button variant="outline" size="lg">
+                  See how it works
+                </Button>
+              </Link>
             </div>
           </Container>
         </section>
@@ -150,11 +109,11 @@ export default function Home() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {FEATURES.map((feature) => (
                 <Card key={feature.title} className="overflow-hidden">
-                  <CardHeader className="p-5">
+                  <CardHeader>
                     <feature.icon className="size-5 text-primary" />
                   </CardHeader>
-                  <CardContent className="p-5">
-                    <CardTitle className=" font-semibold text-ink text-sm mb-2">
+                  <CardContent>
+                    <CardTitle className=" font-semibold text-ink text-sm">
                       {feature.title}
                     </CardTitle>
                     <CardDescription>{feature.description}</CardDescription>
@@ -179,15 +138,15 @@ export default function Home() {
             <div className="grid gap-8 md:grid-cols-3">
               {STEPS.map((step) => (
                 <Card key={step.step} className="overflow-hidden">
-                  <CardHeader className="p-5">
+                  <CardHeader>
                     <div className="flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary mb-4 font-bold text-sm">
                       {step.step}
                     </div>
-                    <CardTitle className=" font-semibold text-ink text-sm">
+                    <CardTitle className="font-semibold text-ink text-sm">
                       {step.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-5">
+                  <CardContent>
                     <p className="text-xs text-muted-foreground leading-relaxed">
                       {step.description}
                     </p>
@@ -259,8 +218,7 @@ export default function Home() {
             </div>
             <Separator className="my-8" />
             <p className="text-center text-xs text-muted-foreground">
-              M.M FABRICS &mdash; Sobhan Super Market, South Birampur, Madhabdi,
-              Narsingdi. Corporate Office: Uttara, Dhaka.
+              {companyProfile.address}
             </p>
           </Container>
         </footer>

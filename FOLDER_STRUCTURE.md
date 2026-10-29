@@ -26,8 +26,7 @@ src/
 │       │   ├── page.tsx      # Invoice list with shared filtering and pagination
 │       │   └── new/page.tsx  # Customer-backed invoice studio
 │       └── customers/
-│           ├── page.tsx      # Customer list with shared filtering and pagination
-│           └── new/page.tsx  # Customer create page
+│           └── page.tsx      # Customer list with modal create/edit and pagination
 ├── assets/
 │   ├── logo.png                 # M.M FABRICS logo used by the invoice preview and PDF
 │   └── mm_fabrics_seal.png      # Original seller seal asset
@@ -39,7 +38,7 @@ src/
 │   │   ├── mobile-nav.tsx      # Mobile top navigation
 │   │   ├── page-header.tsx     # Breadcrumb + page title
 │   │   ├── mobile-navigation.tsx # Accessible responsive drawer navigation
-│   │   └── site-header.tsx     # Shared responsive session-aware navigation and account action
+│   │   └── site-header.tsx     # Responsive navigation and signed-in account popover
 │   ├── shared/
 │   │   ├── container.tsx
 │   │   ├── list-toolbar.tsx    # Reusable search, filter, and sort form
@@ -70,8 +69,9 @@ src/
 │   │   └── utils/
 │   │       └── auth-redirect.ts    # Same-site auth redirect validation
 │   ├── customers/
-│   │   ├── actions/customer-actions.ts # Owner-scoped create/list/selector data; paginate v2
-│   │   ├── components/customer-form.tsx # Zod-validated customer form
+│   │   ├── actions/customer-actions.ts # Shared customer create/update/list/selector actions; paginate v2
+│   │   ├── components/customer-form.tsx # Reusable Zod-validated create/edit form
+│   │   ├── components/customer-list.tsx # Responsive customer table and create/edit modal
 │   │   └── schemas/customer.schema.ts  # Customer validation schema
 │   └── invoices/
 │       ├── actions/
@@ -122,7 +122,7 @@ src/
 │   │   └── models/
 │   │       ├── index.ts            # Model barrel exports
 │   │       ├── user.model.ts       # User (better-auth User + companyProfile)
-│   │       ├── customer.model.ts   # Customer (owner relation, paginate v2)
+│   │       ├── customer.model.ts   # Shared Customer model (paginate v2)
 │   │       ├── invoice.model.ts    # Invoice (owner/customer relations, buyer snapshot, paginate v2)
 │   │       ├── account.model.ts    # Better Auth Account collection
 │   │       └── session.model.ts    # Better Auth Session collection
@@ -145,7 +145,7 @@ public/
 
 ## Dashboard and customer feature files
 
-The authenticated routes live under `src/app/dashboard/` with the `/dashboard` URL prefix: `layout.tsx` provides the dashboard shell, `invoices/page.tsx` and `invoices/new/page.tsx` provide invoice listing and creation, and `customers/page.tsx` plus `customers/new/page.tsx` provide customer listing and creation. Customer behavior lives in `src/features/customers/actions/customer-actions.ts`, `components/customer-form.tsx`, and `schemas/customer.schema.ts`. The Mongoose models are `src/lib/db/models/customer.model.ts` and `invoice.model.ts`.
+The authenticated routes live under `src/app/dashboard/` with the `/dashboard` URL prefix: `layout.tsx` provides the dashboard shell, `invoices/page.tsx` and `invoices/new/page.tsx` provide invoice listing and creation, and `customers/page.tsx` provides the customer list with modal create/edit. Customer behavior lives in `src/features/customers/actions/customer-actions.ts`, `components/customer-form.tsx`, `components/customer-list.tsx`, and `schemas/customer.schema.ts`. The Mongoose models are `src/lib/db/models/customer.model.ts` and `invoice.model.ts`.
 
 ## Root config files
 

@@ -2,25 +2,39 @@
 
 import logoImage from "@/assets/logo.png";
 import { buttonVariants } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { LogoutButton } from "@/features/auth/components/logout-button";
 import { useSession } from "@/lib/auth-client";
-import { ArrowUpRight, UserRound } from "lucide-react";
+import { ArrowUpRight, LayoutDashboard, ReceiptText } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import Container from "../shared/container";
 import { Spinner } from "../ui/spinner";
 import { MobileNavigation } from "./mobile-navigation";
 
 const NAVIGATION = [
   { href: "/", label: "Home" },
-  { href: "/dashboard/invoices/new", label: "Create invoice" },
-  { href: "/dashboard/invoices", label: "Invoice list", authenticated: true },
   { href: "/#features", label: "Features" },
   { href: "/#how-it-works", label: "How it works" },
 ];
 
 export function SiteHeader() {
   const { data, isPending } = useSession();
+  const [accountMenuOpen, setAccountMenuOpen] = useState<boolean>(false);
   const user = data?.user;
   const initials =
     user?.name
@@ -56,17 +70,15 @@ export function SiteHeader() {
           className="hidden items-center gap-4 xl:gap-5 lg:flex"
           aria-label="Main navigation"
         >
-          {NAVIGATION.filter((item) => !item.authenticated || user).map(
-            (item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="whitespace-nowrap text-xs text-muted-foreground transition-colors hover:text-foreground xl:text-sm"
-              >
-                {item.label}
-              </Link>
-            ),
-          )}
+          {NAVIGATION.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="whitespace-nowrap text-xs text-muted-foreground transition-colors hover:text-foreground xl:text-sm"
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
         <div className="flex items-center justify-end gap-1.5 sm:gap-2 lg:col-start-3">
           <div className="lg:hidden">
@@ -77,19 +89,59 @@ export function SiteHeader() {
               <Spinner />
             </>
           ) : user ? (
-            <>
-              <Link
-                href="/dashboard/invoices"
-                aria-label={`Signed in as ${user.name || user.email}`}
-                title={user.name || user.email}
-                className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold text-foreground sm:size-9"
+            <Popover open={accountMenuOpen} onOpenChange={setAccountMenuOpen}>
+              <PopoverTrigger
+                aria-label={`Open account menu for ${user.name || user.email}`}
+                render={
+                  <button
+                    type="button"
+                    className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  />
+                }
               >
-                {initials || <UserRound className="size-4" />}
-              </Link>
-              <div className="hidden lg:block">
-                <LogoutButton compact />
-              </div>
-            </>
+                <Avatar
+                  size="lg"
+                  className="border border-border bg-muted text-sm font-semibold text-foreground"
+                >
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
+              </PopoverTrigger>
+              <PopoverContent align="end" sideOffset={10} className="w-72 p-2">
+                <Card className="gap-0">
+                  <CardHeader className="px-3 py-3">
+                    <CardTitle>{user.name || "Account"}</CardTitle>
+                    <CardDescription className="break-all">
+                      {user.email}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-1 px-2 pb-2">
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground transition-colors hover:bg-muted"
+                    >
+                      <LayoutDashboard aria-hidden="true" />
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/dashboard/invoices"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground transition-colors hover:bg-muted"
+                    >
+                      <ReceiptText aria-hidden="true" />
+                      Invoice list
+                    </Link>
+                  </CardContent>
+                  <CardFooter className="border-t px-3 py-3">
+                    <div className="w-full">
+                      <LogoutButton
+                        onLoggedOut={() => setAccountMenuOpen(false)}
+                      />
+                    </div>
+                  </CardFooter>
+                </Card>
+              </PopoverContent>
+            </Popover>
           ) : (
             <Link
               href="/auth/login"

@@ -4,7 +4,6 @@ import {
   createCustomerSchema,
   type CreateCustomerInput,
 } from "@/features/customers/schemas/customer.schema";
-import { requireUser } from "@/lib/auth/require-user";
 import { CustomerModel } from "@/lib/db/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
 import type { ActionResult } from "@/lib/validations/action-result";
@@ -19,6 +18,7 @@ export interface CustomerListItem {
   address: string;
   email?: string;
   phone?: string;
+  createdAt: string;
 }
 export interface CustomerPageResult {
   items: CustomerListItem[];
@@ -33,10 +33,10 @@ interface CustomerPageDocument {
   address: string;
   email?: string | null;
   phone?: string | null;
+  createdAt: Date;
 }
 type CustomerSearchField = "name" | "address" | "email" | "phone";
 interface CustomerSearchFilter {
-  ownerId: mongoose.Types.ObjectId;
   $or?: Array<Partial<Record<CustomerSearchField, RegExp>>>;
 }
 const querySchema = z.object({
@@ -52,14 +52,12 @@ export async function createCustomerAction(
   input: CreateCustomerInput,
 ): Promise<ActionResult<{ customerId: string }>> {
   try {
-    const user = await requireUser();
     const values = createCustomerSchema.parse(input);
     await connectToDatabase();
-    const customer = await CustomerModel.create({
-      ...values,
-      ownerId: new mongoose.Types.ObjectId(user.id),
-    });
+    const customer = await CustomerModel.create(values);
+
     revalidatePath("/dashboard/customers");
+
     return {
       ok: true,
       data: { customerId: String(customer._id) },
@@ -68,7 +66,54 @@ export async function createCustomerAction(
   } catch (error) {
     if (error instanceof z.ZodError)
       return zodErrorToActionResult(error, "Please fix the customer details.");
+    console.error("Customer creation failed.", error);
     return { ok: false, message: "Failed to create customer." };
+  }
+}
+
+export async function updateCustomerAction(
+  customerId: string,
+  input: CreateCustomerInput,
+): Promise<ActionResult<{ customerId: string }>> {
+  const parsed = createCustomerSchema.safeParse(input);
+  if (!parsed.success) {
+    return zodErrorToActionResult(
+      parsed.error,
+      "Please fix the customer details.",
+    );
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(customerId)) {
+    return { ok: false, message: "Customer not found." };
+  }
+
+  try {
+    await connectToDatabase();
+    const customer = await CustomerModel.findByIdAndUpdate(
+      customerId,
+      {
+        ...parsed.data,
+        email: parsed.data.email ?? "",
+        phone: parsed.data.phone ?? "",
+      },
+      { new: true, runValidators: true },
+    );
+
+    if (!customer) {
+      return { ok: false, message: "Customer not found." };
+    }
+
+    revalidatePath("/dashboard/customers");
+    revalidatePath("/dashboard/invoices/new");
+
+    return {
+      ok: true,
+      data: { customerId: String(customer._id) },
+      message: "Customer updated.",
+    };
+  } catch (error) {
+    console.error("Customer update failed.", error);
+    return { ok: false, message: "Failed to update customer." };
   }
 }
 
@@ -77,22 +122,22 @@ export async function listCustomersAction(
 ): Promise<ActionResult<CustomerPageResult>> {
   try {
     const values = querySchema.parse(input);
-    const user = await requireUser();
     await connectToDatabase();
-    const filter: CustomerSearchFilter = {
-      ownerId: new mongoose.Types.ObjectId(user.id),
-    };
+    const filter: CustomerSearchFilter = {};
+
     if (values.search) {
       const regex = new RegExp(
         values.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
         "i",
       );
+
       const fields: Array<"name" | "address" | "email" | "phone"> =
         values.filter === "email"
           ? ["email"]
           : values.filter === "phone"
             ? ["phone"]
             : ["name", "address", "email", "phone"];
+
       filter.$or = fields.map((field) => {
         switch (field) {
           case "name":
@@ -112,12 +157,14 @@ export async function listCustomersAction(
         : {
             createdAt: values.sort === "oldest" ? (1 as const) : (-1 as const),
           };
+
     const result = await CustomerModel.paginate<CustomerPageDocument>(filter, {
       page: values.page,
       limit: values.pageSize,
       sort,
       lean: true,
     });
+
     const totalPages = result.totalPages;
     const page = totalPages ? Math.min(result.page ?? 1, totalPages) : 1;
     const rows =
@@ -131,13 +178,16 @@ export async function listCustomersAction(
               lean: true,
             })
           ).docs;
+
     const items: CustomerListItem[] = rows.map((row) => ({
       id: String(row._id),
       name: row.name,
       address: row.address,
       email: row.email ?? undefined,
       phone: row.phone ?? undefined,
+      createdAt: row.createdAt.toISOString(),
     }));
+
     return {
       ok: true,
       data: {
@@ -158,13 +208,9 @@ export async function getCustomersForInvoiceAction(): Promise<
   ActionResult<CustomerListItem[]>
 > {
   try {
-    const user = await requireUser();
     await connectToDatabase();
-    const rows = await CustomerModel.find({
-      ownerId: new mongoose.Types.ObjectId(user.id),
-    })
-      .sort({ name: 1 })
-      .lean();
+    const rows = await CustomerModel.find({}).sort({ name: 1 }).lean();
+
     return {
       ok: true,
       data: rows.map((row) => ({
@@ -173,6 +219,7 @@ export async function getCustomersForInvoiceAction(): Promise<
         address: row.address,
         email: row.email ?? undefined,
         phone: row.phone ?? undefined,
+        createdAt: row.createdAt.toISOString(),
       })),
       message: "Customers loaded.",
     };

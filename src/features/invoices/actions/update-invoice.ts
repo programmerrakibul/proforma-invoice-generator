@@ -59,7 +59,6 @@ export async function updateInvoiceAction(
     }
     const customer = await CustomerModel.findOne({
       _id: validated.customerId,
-      ownerId: user.id,
     });
     if (!customer) return { ok: false, message: "Customer not found." };
 

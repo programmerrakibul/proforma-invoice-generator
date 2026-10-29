@@ -5,8 +5,8 @@ with Next.js 16 App Router, React 19, Tailwind CSS v4, shadcn/ui, Mongoose, and
 Better Auth.
 
 The shared site header adapts from a compact mobile drawer to centered desktop
-navigation, keeps invoice links scoped to authenticated users, and provides
-sign-out controls on both mobile and desktop.
+navigation and provides a signed-in account popover with profile details,
+dashboard and invoice-list navigation, and sign-out.
 
 ## Tech Stack
 
@@ -103,16 +103,15 @@ pnpm dev
   corporateOffice, contactNumber, email, logoUrl)
 - `createdAt`, `updatedAt`
 
-### Customer (belongs to User via `ownerId`)
+### Customer (shared across users)
 
-- `ownerId` (ObjectId ref User, required, indexed)
 - `name`, `address`, optional `email` and `phone` (Zod validated)
-- Timestamps; owner and name index
+- Timestamps
 
 ### Invoice (belongs to User via `ownerId`; references Customer via `buyerId`)
 
 - `ownerId` (ObjectId ref User, required, indexed)
-- `piNumber` (`MMF-ddmmyy-random4digits`; globally unique for newly generated
+- `piNumber` (`MMF-yymm-3-digit-serial`; globally unique for newly generated
   invoice numbers)
 - `issueDate`, optional `deliveryDate`, and currency (`USD` or `BDT`; default
   `USD`)
@@ -130,8 +129,9 @@ pnpm dev
 ## Dashboard and customer management
 
 - `/dashboard` redirects to `/dashboard/invoices`; invoice and customer pages live under the authenticated `/dashboard/*` route tree.
-- Customers are owner-scoped. The customer list supports server-side search, field filtering, sorting, and `mongoose-paginate-v2` pagination. Invoice and customer tables share reusable filters, query utilities, responsive table/card layouts, and pagination.
-- Invoice creation requires selecting a saved customer; saved invoices retain the owner-scoped customer reference and a name/address snapshot.
+- Customers are shared across users. The customer list supports server-side search, sorting, and `mongoose-paginate-v2` pagination. Its responsive table shows separate email, phone, and creation-date columns, displays `N/A` for missing contact details, and provides an edit action.
+- Customer creation and editing use the same validated form in a modal on the customer list; the standalone customer-creation route is removed.
+- Invoice creation requires selecting a saved customer; saved invoices retain its customer reference and a name/address snapshot.
 
 ## Server Actions
 
@@ -180,9 +180,9 @@ All invoice mutations go through Next.js Server Actions:
 
 - User authentication (sign-in/sign-up with Better Auth email/password)
 - Premium responsive landing, authentication, and invoice studio interfaces
-- Shared site header on every page with centered navigation and a session-aware
-  login/user placeholder; auth screens include back navigation and support a
-  safe same-site `redirect` query parameter
+- Shared site header on every page with centered navigation and a signed-in
+  account popover; auth screens include back navigation and support a safe
+  same-site `redirect` query parameter
 - Auth success feedback with toast notifications and destination navigation
 - Landing page and protected dashboard invoice table with search, status filter, sorting,
   pagination, preview, and confirmed deletion; search/filter/sort/page queries
@@ -207,7 +207,7 @@ All invoice mutations go through Next.js Server Actions:
   recomputed from quantity and unit price
 - Decimal-safe money calculations (integer-cent arithmetic)
 - "Say total" verbal amount rendering
-- Customer management with owner-scoped creation, search, field filtering, sorting, and pagination
+- Shared customer management with modal create/edit, search, sorting, and pagination
 - Invoice creation requires a saved customer and snapshots the selected customer details
 - Draft saving with Server Actions
 - Save/saved/error states with toast notifications
