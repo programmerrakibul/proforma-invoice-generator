@@ -1,10 +1,6 @@
 import "server-only";
 
-import type {
-  InvoiceDocumentData,
-  InvoiceDocumentNotes,
-} from "@/features/invoices/types";
-import { INVOICE_NOTE_FIELDS } from "@/features/invoices/utils/build-invoice-document";
+import type { InvoiceDocumentData } from "@/features/invoices/types";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import PDFDocument from "pdfkit";
@@ -19,22 +15,10 @@ const BORDER = "#d4e1dc";
 const WHITE = "#ffffff";
 const PAGE_MARGIN_X = 42;
 const PAGE_MARGIN_TOP = 38;
-const CONTENT_BOTTOM = 674;
-const FOOTER_TOP = 690;
+const FOOTER_HEIGHT = 88;
 const LOGO_PATH = join(process.cwd(), "src", "assets", "logo.png");
 const SEAL_PATH = join(process.cwd(), "public", "mm-fabrics-seal.png");
-const BANKING_NOTE_KEYS: Array<keyof InvoiceDocumentNotes> = [
-  "goodsDeliveryDestination",
-  "goodsOrigin",
-  "advisingBank",
-  "allowance",
-  "packing",
-  "shipmentDate",
-  "payment",
-  "partialShipment",
-  "piValidity",
-];
-const COLUMN_RATIOS = [0.3, 0.24, 0.12, 0.12, 0.11, 0.11] as const;
+const COLUMN_RATIOS = [0.3, 0.18, 0.09, 0.14, 0.14, 0.15] as const;
 
 function contentWidth(doc: PdfDoc): number {
   return doc.page.width - PAGE_MARGIN_X * 2;
@@ -45,8 +29,10 @@ function columnWidths(doc: PdfDoc): number[] {
   return COLUMN_RATIOS.map((ratio) => width * ratio);
 }
 
-function money(value: number): string {
+function money(value: number, currency: string): string {
   return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);
@@ -62,7 +48,7 @@ function addContentPage(doc: PdfDoc): void {
 }
 
 function ensureSpace(doc: PdfDoc, height: number): void {
-  if (doc.y + height > CONTENT_BOTTOM) addContentPage(doc);
+  if (doc.y + height > doc.page.height - PAGE_MARGIN_X) addContentPage(doc);
 }
 
 function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
@@ -82,15 +68,6 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
     .text("TEXTILE SOURCING & MANUFACTURING", x + 54, PAGE_MARGIN_TOP + 27, {
       width: 230,
       characterSpacing: 1.5,
-    });
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(7.5)
-    .fillColor(MUTED)
-    .text("COMMERCIAL DOCUMENT", x + width - 210, PAGE_MARGIN_TOP + 1, {
-      width: 210,
-      align: "right",
-      characterSpacing: 1.3,
     });
   doc
     .font("Helvetica-Bold")
@@ -116,37 +93,22 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
     .lineWidth(3)
     .strokeColor(GREEN)
     .stroke();
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(8)
-    .fillColor(DARK)
-    .text("Address:", x, ruleY + 15, { continued: true });
-  doc
-    .font("Helvetica")
-    .fillColor(MUTED)
-    .text(` ${data.seller.address}`, { width });
-  doc
-    .font("Helvetica-Bold")
-    .fillColor(DARK)
-    .text("Corporate Office:", x, doc.y + 3, { continued: true });
-  doc
-    .font("Helvetica")
-    .fillColor(MUTED)
-    .text(` ${data.seller.corporateOffice}`, { continued: true });
-  doc
-    .font("Helvetica-Bold")
-    .fillColor(DARK)
-    .text("   Contact:", { continued: true });
-  doc
-    .font("Helvetica")
-    .fillColor(MUTED)
-    .text(` ${data.seller.contactNumber}    `, { continued: true });
-  doc
-    .font("Helvetica-Bold")
-    .fillColor(DARK)
-    .text("Email:", { continued: true });
-  doc.font("Helvetica").fillColor(MUTED).text(` ${data.seller.email}`);
-  const buyerY = doc.y + 20;
+  const sellerDetails: Array<[string, string]> = [
+    ["Address", data.seller.address],
+    ["Corporate Office", data.seller.corporateOffice],
+    ["Contact", data.seller.contactNumber],
+    ["Email", data.seller.email],
+  ];
+  sellerDetails.forEach(([label, value], index) => {
+    const y = index === 0 ? ruleY + 15 : doc.y + 2;
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(8)
+      .fillColor(DARK)
+      .text(`${label}:`, x, y, { continued: true });
+    doc.font("Helvetica").fillColor(MUTED).text(` ${value}`, { width });
+  });
+  const buyerY = doc.y + 12;
   const half = width * 0.58;
   doc
     .font("Helvetica-Bold")
@@ -168,11 +130,11 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
     .text(data.buyer.address, x, doc.y + 3, { width: half });
   const metaX = x + half + 18;
   const metaWidth = width - half - 18;
-  const rows: Array<[string, string]> = [
-    ["Date", data.issueDateLabel || "—"],
-    ["Currency", data.currency],
-    ["Terms", "As agreed"],
-  ];
+  const rows: Array<[string, string]> = [["Date", data.issueDateLabel || "—"]];
+  if (data.deliveryDateLabel) {
+    rows.push(["Delivery date", data.deliveryDateLabel]);
+  }
+  rows.push(["Currency", data.currency]);
   rows.forEach(([label, value], index) => {
     const y = buyerY + 10 + index * 19;
     doc
@@ -188,14 +150,14 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
         align: "right",
       });
   });
-  doc.y = Math.max(doc.y, buyerY + 68) + 17;
+  doc.y = Math.max(doc.y, buyerY + (data.deliveryDateLabel ? 81 : 62)) + 10;
 }
 
 function drawTableHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
   const widths = columnWidths(doc);
   const x = PAGE_MARGIN_X;
   const y = doc.y;
-  const height = 38;
+  const height = 34;
   const labels = [
     "Description of goods",
     "Style",
@@ -280,7 +242,7 @@ function drawSayTotal(doc: PdfDoc, data: InvoiceDocumentData): void {
     .text(data.sayTotal, PAGE_MARGIN_X + 82, y + 12, {
       width: contentWidth(doc) - 95,
     });
-  doc.y = y + height + 12;
+  doc.y = y + height + 8;
 }
 
 function drawNumberedList(
@@ -302,48 +264,72 @@ function drawNumberedList(
   return y;
 }
 
-function numberedListHeight(doc: PdfDoc, lines: string[], width: number): number {
+function numberedListHeight(
+  doc: PdfDoc,
+  lines: string[],
+  width: number,
+): number {
   doc.font("Helvetica").fontSize(7.5);
   return lines.reduce((height, line, index) => {
     const text = `${index + 1}. ${line}`;
-    return height + Math.max(11, doc.heightOfString(text, { width: width - 12, lineGap: 1 }) + 1) + 2;
+    return (
+      height +
+      Math.max(
+        11,
+        doc.heightOfString(text, { width: width - 12, lineGap: 1 }) + 1,
+      ) +
+      2
+    );
   }, 0);
 }
 
 function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
-  const notes = BANKING_NOTE_KEYS.flatMap((key) => {
-    const field = INVOICE_NOTE_FIELDS.find(
-      (candidate) => candidate.key === key,
-    );
-    const value = data.notes[key];
-    return field && value?.trim() ? [`${field.label}: ${value}`] : [];
-  });
+  const notes = data.notes.flatMap((note) =>
+    note.label.trim() && note.value.trim()
+      ? [`${note.label}: ${note.value}`]
+      : [],
+  );
   const gap = 25;
   const columnWidth = (contentWidth(doc) - gap) / 2;
   const terms = data.termsAndConditions.map(stripLeadingNumber);
-  const listHeight = Math.max(
-    numberedListHeight(doc, notes, columnWidth),
-    numberedListHeight(doc, terms, columnWidth),
-  );
-  ensureSpace(doc, listHeight + 30);
+  const showTerms = terms.length > 0;
+  const notesWidth = showTerms ? columnWidth : contentWidth(doc);
+  const listHeight = showTerms
+    ? Math.max(
+        numberedListHeight(doc, notes, columnWidth),
+        numberedListHeight(doc, terms, columnWidth),
+      )
+    : numberedListHeight(doc, notes, notesWidth);
+  ensureSpace(doc, listHeight + FOOTER_HEIGHT + 8);
   const top = doc.y;
   doc
     .font("Helvetica-Bold")
     .fontSize(10)
     .fillColor(GREEN)
     .text("Shipment & banking", PAGE_MARGIN_X, top, { width: columnWidth });
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(10)
-    .fillColor(GREEN)
-    .text("Terms & conditions", PAGE_MARGIN_X + columnWidth + gap, top, {
-      width: columnWidth,
-    });
+  if (showTerms) {
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(10)
+      .fillColor(GREEN)
+      .text("Terms & conditions", PAGE_MARGIN_X + columnWidth + gap, top, {
+        width: columnWidth,
+      });
+  }
   doc.y = top + 20;
-  const leftY = drawNumberedList(doc, notes, PAGE_MARGIN_X, columnWidth);
-  doc.y = top + 20;
-  const rightY = drawNumberedList(doc, terms, PAGE_MARGIN_X + columnWidth + gap, columnWidth);
-  doc.y = Math.max(leftY, rightY) + 8;
+  const notesY = drawNumberedList(doc, notes, PAGE_MARGIN_X, notesWidth);
+  if (showTerms) {
+    doc.y = top + 20;
+    const termsY = drawNumberedList(
+      doc,
+      terms,
+      PAGE_MARGIN_X + columnWidth + gap,
+      columnWidth,
+    );
+    doc.y = Math.max(notesY, termsY) + 8;
+  } else {
+    doc.y = notesY + 8;
+  }
 }
 
 function drawLastPageFooter(doc: PdfDoc): void {
@@ -351,7 +337,7 @@ function drawLastPageFooter(doc: PdfDoc): void {
   const half = (width - 52) / 2;
   const leftX = PAGE_MARGIN_X;
   const rightX = PAGE_MARGIN_X + half + 52;
-  const signatureY = FOOTER_TOP;
+  const signatureY = doc.y + 24;
   [leftX, rightX].forEach((x) => {
     doc
       .moveTo(x, signatureY)
@@ -384,7 +370,7 @@ function drawLastPageFooter(doc: PdfDoc): void {
       align: "center",
       valign: "center",
     });
-  const ruleY = doc.page.height - 80;
+  const ruleY = signatureY + 27;
   doc
     .moveTo(PAGE_MARGIN_X, ruleY)
     .lineTo(PAGE_MARGIN_X + width, ruleY)
@@ -415,8 +401,8 @@ function renderInvoice(doc: PdfDoc, data: InvoiceDocumentData): void {
       item.style,
       item.color,
       new Intl.NumberFormat("en-US").format(item.quantity),
-      money(item.unitPrice),
-      money(item.totalAmount),
+      money(item.unitPrice, data.currency),
+      money(item.totalAmount, data.currency),
     ]),
   );
   drawTableRow(
@@ -426,8 +412,8 @@ function renderInvoice(doc: PdfDoc, data: InvoiceDocumentData): void {
       "",
       "Total:",
       new Intl.NumberFormat("en-US").format(data.totalQuantity),
-      money(data.totalUnitPrice),
-      money(data.totalAmount),
+      money(data.totalUnitPrice, data.currency),
+      money(data.totalAmount, data.currency),
     ],
     { bold: true, total: true },
   );

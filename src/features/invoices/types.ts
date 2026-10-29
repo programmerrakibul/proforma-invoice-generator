@@ -1,6 +1,11 @@
+import type { InvoiceCurrency } from "@/config/bank-accounts";
+import type { InvoiceGoodsDetail } from "@/data/goods";
+
 export interface InvoiceLineItemView {
   id: string;
-  description: string;
+  fabric: string;
+  construction: string;
+  width: string;
   style: string;
   color: string;
   quantity: number;
@@ -10,6 +15,9 @@ export interface InvoiceLineItemView {
 }
 
 export interface InvoiceDocumentLineItem {
+  fabric: string;
+  construction: string;
+  width: string;
   description: string;
   style: string;
   color: string;
@@ -31,7 +39,10 @@ export interface InvoiceDocumentBuyer {
   address: string;
 }
 
-export interface InvoiceDocumentNotes {
+export type InvoiceDocumentNotes = InvoiceGoodsDetail[];
+export type InvoiceDocumentNotesInput = Array<Partial<InvoiceGoodsDetail>>;
+
+export interface LegacyInvoiceDocumentNotes {
   goodsDeliveryDestination?: string;
   goodsOrigin?: string;
   advisingBank?: string;
@@ -46,7 +57,8 @@ export interface InvoiceDocumentNotes {
 export interface InvoiceDocumentData {
   piNumber: string;
   issueDateLabel: string;
-  currency: string;
+  deliveryDateLabel: string;
+  currency: InvoiceCurrency;
   seller: InvoiceDocumentSeller;
   buyer: InvoiceDocumentBuyer;
   lineItems: InvoiceDocumentLineItem[];

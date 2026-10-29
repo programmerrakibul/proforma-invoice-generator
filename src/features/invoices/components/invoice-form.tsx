@@ -1,6 +1,11 @@
 "use client";
 
+import { INVOICE_CURRENCIES, isInvoiceCurrency } from "@/config/bank-accounts";
+import { getBankAccountDetails, getPaymentTerms } from "@/data/bank-accounts";
+import { defaultTermsAndConditions } from "@/data/terms-and-conditions";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Field,
   FieldDescription,
@@ -8,17 +13,110 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { InvoiceNotesAndTerms } from "@/features/invoices/components/invoice-notes-and-terms";
 import { InvoiceLineItems } from "@/features/invoices/components/invoice-line-items";
-import type { CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
-import { Building2, CalendarDays, Hash, MapPin } from "lucide-react";
-import { useFormContext } from "react-hook-form";
+import type { InvoiceFormValues } from "@/features/invoices/schemas/invoice.schema";
+import { format } from "date-fns";
+import { Building2, CalendarDays, Hash } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
+import CustomerSelect from "./customer-select";
 
-export function InvoiceForm() {
+export interface InvoiceFormProps {
+  piNumberStatus: "loading" | "ready" | "error";
+  onRetryPiNumber: () => void;
+  customers: Array<{
+    id: string;
+    name: string;
+    address: string;
+    email?: string;
+    phone?: string;
+  }>;
+}
+
+function getLocalDate(value?: string | Date): Date | undefined {
+  if (!value) return undefined;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime())
+      ? undefined
+      : new Date(
+          value.getUTCFullYear(),
+          value.getUTCMonth(),
+          value.getUTCDate(),
+        );
+  }
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime())
+    ? undefined
+    : new Date(
+        parsed.getUTCFullYear(),
+        parsed.getUTCMonth(),
+        parsed.getUTCDate(),
+      );
+}
+
+export function InvoiceForm({
+  customers,
+  piNumberStatus,
+  onRetryPiNumber,
+}: InvoiceFormProps) {
   const {
+    control,
+    getValues,
     register,
+    setValue,
     formState: { errors },
-  } = useFormContext<CreateInvoiceInput>();
+  } = useFormContext<InvoiceFormValues>();
+  const currency = useWatch({ control, name: "currency" }) ?? "USD";
+  const previousCurrency = useRef(currency);
+
+  useEffect(() => {
+    if (!currency || currency === previousCurrency.current) return;
+    const previousValue = previousCurrency.current;
+    previousCurrency.current = currency;
+    const notes = getValues("notes");
+    const bankNoteIndex = notes.findIndex(
+      (note) => note.key === "advisingBank",
+    );
+    if (bankNoteIndex >= 0) {
+      setValue(
+        `notes.${bankNoteIndex}.value`,
+        getBankAccountDetails(currency),
+        { shouldDirty: true, shouldValidate: true },
+      );
+    }
+    const paymentNoteIndex = notes.findIndex((note) => note.key === "payment");
+    if (paymentNoteIndex >= 0) {
+      setValue(`notes.${paymentNoteIndex}.value`, getPaymentTerms(currency), {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+    if (currency === "BDT") {
+      setValue("termsAndConditions", [], {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    } else if (previousValue === "BDT") {
+      setValue("termsAndConditions", [...defaultTermsAndConditions], {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [currency, getValues, setValue]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -33,18 +131,33 @@ export function InvoiceForm() {
           </FieldDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6 p-5">
-          <FieldGroup className="grid grid-cols-2 gap-4">
+          <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field data-invalid={Boolean(errors.piNumber)}>
               <FieldLabel htmlFor="piNumber">
                 <Hash /> PI number
               </FieldLabel>
               <Input
                 id="piNumber"
+                readOnly
                 aria-invalid={Boolean(errors.piNumber)}
-                className="h-10 rounded-xl bg-background"
-                placeholder="MMF/001/26"
+                placeholder={
+                  piNumberStatus === "loading"
+                    ? "Generating invoice number…"
+                    : "Invoice number unavailable"
+                }
                 {...register("piNumber")}
               />
+              {piNumberStatus === "error" ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="self-start"
+                  onClick={onRetryPiNumber}
+                >
+                  Retry number generation
+                </Button>
+              ) : null}
               {errors.piNumber?.message ? (
                 <p className="text-xs text-destructive">
                   {errors.piNumber.message}
@@ -59,7 +172,6 @@ export function InvoiceForm() {
                 id="issueDate"
                 type="date"
                 aria-invalid={Boolean(errors.issueDate)}
-                className="h-10 rounded-xl bg-background"
                 {...register("issueDate")}
               />
               {errors.issueDate?.message ? (
@@ -68,6 +180,102 @@ export function InvoiceForm() {
                 </p>
               ) : null}
             </Field>
+            <Field data-invalid={Boolean(errors.currency)}>
+              <FieldLabel htmlFor="currency">Currency</FieldLabel>
+              <Controller
+                control={control}
+                name="currency"
+                render={({ field }) => (
+                  <Select
+                    value={field.value ?? "USD"}
+                    onValueChange={(value) => {
+                      if (
+                        typeof value === "string" &&
+                        isInvoiceCurrency(value)
+                      ) {
+                        field.onChange(value);
+                      }
+                    }}
+                  >
+                    <SelectTrigger
+                      id="currency"
+                      aria-invalid={Boolean(errors.currency)}
+                    >
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {INVOICE_CURRENCIES.map((value) => (
+                          <SelectItem key={value} value={value}>
+                            {value}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.currency?.message ? (
+                <p className="text-xs text-destructive">
+                  {errors.currency.message}
+                </p>
+              ) : null}
+            </Field>
+            <Controller
+              control={control}
+              name="deliveryDate"
+              render={({ field }) => {
+                const selectedDate = getLocalDate(field.value);
+                return (
+                  <Field data-invalid={Boolean(errors.deliveryDate)}>
+                    <FieldLabel htmlFor="deliveryDate">
+                      <CalendarDays /> Delivery date
+                    </FieldLabel>
+                    <Popover>
+                      <PopoverTrigger
+                        render={
+                          <Button
+                            id="deliveryDate"
+                            type="button"
+                            variant="outline"
+                            aria-invalid={Boolean(errors.deliveryDate)}
+                            className="w-full justify-start text-left font-normal"
+                          />
+                        }
+                      >
+                        <CalendarDays data-icon="inline-start" />
+                        {selectedDate ? (
+                          format(selectedDate, "PPP")
+                        ) : (
+                          <span className="text-muted-foreground">
+                            Choose a delivery date
+                          </span>
+                        )}
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={(date) =>
+                            field.onChange(
+                              date ? format(date, "yyyy-MM-dd") : undefined,
+                            )
+                          }
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FieldDescription>
+                      Optional date shown on the invoice.
+                    </FieldDescription>
+                    {errors.deliveryDate?.message ? (
+                      <p className="text-xs text-destructive">
+                        {errors.deliveryDate.message}
+                      </p>
+                    ) : null}
+                  </Field>
+                );
+              }}
+            />
           </FieldGroup>
 
           <div className="flex flex-col gap-4 border-t border-border/60 pt-5">
@@ -76,52 +284,17 @@ export function InvoiceForm() {
                 <Building2 className="size-4 text-primary" /> Buyer / Consignee
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                These details appear on the invoice.
+                Choose a saved customer. Their saved details appear on the
+                invoice.
               </p>
             </div>
-            <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field
-                className="sm:col-span-2"
-                data-invalid={Boolean(errors.buyer?.name)}
-              >
-                <FieldLabel htmlFor="buyer.name">Company name</FieldLabel>
-                <Input
-                  id="buyer.name"
-                  aria-invalid={Boolean(errors.buyer?.name)}
-                  className="h-10 rounded-xl bg-background"
-                  {...register("buyer.name")}
-                />
-                {errors.buyer?.name?.message ? (
-                  <p className="text-xs text-destructive">
-                    {errors.buyer.name.message}
-                  </p>
-                ) : null}
-              </Field>
-              <Field
-                className="sm:col-span-2"
-                data-invalid={Boolean(errors.buyer?.address)}
-              >
-                <FieldLabel htmlFor="buyer.address">
-                  <MapPin /> Address
-                </FieldLabel>
-                <Textarea
-                  id="buyer.address"
-                  aria-invalid={Boolean(errors.buyer?.address)}
-                  className="min-h-20 rounded-xl bg-background"
-                  {...register("buyer.address")}
-                />
-                {errors.buyer?.address?.message ? (
-                  <p className="text-xs text-destructive">
-                    {errors.buyer.address.message}
-                  </p>
-                ) : null}
-              </Field>
-            </FieldGroup>
+            <CustomerSelect customers={customers} />
           </div>
         </CardContent>
       </Card>
 
       <InvoiceLineItems />
+      <InvoiceNotesAndTerms currency={currency} />
     </div>
   );
 }

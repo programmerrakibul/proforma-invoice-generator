@@ -20,7 +20,7 @@ server-side execution performance.
 3. **Performance & DRY Principles:** Leverage Next.js App Router performance
    optimizations (parallel routes, streaming, selective server-side rendering,
    caching strategies). Build clean reusable higher-order functions (HOFs) and
-   wrappers.
+   wrappers. Break large components into small reusable components.
 4. **Data Handling & Validation:** Always use Zod schemas for runtime validation
    on both client (via React Hook Form) and server (within Server Actions).
 5. **State Management:** Isolate client UI states using Redux Toolkit where
@@ -35,6 +35,12 @@ server-side execution performance.
    commit the changes and update the relevant Markdown files (`README.md`,
    `AGENTS.md`, and `FOLDER_STRUCTURE.md`) when behavior, conventions, or the
    source tree changes.
+10. **Code Formatting** After completing the changes format the code files using
+    prettier.
+11. **Testing and Code Review** After completing a feature whether it's small or
+    big, test it in dev and build version and review the code using
+    `coderabbitai` (if `coderaabbitai` is not available use code review skill).
+    Also use ESLint for unused imports or others.
 
 ## Project Stack (as implemented)
 
@@ -57,16 +63,9 @@ server-side execution performance.
 
 ## This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may
-all differ from your training data. Read the relevant guide in
-`node_modules/next/dist/docs/` (resolved from this file's directory; in
-monorepos the `next` package may not be visible from the repo root) before
-writing any code. Heed deprecation notices.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
-This block is written and re-added by `next dev` — verify at
-`node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a
-diff only re-creates the uncommitted change; committing it with your work keeps
-the tree clean.
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
 
@@ -85,25 +84,32 @@ duplication (DRY).
   forward the incoming request headers so Better Auth can read the session
   cookie
 - **Route:** `GET/POST/PUT/PATCH/DELETE /api/auth/[...all]`
-- **Guest flow:** Unauthenticated users can preview/generate invoices
-  client-side; persistence to MongoDB requires sign-in
-- **Route redirects:** `src/proxy.ts` performs optimistic Better Auth cookie
-  checks for the protected invoice list and redirects signed-in users away from
-  login and registration. Server pages/actions remain responsible for
-  authoritative session and ownership checks. The guest-accessible invoice
-  studio (`/invoices/new`) is not blocked by the proxy.
+- **Invoice flow:** Invoice creation and PDF export require an authenticated session; no guest invoice generation is allowed
+- **Route redirects:** `src/proxy.ts` protects `/dashboard/*`; the dashboard layout and server actions enforce authoritative session checks and ownership.
+
+## Dashboard and customer management
+
+- `/dashboard` redirects to `/dashboard/invoices`; invoice and customer pages live under `src/app/dashboard` and share an authenticated dashboard layout.
+- Customer records are shared across users and validated with `createCustomerSchema`; customer and invoice queries use mongoose-paginate-v2 and responsive tables with pagination.
+- Customer creation and editing use the shared `CustomerForm` in a modal on `/dashboard/customers`; the table shows separate email, phone, and creation-date rows, and offers edit only.
+- Invoice creation requires a saved customer ID. The server verifies that the customer exists, persists its reference, and snapshots its name and address for invoice preview/PDF stability.
 
 ## Server Actions
 
 All invoice mutations go through Next.js Server Actions:
 
-| Action                   | File                                              | Auth                     | Ownership                                 |
-| ------------------------ | ------------------------------------------------- | ------------------------ | ----------------------------------------- |
-| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Optional (guest allowed) | Derived from session when authenticated   |
-| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                |
-| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required                 | Query by `_id` + `ownerId`                |
-| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                       |
-| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | Owner derived from session when persisted |
+| Action                   | File                                              | Auth     | Ownership                               |
+| ------------------------ | ------------------------------------------------- | -------- | --------------------------------------- |
+| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Required | Derived from session when authenticated |
+| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required | Query by `_id` + `ownerId`              |
+| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required | Query by `_id` + `ownerId`              |
+| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required | Filter by `ownerId`                     |
+| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Required | Session owner                           |
+
+- `listInvoicesAction` validates page, page size, search, status, and sort with
+  Zod, then applies owner-scoped search/filter/sort and pagination in MongoDB.
+  The `/dashboard/invoices` page debounces search input, reads URL search parameters on
+  the server, and renders only the requested page of results.
 
 **Security rules enforced:**
 
@@ -123,36 +129,61 @@ All invoice mutations go through Next.js Server Actions:
 
 ## PDF generation and live preview
 
-- Live preview is a JSX/HTML A4 document (`invoice-preview.tsx`) that updates from React Hook Form `useWatch`. It uses the shadcn table and separator, the company logo, paired shipment/banking and terms columns, and a final-page signature and thank-you footer.
+- Live preview is a single-page JSX/HTML A4 document (`invoice-preview.tsx`)
+  with a compact 12 mm page inset that updates from React Hook Form `useWatch`.
+  It uses the shadcn table and separator, the company logo, paired shipment/banking and
+  terms columns, and a signature and thank-you footer.
+- Seller address, corporate office, contact number, and email are shown as four
+  stacked rows in the HTML preview and generated PDF.
 - PDF files are generated server-side with PDFKit
   (`features/invoices/pdf/generate-invoice-pdf.ts`) and downloaded from
-  `exportInvoicePdfAction`. Guests can export without persisting; authenticated
-  exports are persisted with `exported` status.
+  `exportInvoicePdfAction`. Exports require authentication and are persisted with `exported` status.
 - The invoice workspace validates the full payload with Zod, presents database
   records in an owner-scoped table, supports preview and PDF export, and
   requires confirmation before deletion.
-- Goods delivery/banking/shipping notes and terms use application defaults in
-  the invoice payload; keep these static details out of the user-facing form
-  until editable terms are requested. The initial product row uses editable
-  values from the supplied invoice sample; calculate all totals from quantity
-  and unit price rather than trusting the client-provided total.
+- Line items store fabric, construction, and a numeric width string from 40 to
+  80 inches. The fabric field offers searchable catalog suggestions and an
+  explicit custom-value action; color offers common textile color suggestions
+  and custom entry, construction remains a text input, and width is selected
+  from a 40–80 dropdown. Preview and PDF compose fabric, construction, and
+  width into a three-line goods description.
+- Goods delivery/banking/shipping notes and terms use shared application
+  defaults from `src/data/` and remain editable in the invoice form. Users can
+  edit shipment/banking labels and values; the selected customer name is always
+  used for the delivery destination. Currency is limited to USD and BDT, and
+  currency changes refresh the advising-bank and payment defaults from
+  `src/data/bank-accounts.ts`. BDT invoices omit terms in the form, preview, PDF,
+  and database. Delivery date is optional and must persist through invoice
+  updates, preview, and PDF export.
+- New PI numbers are generated server-side as `MMF-yymm-3-digit-serial`,
+  incremented from the current month's invoice count.
+  Collision checks and a partial unique MongoDB index enforce global
+  uniqueness for generated numbers while preserving legacy invoice numbers.
+  The initial product row uses editable values from the supplied invoice sample;
+  calculate all totals from quantity and unit price rather than trusting the
+  client-provided total.
 - Currency values in the invoice preview, list, and PDF use the `en-US` number
   format; invoice-list quantities use `en-ES`. The seller seal asset is served
   from `public/mm-fabrics-seal.png`.
-- Preview and PDF share the same mapped document model via `buildInvoiceDocument()`. Both follow the supplied A4 design, use the company logo and seal, and keep the signature and thank-you footer at the bottom of the final page. The table includes actual line items and totals without artificial blank rows.
+- Preview and PDF share the same mapped document model via
+  `buildInvoiceDocument()`. Both follow the supplied A4 design, use the company
+  logo and seal, and place the compact signature and thank-you footer directly
+  after the shipment details and terms. PDF layout measures against the A4 page
+  bottom margin so the terms and signature area use available page space. The
+  table includes actual line items and totals without artificial blank rows.
 - `pdfkit` is listed in `serverExternalPackages` so Next.js does not bundle it
   into the server graph.
 
 ## Shared site header
 
 - `src/components/layout/site-header.tsx` keeps the session-aware desktop
-  navigation and account action in the shared header.
-- `src/components/layout/mobile-navigation.tsx` provides the accessible
-  drawer menu below the desktop navigation breakpoint; authenticated invoice
-  links remain hidden from guests.
+  navigation and an account-avatar popover with profile details, dashboard and
+  invoice-list links, and logout.
+- `src/components/layout/mobile-navigation.tsx` provides the accessible drawer
+  menu below the desktop navigation breakpoint; create-invoice and invoice-list
+  links are kept out of the header navigation.
 - `src/features/auth/components/logout-button.tsx` provides the Better Auth
-  sign-out action in the desktop account controls and authenticated mobile
-  menu.
+  sign-out action in the account popover.
 
 ## Caching Strategy
 
@@ -162,7 +193,7 @@ All invoice mutations go through Next.js Server Actions:
   module import
 - Cache tags follow `user:${userId}:invoices` and
   `user:${userId}:invoice:${invoiceId}` convention
-- `revalidatePath` is called after mutations for `/invoices` and detail paths
+- `revalidatePath` is called after mutations for `/dashboard/invoices` and detail paths
 
 ## Verification Order
 

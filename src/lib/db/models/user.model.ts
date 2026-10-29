@@ -1,5 +1,6 @@
 import { getModel } from "@/lib/db/model-helpers";
 import mongoose, { type InferSchemaType, type Model } from "mongoose";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 export interface CompanyProfile {
   companyName: string;
@@ -65,6 +66,8 @@ userSchema.set("toObject", {
     return sanitized;
   },
 });
+
+userSchema.plugin(mongoosePaginate);
 
 export const UserModel = getModel("user", userSchema) as Model<
   InferSchemaType<typeof userSchema>

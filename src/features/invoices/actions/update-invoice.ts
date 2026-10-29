@@ -5,14 +5,26 @@ import { ZodError } from "zod";
 
 import { connectToDatabase } from "@/lib/db/mongoose";
 import { requireUser } from "@/lib/auth/require-user";
-import { InvoiceModel } from "@/lib/db/models";
-import { ActionResult, zodErrorToActionResult } from "@/lib/validations/action-result";
-import { createInvoiceSchema, type CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
+import {
+  CustomerModel,
+  ensureGeneratedPiNumberIndex,
+  InvoiceModel,
+} from "@/lib/db/models";
+import {
+  ActionResult,
+  zodErrorToActionResult,
+} from "@/lib/validations/action-result";
+import {
+  createInvoiceSchema,
+  type InvoiceFormValues,
+} from "@/features/invoices/schemas/invoice.schema";
+import { getDefaultGoodsDetails } from "@/data/goods";
 import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
+import { isGeneratedPiNumber } from "@/lib/pi-number-format";
 
 export async function updateInvoiceAction(
   invoiceId: string,
-  input: CreateInvoiceInput,
+  input: InvoiceFormValues,
 ): Promise<ActionResult<{ invoiceId: string }>> {
   "use server";
 
@@ -33,39 +45,83 @@ export async function updateInvoiceAction(
         message: "Invoice not found or you do not own it.",
       };
     }
-
-    const updates: Record<string, unknown> = {};
-
-    if (validated.piNumber !== undefined) {
-      updates.piNumber = validated.piNumber;
+    if (
+      !isGeneratedPiNumber(validated.piNumber) &&
+      existing.piNumber !== validated.piNumber
+    ) {
+      return {
+        ok: false,
+        message: "Generate a new invoice number before updating this invoice.",
+      };
     }
-    if (validated.issueDate !== undefined) {
-      updates.issueDate = new Date(validated.issueDate);
+    if (isGeneratedPiNumber(validated.piNumber)) {
+      await ensureGeneratedPiNumberIndex();
     }
+    const customer = await CustomerModel.findOne({
+      _id: validated.customerId,
+    });
+    if (!customer) return { ok: false, message: "Customer not found." };
 
     const { lineItems, subtotal, totalAmount } = calculateInvoiceTotals(
       validated.lineItems,
     );
-    updates.currency = validated.currency;
-    updates.buyer = validated.buyer;
-    updates.lineItems = lineItems.map((item) => ({
-      description: item.description,
-      style: item.style,
-      color: item.color,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      totalAmount: item.totalAmount,
-    }));
-    updates.subtotal = subtotal;
-    updates.totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
-    updates.totalAmount = totalAmount;
-    updates.notes = validated.notes;
-    updates.termsAndConditions = validated.termsAndConditions;
+    const notes = validated.notes.map((note) => ({ ...note }));
+    const destinationIndex = notes.findIndex(
+      (note) => note.key === "goodsDeliveryDestination",
+    );
+    if (destinationIndex >= 0) {
+      notes[destinationIndex].value = customer.name;
+    } else {
+      const destination = getDefaultGoodsDetails(validated.currency).find(
+        (note) => note.key === "goodsDeliveryDestination",
+      );
+      if (destination) {
+        notes.unshift({ ...destination, value: customer.name });
+      }
+    }
 
-    await InvoiceModel.updateOne({ _id: invoiceId, ownerId: user.id }, updates);
+    await InvoiceModel.updateOne(
+      { _id: invoiceId, ownerId: user.id },
+      {
+        $set: {
+          piNumber: validated.piNumber,
+          ...(isGeneratedPiNumber(validated.piNumber)
+            ? { piNumberVersion: 2 }
+            : {}),
+          issueDate: new Date(validated.issueDate),
+          currency: validated.currency,
+          ...(validated.deliveryDate
+            ? { deliveryDate: validated.deliveryDate }
+            : {}),
+          buyerId: customer._id,
+          buyer: { name: customer.name, address: customer.address },
+          lineItems: lineItems.map((item) => ({
+            fabric: item.fabric,
+            construction: item.construction,
+            width: item.width,
+            style: item.style,
+            color: item.color,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            totalAmount: item.totalAmount,
+          })),
+          subtotal,
+          totalQuantity: lineItems.reduce(
+            (sum, item) => sum + item.quantity,
+            0,
+          ),
+          totalAmount,
+          notes,
+          termsAndConditions:
+            validated.currency === "BDT" ? [] : validated.termsAndConditions,
+        },
+        ...(validated.deliveryDate ? {} : { $unset: { deliveryDate: "" } }),
+      },
+      { runValidators: true },
+    );
 
-    revalidatePath("/invoices");
-    revalidatePath(`/invoices/${invoiceId}`);
+    revalidatePath("/dashboard/invoices");
+    revalidatePath(`/dashboard/invoices/${invoiceId}`);
 
     return {
       ok: true,

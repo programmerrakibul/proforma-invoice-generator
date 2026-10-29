@@ -7,8 +7,8 @@ import {
   loginSchema,
   type LoginFormValues,
 } from "@/features/auth/schemas/auth.schema";
+import { signIn } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createAuthClient } from "better-auth/client";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -19,9 +19,7 @@ interface LoginFormProps {
   redirectTo: string;
 }
 
-const authClient = createAuthClient();
-
-export function LoginForm({ redirectTo = "/invoices" }: LoginFormProps) {
+export function LoginForm({ redirectTo = "/dashboard/invoices" }: LoginFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
@@ -36,7 +34,7 @@ export function LoginForm({ redirectTo = "/invoices" }: LoginFormProps) {
   const onSubmit = async (values: LoginFormValues): Promise<void> => {
     setServerError(null);
     try {
-      const result = await authClient.signIn.email({
+      const result = await signIn.email({
         ...values,
       });
 
@@ -73,6 +71,7 @@ export function LoginForm({ redirectTo = "/invoices" }: LoginFormProps) {
           <AlertDescription>{serverError}</AlertDescription>
         </Alert>
       ) : null}
+
       <AuthField
         id="email"
         label="Work email"
@@ -82,6 +81,7 @@ export function LoginForm({ redirectTo = "/invoices" }: LoginFormProps) {
         error={errors.email?.message}
         {...register("email")}
       />
+
       <AuthField
         id="password"
         label="Password"
@@ -91,6 +91,7 @@ export function LoginForm({ redirectTo = "/invoices" }: LoginFormProps) {
         error={errors.password?.message}
         {...register("password")}
       />
+
       <Button
         type="submit"
         disabled={isSubmitting}

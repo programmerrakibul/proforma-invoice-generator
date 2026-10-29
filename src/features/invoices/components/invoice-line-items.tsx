@@ -1,18 +1,36 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import type { CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { InvoiceFormValues } from "@/features/invoices/schemas/invoice.schema";
 import { PlusIcon, Trash2Icon } from "lucide-react";
-import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
+import {
+  Controller,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
+import { ColorSuggestInput } from "./color-suggest-input";
+import FabricSuggestInput from "./fabric-suggest-input";
 
-type InvoiceFormValues = CreateInvoiceInput;
+const widthOptions: string[] = Array.from({ length: 41 }, (_, index) =>
+  String(index + 40),
+);
 
 export function InvoiceLineItems() {
   const {
     control,
     register,
+    setValue,
     formState: { errors },
   } = useFormContext<InvoiceFormValues>();
   const lineItems = useWatch({ control, name: "lineItems" });
@@ -22,9 +40,11 @@ export function InvoiceLineItems() {
     name: "lineItems",
   });
 
-  const handleAdd = () => {
+  const handleAdd = (): void => {
     append({
-      description: "",
+      fabric: "",
+      construction: "",
+      width: "",
       style: "",
       color: "",
       quantity: 1,
@@ -37,7 +57,10 @@ export function InvoiceLineItems() {
     lineItems.length > 0 &&
     lineItems.every(
       (item) =>
-        item.description.trim().length > 0 &&
+        item.fabric.trim().length > 0 &&
+        item.construction.trim().length > 0 &&
+        Number(item.width) >= 40 &&
+        Number(item.width) <= 80 &&
         item.style.trim().length > 0 &&
         item.color.trim().length > 0 &&
         Number.isFinite(item.quantity) &&
@@ -48,7 +71,7 @@ export function InvoiceLineItems() {
 
   return (
     <section className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
-      <div className="flex items-center justify-between">
+      <div className="sticky top-20 z-10 -mx-5 -mt-5 flex items-center justify-between border-b border-border/70 bg-card px-5 pb-4 pt-5">
         <div className="flex flex-col gap-1">
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">
             Step 02
@@ -57,7 +80,7 @@ export function InvoiceLineItems() {
             Goods and pricing
           </h3>
           <p className="text-xs text-muted-foreground">
-            Add each product, then set quantity and unit price.
+            Choose a fabric preset or enter your own fabric details.
           </p>
         </div>
         <Button
@@ -92,40 +115,111 @@ export function InvoiceLineItems() {
                 <Trash2Icon />
               </Button>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-6">
-              <div className="flex flex-col gap-2 sm:col-span-3 md:col-span-2">
-                <Label
-                  htmlFor={`lineItems.${index}.description`}
-                  className="text-xs text-muted-foreground"
-                >
-                  Description of goods
-                </Label>
-                <Input
-                  id={`lineItems.${index}.description`}
-                  aria-invalid={Boolean(errors.lineItems?.[index]?.description)}
-                  {...register(`lineItems.${index}.description`)}
-                  className="h-10 rounded-lg bg-background"
-                  placeholder="e.g. 100% cotton woven fabric"
+            <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+              <Field
+                className="sm:col-span-2 xl:col-span-2"
+                data-invalid={Boolean(errors.lineItems?.[index]?.fabric)}
+              >
+                <FieldLabel htmlFor={`lineItems.${index}.fabric`}>
+                  Fabric
+                </FieldLabel>
+                <FabricSuggestInput
+                  id={`lineItems.${index}.fabric`}
+                  value={lineItems[index]?.fabric ?? ""}
+                  invalid={Boolean(errors.lineItems?.[index]?.fabric)}
+                  onCommit={(fabric) =>
+                    setValue(`lineItems.${index}.fabric`, fabric, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                  onDraft={() =>
+                    setValue(`lineItems.${index}.fabric`, "", {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
                 />
-                {errors.lineItems?.[index]?.description?.message ? (
+                {errors.lineItems?.[index]?.fabric?.message ? (
                   <p className="text-xs text-destructive">
-                    {errors.lineItems[index]?.description?.message}
+                    {errors.lineItems[index]?.fabric?.message}
                   </p>
                 ) : null}
-              </div>
+              </Field>
 
-              <div className="flex flex-col gap-2 sm:col-span-3 md:col-span-1">
-                <Label
-                  htmlFor={`lineItems.${index}.style`}
-                  className="text-xs text-muted-foreground"
-                >
+              <Field
+                className="col-span-1 xl:col-span-2"
+                data-invalid={Boolean(errors.lineItems?.[index]?.construction)}
+              >
+                <FieldLabel htmlFor={`lineItems.${index}.construction`}>
+                  Construction
+                </FieldLabel>
+                <Input
+                  id={`lineItems.${index}.construction`}
+                  aria-invalid={Boolean(
+                    errors.lineItems?.[index]?.construction,
+                  )}
+                  {...register(`lineItems.${index}.construction`)}
+                  placeholder="e.g. 20x20/108x58"
+                />
+                {errors.lineItems?.[index]?.construction?.message ? (
+                  <p className="text-xs text-destructive">
+                    {errors.lineItems[index]?.construction?.message}
+                  </p>
+                ) : null}
+              </Field>
+
+              <Field
+                className="col-span-1"
+                data-invalid={Boolean(errors.lineItems?.[index]?.width)}
+              >
+                <FieldLabel htmlFor={`lineItems.${index}.width`}>
+                  Width (inches)
+                </FieldLabel>
+                <Controller
+                  control={control}
+                  name={`lineItems.${index}.width`}
+                  render={({ field: widthField }) => (
+                    <Select
+                      value={widthField.value}
+                      onValueChange={(value) => widthField.onChange(value)}
+                    >
+                      <SelectTrigger
+                        id={`lineItems.${index}.width`}
+                        aria-invalid={Boolean(errors.lineItems?.[index]?.width)}
+                      >
+                        <SelectValue placeholder="Select width from 40 to 80" />
+                      </SelectTrigger>
+                      <SelectContent alignItemWithTrigger={false}>
+                        <SelectGroup>
+                          {widthOptions.map((width) => (
+                            <SelectItem key={width} value={width}>
+                              {width} inches
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.lineItems?.[index]?.width?.message ? (
+                  <p className="text-xs text-destructive">
+                    {errors.lineItems[index]?.width?.message}
+                  </p>
+                ) : null}
+              </Field>
+
+              <Field
+                className="col-span-1 xl:col-span-2"
+                data-invalid={Boolean(errors.lineItems?.[index]?.style)}
+              >
+                <FieldLabel htmlFor={`lineItems.${index}.style`}>
                   Style
-                </Label>
+                </FieldLabel>
                 <Input
                   id={`lineItems.${index}.style`}
                   aria-invalid={Boolean(errors.lineItems?.[index]?.style)}
                   {...register(`lineItems.${index}.style`)}
-                  className="h-10 rounded-lg bg-background"
                   placeholder="Style"
                 />
                 {errors.lineItems?.[index]?.style?.message ? (
@@ -133,36 +227,46 @@ export function InvoiceLineItems() {
                     {errors.lineItems[index]?.style?.message}
                   </p>
                 ) : null}
-              </div>
+              </Field>
 
-              <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor={`lineItems.${index}.color`}
-                  className="text-xs text-muted-foreground"
-                >
+              <Field
+                className="col-span-1"
+                data-invalid={Boolean(errors.lineItems?.[index]?.color)}
+              >
+                <FieldLabel htmlFor={`lineItems.${index}.color`}>
                   Color
-                </Label>
-                <Input
+                </FieldLabel>
+                <ColorSuggestInput
                   id={`lineItems.${index}.color`}
-                  aria-invalid={Boolean(errors.lineItems?.[index]?.color)}
-                  {...register(`lineItems.${index}.color`)}
-                  className="h-10 rounded-lg bg-background"
-                  placeholder="Color"
+                  value={lineItems[index]?.color ?? ""}
+                  invalid={Boolean(errors.lineItems?.[index]?.color)}
+                  onCommit={(color) =>
+                    setValue(`lineItems.${index}.color`, color, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                  onDraft={() =>
+                    setValue(`lineItems.${index}.color`, "", {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
                 />
                 {errors.lineItems?.[index]?.color?.message ? (
                   <p className="text-xs text-destructive">
                     {errors.lineItems[index]?.color?.message}
                   </p>
                 ) : null}
-              </div>
+              </Field>
 
-              <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor={`lineItems.${index}.quantity`}
-                  className="text-xs text-muted-foreground"
-                >
+              <Field
+                className="col-span-1"
+                data-invalid={Boolean(errors.lineItems?.[index]?.quantity)}
+              >
+                <FieldLabel htmlFor={`lineItems.${index}.quantity`}>
                   Quantity
-                </Label>
+                </FieldLabel>
                 <Input
                   id={`lineItems.${index}.quantity`}
                   type="number"
@@ -171,7 +275,6 @@ export function InvoiceLineItems() {
                   {...register(`lineItems.${index}.quantity`, {
                     valueAsNumber: true,
                   })}
-                  className="h-10 rounded-lg bg-background"
                   placeholder="1"
                 />
                 {errors.lineItems?.[index]?.quantity?.message ? (
@@ -179,15 +282,15 @@ export function InvoiceLineItems() {
                     {errors.lineItems[index]?.quantity?.message}
                   </p>
                 ) : null}
-              </div>
+              </Field>
 
-              <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor={`lineItems.${index}.unitPrice`}
-                  className="text-xs text-muted-foreground"
-                >
-                  Unit Price
-                </Label>
+              <Field
+                className="col-span-1"
+                data-invalid={Boolean(errors.lineItems?.[index]?.unitPrice)}
+              >
+                <FieldLabel htmlFor={`lineItems.${index}.unitPrice`}>
+                  Unit price
+                </FieldLabel>
                 <Input
                   id={`lineItems.${index}.unitPrice`}
                   type="number"
@@ -197,7 +300,6 @@ export function InvoiceLineItems() {
                   {...register(`lineItems.${index}.unitPrice`, {
                     valueAsNumber: true,
                   })}
-                  className="h-10 rounded-lg bg-background"
                   placeholder="0.00"
                 />
                 {errors.lineItems?.[index]?.unitPrice?.message ? (
@@ -205,8 +307,8 @@ export function InvoiceLineItems() {
                     {errors.lineItems[index]?.unitPrice?.message}
                   </p>
                 ) : null}
-              </div>
-            </div>
+              </Field>
+            </FieldGroup>
           </div>
         ))}
       </div>

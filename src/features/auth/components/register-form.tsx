@@ -7,8 +7,8 @@ import {
   registerSchema,
   type RegisterFormValues,
 } from "@/features/auth/schemas/auth.schema";
+import { signUp } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createAuthClient } from "better-auth/client";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -19,9 +19,7 @@ interface RegisterFormProps {
   redirectTo: string;
 }
 
-const authClient = createAuthClient();
-
-export function RegisterForm({ redirectTo  = "/invoices"}: RegisterFormProps) {
+export function RegisterForm({ redirectTo = "/dashboard/invoices" }: RegisterFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
@@ -36,21 +34,23 @@ export function RegisterForm({ redirectTo  = "/invoices"}: RegisterFormProps) {
   const onSubmit = async (values: RegisterFormValues): Promise<void> => {
     setServerError(null);
     try {
-      const result = await authClient.signUp.email({
+      const result = await signUp.email({
         name: values.name,
         email: values.email,
         password: values.password,
       });
+
       if (result.error) {
         throw new Error(
           result.error.message ??
             "We couldn’t create your account. Please try again.",
         );
-        return;
       }
+
       toast.success("Your workspace is ready", {
         description: "Welcome to M.M FABRICS.",
       });
+
       router.replace(redirectTo);
       router.refresh();
     } catch (error: unknown) {
@@ -73,6 +73,7 @@ export function RegisterForm({ redirectTo  = "/invoices"}: RegisterFormProps) {
           <AlertDescription>{serverError}</AlertDescription>
         </Alert>
       ) : null}
+
       <AuthField
         id="name"
         label="Full name"
@@ -81,6 +82,7 @@ export function RegisterForm({ redirectTo  = "/invoices"}: RegisterFormProps) {
         error={errors.name?.message}
         {...register("name")}
       />
+
       <AuthField
         id="email"
         label="Work email"
@@ -90,6 +92,7 @@ export function RegisterForm({ redirectTo  = "/invoices"}: RegisterFormProps) {
         error={errors.email?.message}
         {...register("email")}
       />
+
       <AuthField
         id="password"
         label="Password"
@@ -99,6 +102,7 @@ export function RegisterForm({ redirectTo  = "/invoices"}: RegisterFormProps) {
         error={errors.password?.message}
         {...register("password")}
       />
+
       <AuthField
         id="confirmPassword"
         label="Confirm password"
@@ -108,6 +112,7 @@ export function RegisterForm({ redirectTo  = "/invoices"}: RegisterFormProps) {
         error={errors.confirmPassword?.message}
         {...register("confirmPassword")}
       />
+
       <Button
         type="submit"
         disabled={isSubmitting}

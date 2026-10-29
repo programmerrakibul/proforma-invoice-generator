@@ -1,77 +1,78 @@
 "use server";
 
+import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
-import { ZodError } from "zod";
 
 import {
   createInvoiceSchema,
-  type CreateInvoiceInput,
+  type InvoiceFormValues,
 } from "@/features/invoices/schemas/invoice.schema";
 import { persistInvoice } from "@/features/invoices/services/persist-invoice";
-import { getCurrentUser } from "@/lib/auth/get-current-user";
-import { InvoiceModel } from "@/lib/db/models";
+import { requireUser } from "@/lib/auth/require-user";
+import { ensureGeneratedPiNumberIndex, InvoiceModel } from "@/lib/db/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
+import { isGeneratedPiNumber } from "@/lib/pi-number-format";
 import {
-  ActionResult,
+  type ActionResult,
   zodErrorToActionResult,
 } from "@/lib/validations/action-result";
 
-/**
- * Generate a PI number in the format MMF/###/YY (e.g. MMF/001/26)
- * based on the count of existing invoices for the user.
- */
-export async function getNextPiNumber(ownerId: string): Promise<string> {
+export async function getNextPiNumber(): Promise<string> {
+  await requireUser();
   await connectToDatabase();
-  const count = await InvoiceModel.countDocuments({ ownerId });
-  const sequence = (count + 1).toString().padStart(3, "0");
-  const yy = new Date().getFullYear().toString().slice(-2);
-  return `MMF/${sequence}/${yy}`;
+  await ensureGeneratedPiNumberIndex();
+  const date = format(new Date(), "yyMM");
+  const prefix = `MMF-${date}-`;
+  const monthlyInvoiceCount = await InvoiceModel.countDocuments({
+    piNumber: { $regex: `^${prefix}` },
+  });
+  let serialNumber = monthlyInvoiceCount + 1;
+
+  while (true) {
+    const piNumber = `${prefix}${String(serialNumber).padStart(3, "0")}`;
+    const existing = await InvoiceModel.exists({ piNumber });
+    if (!existing) return piNumber;
+    serialNumber += 1;
+  }
 }
 
 export async function createInvoiceAction(
-  input: CreateInvoiceInput,
+  input: InvoiceFormValues,
   invoiceId?: string,
-): Promise<ActionResult<{ invoiceId?: string; persisted: boolean }>> {
-  "use server";
+): Promise<ActionResult<{ invoiceId: string; persisted: true }>> {
+  const parsed = createInvoiceSchema.safeParse(input);
+  if (!parsed.success) {
+    return zodErrorToActionResult<{ invoiceId: string; persisted: true }>(
+      parsed.error,
+      "Please fix the highlighted fields.",
+    );
+  }
+
+  if (!isGeneratedPiNumber(parsed.data.piNumber)) {
+    return {
+      ok: false,
+      message: "Generate a new invoice number before saving this invoice.",
+    };
+  }
 
   try {
-    const validated = createInvoiceSchema.parse(input);
+    const user = await requireUser();
+    const savedInvoiceId = await persistInvoice(
+      user.id,
+      parsed.data,
+      "draft",
+      invoiceId,
+    );
 
-    const user = await getCurrentUser();
+    revalidatePath("/dashboard/invoices");
 
-    if (user) {
-      const savedInvoiceId = await persistInvoice(
-        user.id,
-        validated,
-        "draft",
-        invoiceId,
-      );
-
-      revalidatePath("/invoices");
-      revalidatePath(`/invoices/${savedInvoiceId}`);
-
-      return {
-        ok: true,
-        data: { invoiceId: savedInvoiceId, persisted: true },
-        message: "Invoice created.",
-      };
-    }
-
-    // Guest flow: unauthenticated users can preview/generate PDF client-side,
-    // but the invoice is not persisted to MongoDB.
     return {
       ok: true,
-      data: { persisted: false },
-      message:
-        "Invoice prepared for client-side use. Sign in to persist to MongoDB.",
+      data: { invoiceId: savedInvoiceId, persisted: true },
+      message: "Invoice created.",
     };
   } catch (error) {
-    if (error instanceof ZodError) {
-      return zodErrorToActionResult<{ invoiceId?: string; persisted: boolean }>(
-        error,
-        "Please fix the highlighted fields.",
-      );
-    }
+    console.error("Invoice creation failed.", error);
     return { ok: false, message: "Failed to create invoice." };
   }
 }

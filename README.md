@@ -5,8 +5,8 @@ with Next.js 16 App Router, React 19, Tailwind CSS v4, shadcn/ui, Mongoose, and
 Better Auth.
 
 The shared site header adapts from a compact mobile drawer to centered desktop
-navigation, keeps invoice links scoped to authenticated users, and provides
-sign-out controls on both mobile and desktop.
+navigation and provides a signed-in account popover with profile details,
+dashboard and invoice-list navigation, and sign-out.
 
 ## Tech Stack
 
@@ -14,13 +14,13 @@ sign-out controls on both mobile and desktop.
 - **React:** 19.3
 - **Styling:** Tailwind CSS v4, shadcn/ui (base-mira), lucide-react icons
 - **Forms:** React Hook Form v7 + @hookform/resolvers/zod + Zod v4
-- **Database:** MongoDB + Mongoose v9 (cached connection)
+- **Database:** MongoDB + Mongoose v9 with mongoose-paginate-v2 (cached connection)
 - **Authentication:** Better Auth (emailAndPassword provider,
   `@better-auth/mongo-adapter`, 30-day sessions)
 - **State:** Redux Toolkit (client UI state only)
 - **PDF:** PDFKit (server-side generation) + JSX live preview
 - **Theme:** next-themes (light/dark/system)
-- **Package Manager:** pnpm 12.14.0
+- **Package Manager:** pnpm 12.15.0
 
 ## Project Structure
 
@@ -85,15 +85,14 @@ pnpm dev
 - **Server helpers:** `getCurrentUser()` (optional), `requireUser()` (throws
   when unauthenticated)
 - **Route redirects:** `src/proxy.ts` performs optimistic session-cookie checks
-  for the protected invoice list and redirects signed-in users away from login
+  for the protected `/dashboard/*` workspace and redirects signed-in users away from login
   and registration; the invoice page still verifies the Better Auth session
   server-side
 - **Server session lookup:** Both helpers forward `await headers()` to
   `auth.api.getSession()` so Better Auth can read the incoming session cookie
 - **Redirect behavior:** Login and registration accept a validated same-site
-  `redirect` query value and fall back to `/invoices`
-- **Guest flow:** Unauthenticated users can preview/generate invoices
-  client-side; persistence to MongoDB requires sign-in
+  `redirect` query value and fall back to `/dashboard/invoices`
+- **Invoice flow:** Invoice creation and PDF export require an authenticated session; guest invoice generation is disabled
 
 ## Database Models
 
@@ -104,35 +103,47 @@ pnpm dev
   corporateOffice, contactNumber, email, logoUrl)
 - `createdAt`, `updatedAt`
 
-### Invoice (belongs to User via `ownerId`)
+### Customer (shared across users)
+
+- `name`, `address`, optional `email` and `phone` (Zod validated)
+- Timestamps
+
+### Invoice (belongs to User via `ownerId`; references Customer via `buyerId`)
 
 - `ownerId` (ObjectId ref User, required, indexed)
-- `piNumber` (`MMF/###/YY` format, e.g. `MMF/001/26`)
-- `issueDate`, `currency` (default `USD`)
+- `piNumber` (`MMF-yymm-3-digit-serial`; globally unique for newly generated
+  invoice numbers)
+- `issueDate`, optional `deliveryDate`, and currency (`USD` or `BDT`; default
+  `USD`)
 - `status` (`draft` \| `ready` \| `exported` \| `archived`, indexed)
-- `seller`, `buyer` (embedded contact info, including consignee address and
-  destination country)
-- `lineItems[]` (description, style, color, quantity, unitPrice, totalAmount,
-  unit)
+- `seller`, `buyer` (embedded customer name/address snapshot), and `buyerId` (owner-scoped Customer reference)
+- `lineItems[]` (fabric, construction, width in inches, style, color, quantity,
+  unitPrice, totalAmount, unit)
 - `subtotal`, `totalAmount`, `totalQuantity` (calculated server-side)
-- `notes` (sayTotal, goodsDeliveryDestination, goodsOrigin, advisingBank,
-  allowance, packing, shipmentDate, payment, partialShipment, piValidity)
-- `termsAndConditions[]`, `signatures` (buyerLabel, sellerLabel, stampUrl,
-  include flags)
+- `notes[]` (editable shipment and banking labels/values); delivery destination
+  is always the selected customer's name
+- `termsAndConditions[]`
 - Indexes: `{ownerId, updatedAt}`, `{ownerId, status, updatedAt}`,
-  `{ownerId, piNumber}`
+  `{ownerId, piNumber}` and a partial unique index for generated PI numbers
+
+## Dashboard and customer management
+
+- `/dashboard` redirects to `/dashboard/invoices`; invoice and customer pages live under the authenticated `/dashboard/*` route tree.
+- Customers are shared across users. The customer list supports server-side search, sorting, and `mongoose-paginate-v2` pagination. Its responsive table shows separate email, phone, and creation-date columns, displays `N/A` for missing contact details, and provides an edit action.
+- Customer creation and editing use the same validated form in a modal on the customer list; the standalone customer-creation route is removed.
+- Invoice creation requires selecting a saved customer; saved invoices retain its customer reference and a name/address snapshot.
 
 ## Server Actions
 
 All invoice mutations go through Next.js Server Actions:
 
-| Action                   | File                                              | Auth                     | Ownership                               |
-| ------------------------ | ------------------------------------------------- | ------------------------ | --------------------------------------- |
-| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Optional (guest allowed) | Derived from session when authenticated |
-| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required                 | Query by `_id` + `ownerId`              |
-| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required                 | Query by `_id` + `ownerId`              |
-| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required                 | Filter by `ownerId`                     |
-| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Optional (guest allowed) | Session owner when persisted            |
+| Action                   | File                                              | Auth     | Ownership                  |
+| ------------------------ | ------------------------------------------------- | -------- | -------------------------- |
+| `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Required | Derived from session       |
+| `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required | Query by `_id` + `ownerId` |
+| `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required | Query by `_id` + `ownerId` |
+| `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required | Filter by `ownerId`        |
+| `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Required | Session owner              |
 
 **Security rules enforced:**
 
@@ -149,10 +160,11 @@ All invoice mutations go through Next.js Server Actions:
 
 ## PDF generation and live preview
 
-- Live preview is a JSX/HTML A4 document that follows the M.M FABRICS invoice design and updates as the form changes
+- Live preview is a single-page JSX/HTML A4 document with a compact 12 mm page inset that follows the M.M FABRICS invoice design and updates as the form changes
+- Seller address, corporate office, contact number, and email appear as four stacked rows in both the preview and PDF
 - PDF files are generated on the server with PDFKit and downloaded via
-  `exportInvoicePdfAction` (guests can export without signing in)
-- Preview and PDF share the same mapped document model and matching A4 layout, company logo, seal, and final-page signature/footer
+  `exportInvoicePdfAction` (authentication required)
+- Preview and PDF share the same mapped document model and matching A4 layout, company logo, seal, and compact signature/footer directly below shipment details and terms
 
 ## Caching Strategy
 
@@ -162,30 +174,41 @@ All invoice mutations go through Next.js Server Actions:
   module import
 - Cache tags follow `user:${userId}:invoices` and
   `user:${userId}:invoice:${invoiceId}` convention
-- `revalidatePath` is called after mutations for `/invoices` and detail paths
+- `revalidatePath` is called after mutations for `/dashboard/invoices` and detail paths
 
 ## Features
 
 - User authentication (sign-in/sign-up with Better Auth email/password)
 - Premium responsive landing, authentication, and invoice studio interfaces
-- Shared site header on every page with centered navigation and a session-aware
-  login/user placeholder; auth screens include back navigation and support a
-  safe same-site `redirect` query parameter
+- Shared site header on every page with centered navigation and a signed-in
+  account popover; auth screens include back navigation and support a safe
+  same-site `redirect` query parameter
 - Auth success feedback with toast notifications and destination navigation
-- Landing page and protected invoice table with search, status filter, sorting,
-  pagination, preview, and confirmed deletion
+- Landing page and protected dashboard invoice table with search, status filter, sorting,
+  pagination, preview, and confirmed deletion; search/filter/sort/page queries
+  are validated and executed server-side against the owner-scoped MongoDB data;
+  search waits 350 ms after typing before requesting updated results
 - Invoice list rows can export saved invoices to PDF and mark them exported
 - Invoice generator with live A4 JSX preview matching the M.M FABRICS invoice design (HTML, updates as the form changes)
-- Multi-line-item support with required-field validation and guarded add-item
-  flow
-- Buyer/consignee details and invoice line items; delivery, banking, shipment,
-  payment notes, and terms are populated from application defaults in the
-  background rather than exposed as form fields
+- Multi-line-item support with searchable fabric and common textile color
+  suggestions, explicit custom fabric/color entry, editable construction, a
+  single 40–80 inch width dropdown,
+  required-field validation, and a guarded add-item flow
+- Buyer/consignee details, optional delivery date, and invoice line items
+- Editable delivery, banking, shipment, payment notes, and terms; changing
+  currency updates the bank/payment defaults from `src/data/bank-accounts.ts`
+- Currency is limited to USD (NRBC Bank) and BDT (BRAC Bank PLC); terms are
+  omitted for BDT invoices and are stored as an empty list
+- Company, initial goods, bank-account mappings, and default terms are
+  maintained under `src/data/` and reused by the form, preview, PDF, and
+  persistence paths
 - The first line item starts with the editable fabric, style, color, quantity,
   and unit-price values from the invoice sample; calculated totals are always
   recomputed from quantity and unit price
 - Decimal-safe money calculations (integer-cent arithmetic)
 - "Say total" verbal amount rendering
+- Shared customer management with modal create/edit, search, sorting, and pagination
+- Invoice creation requires a saved customer and snapshots the selected customer details
 - Draft saving with Server Actions
 - Save/saved/error states with toast notifications
 - Unsaved-changes navigation guard (`beforeunload`)

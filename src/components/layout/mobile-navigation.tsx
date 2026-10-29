@@ -9,25 +9,21 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import type { User } from "@/lib/auth";
-import { LogoutButton } from "@/features/auth/components/logout-button";
+import { useSession } from "@/lib/auth-client";
 import { ArrowUpRight, Menu } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-interface MobileNavigationProps {
-  user: User | null;
-}
-
 const NAVIGATION = [
   { href: "/", label: "Home" },
-  { href: "/invoices/new", label: "Create invoice" },
-  { href: "/invoices", label: "Invoice list", authenticated: true },
+  { href: "/dashboard/customers", label: "Customers", authenticated: true },
   { href: "/#features", label: "Features" },
   { href: "/#how-it-works", label: "How it works" },
 ];
 
-export function MobileNavigation({ user }: MobileNavigationProps) {
+export function MobileNavigation() {
+  const { data } = useSession();
+  const user = data?.user;
   const [open, setOpen] = useState<boolean>(false);
 
   return (
@@ -53,10 +49,7 @@ export function MobileNavigation({ user }: MobileNavigationProps) {
             Navigate the invoice workspace
           </SheetDescription>
         </SheetHeader>
-        <nav
-          className="flex flex-col gap-1 p-3"
-          aria-label="Mobile navigation"
-        >
+        <nav className="flex flex-col gap-1 p-3" aria-label="Mobile navigation">
           {NAVIGATION.filter((item) => !item.authenticated || user).map(
             (item) => (
               <Link
@@ -70,23 +63,20 @@ export function MobileNavigation({ user }: MobileNavigationProps) {
             ),
           )}
         </nav>
-        <div className="mt-auto border-t border-border p-4">
-          <div className="flex flex-col gap-2">
+        {!user ? (
+          <div className="mt-auto border-t border-border p-4">
             <Link
-              href={user ? "/invoices" : "/auth/login"}
+              href="/auth/login"
               onClick={() => setOpen(false)}
               className={buttonVariants({
                 className: "w-full justify-center rounded-full",
               })}
             >
-              {user ? "My invoices" : "Login"}
+              Login
               <ArrowUpRight data-icon="inline-end" />
             </Link>
-            {user ? (
-              <LogoutButton onLoggedOut={() => setOpen(false)} />
-            ) : null}
           </div>
-        </div>
+        ) : null}
       </SheetContent>
     </Sheet>
   );

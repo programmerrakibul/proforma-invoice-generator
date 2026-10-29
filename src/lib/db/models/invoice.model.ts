@@ -1,9 +1,17 @@
 import { getModel } from "@/lib/db/model-helpers";
-import mongoose, { type InferSchemaType, type Model } from "mongoose";
+import {
+  INVOICE_CURRENCIES,
+  type InvoiceCurrency,
+} from "@/config/bank-accounts";
+import type { InvoiceGoodsDetail } from "@/data/goods";
+import mongoose, { type InferSchemaType, type PaginateModel } from "mongoose";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 export interface LineItem {
   _id?: mongoose.Types.ObjectId;
-  description: string;
+  fabric: string;
+  construction: string;
+  width: string;
   style: string;
   color: string;
   quantity: number;
@@ -24,26 +32,19 @@ export interface Buyer {
   address: string;
 }
 
-export interface InvoiceNotes {
-  goodsDeliveryDestination: string;
-  goodsOrigin: string;
-  advisingBank: string;
-  allowance: string;
-  packing: string;
-  shipmentDate: string;
-  payment: string;
-  partialShipment: string;
-  piValidity: string;
-}
+export type InvoiceNotes = InvoiceGoodsDetail[];
 
 export interface Invoice {
   _id: mongoose.Types.ObjectId;
   ownerId: mongoose.Types.ObjectId;
   piNumber: string;
+  piNumberVersion?: number;
   issueDate: Date;
-  currency: string;
-  status: "draft" | "ready" | "exported" | "archived";
+  deliveryDate?: Date;
+  currency: InvoiceCurrency;
+  status: "draft" | "exported";
   seller: Seller;
+  buyerId: mongoose.Types.ObjectId;
   buyer: Buyer;
   lineItems: LineItem[];
   subtotal: number;
@@ -57,7 +58,9 @@ export interface Invoice {
 
 const lineItemSchema = new mongoose.Schema<LineItem>(
   {
-    description: { type: String, required: true, trim: true },
+    fabric: { type: String, required: true, trim: true },
+    construction: { type: String, required: true, trim: true },
+    width: { type: String, required: true, trim: true },
     style: { type: String, required: true, trim: true },
     color: { type: String, required: true, trim: true },
     quantity: { type: Number, required: true, min: 0 },
@@ -65,6 +68,15 @@ const lineItemSchema = new mongoose.Schema<LineItem>(
     totalAmount: { type: Number, required: true, min: 0 },
   },
   { _id: true },
+);
+
+const invoiceGoodsDetailSchema = new mongoose.Schema<InvoiceGoodsDetail>(
+  {
+    key: { type: String, required: true, trim: true, maxlength: 100 },
+    label: { type: String, required: true, trim: true, maxlength: 100 },
+    value: { type: String, required: true, trim: true, maxlength: 2000 },
+  },
+  { _id: false },
 );
 
 const invoiceSchema = new mongoose.Schema<Invoice>(
@@ -75,12 +87,23 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
       required: true,
       index: true,
     },
-    piNumber: { type: String, required: true, trim: true },
+    piNumber: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    piNumberVersion: { type: Number, required: false },
     issueDate: { type: Date, required: true },
-    currency: { type: String, required: true, default: "USD" },
+    deliveryDate: { type: Date, required: false },
+    currency: {
+      type: String,
+      enum: [...INVOICE_CURRENCIES],
+      required: true,
+      default: "USD",
+    },
     status: {
       type: String,
-      enum: ["draft", "exported", "archived"],
+      enum: ["draft", "exported"],
       default: "draft",
       index: true,
     },
@@ -91,6 +114,12 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
       contactNumber: { type: String, required: true, trim: true },
       email: { type: String, required: true, trim: true },
     },
+    buyerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+      required: true,
+      index: true,
+    },
     buyer: {
       name: { type: String, required: true, trim: true },
       address: { type: String, required: true, trim: true },
@@ -99,25 +128,23 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
     subtotal: { type: Number, default: 0, min: 0 },
     totalQuantity: { type: Number, default: 0, min: 0 },
     totalAmount: { type: Number, default: 0, min: 0 },
-    notes: {
-      goodsDeliveryDestination: { type: String, required: true },
-      goodsOrigin: { type: String, required: true },
-      advisingBank: { type: String, required: true },
-      allowance: { type: String, required: true },
-      packing: { type: String, required: true },
-      shipmentDate: { type: String, required: true },
-      payment: { type: String, required: true },
-      partialShipment: { type: String, required: true },
-      piValidity: { type: String, required: true },
-    },
-    termsAndConditions: [{ type: String }],
+    notes: { type: [invoiceGoodsDetailSchema], default: [] },
+    termsAndConditions: [{ type: String, trim: true, maxlength: 1000 }],
   },
   { timestamps: true, collection: "invoice" },
 );
 
 invoiceSchema.index({ ownerId: 1, updatedAt: -1 });
 invoiceSchema.index({ ownerId: 1, status: 1, updatedAt: -1 });
-invoiceSchema.index({ ownerId: 1, piNumber: 1 });
+invoiceSchema.index({ ownerId: 1, piNumber: 1 }, { unique: true });
+invoiceSchema.index(
+  { piNumberVersion: 1, piNumber: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { piNumberVersion: 2 },
+    name: "unique_generated_pi_number",
+  },
+);
 
 invoiceSchema.set("toJSON", {
   virtuals: true,
@@ -129,8 +156,32 @@ invoiceSchema.set("toObject", {
   versionKey: false,
 });
 
-export const InvoiceModel = getModel("invoice", invoiceSchema) as Model<
+invoiceSchema.plugin(mongoosePaginate);
+
+export const InvoiceModel = getModel("invoice", invoiceSchema) as PaginateModel<
   InferSchemaType<typeof invoiceSchema>
 >;
 
 export type InvoiceDocument = InferSchemaType<typeof invoiceSchema>;
+
+let generatedPiNumberIndexPromise: Promise<string> | null = null;
+
+export async function ensureGeneratedPiNumberIndex(): Promise<void> {
+  if (!generatedPiNumberIndexPromise) {
+    generatedPiNumberIndexPromise = InvoiceModel.collection.createIndex(
+      { piNumberVersion: 1, piNumber: 1 },
+      {
+        unique: true,
+        partialFilterExpression: { piNumberVersion: 2 },
+        name: "unique_generated_pi_number",
+      },
+    );
+  }
+
+  try {
+    await generatedPiNumberIndexPromise;
+  } catch (error) {
+    generatedPiNumberIndexPromise = null;
+    throw error;
+  }
+}

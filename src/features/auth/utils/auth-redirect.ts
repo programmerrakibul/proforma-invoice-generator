@@ -1,4 +1,6 @@
-const DEFAULT_AUTH_REDIRECT = "/invoices";
+const DEFAULT_AUTH_REDIRECT = "/dashboard/invoices";
+
+const baseURL = process.env.BETTER_AUTH_URL;
 
 export function getSafeAuthRedirect(redirect: string | undefined): string {
   if (!redirect || !redirect.startsWith("/") || redirect.startsWith("//")) {
@@ -6,8 +8,8 @@ export function getSafeAuthRedirect(redirect: string | undefined): string {
   }
 
   try {
-    const parsed = new URL(redirect, "https://mmfabrics.local");
-    if (parsed.origin !== "https://mmfabrics.local") return DEFAULT_AUTH_REDIRECT;
+    const parsed = new URL(redirect, baseURL);
+    if (parsed.origin !== baseURL) return DEFAULT_AUTH_REDIRECT;
     if (parsed.pathname.startsWith("/auth/")) return DEFAULT_AUTH_REDIRECT;
     return `${parsed.pathname}${parsed.search}${parsed.hash}`;
   } catch {

@@ -2,9 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { buyerProfile } from "@/data/buyer";
-import { defaultNotes, defaultTermsAndConditions } from "@/data/invoice-static";
-import { createInvoiceAction } from "@/features/invoices/actions/create-invoice";
+import { defaultGoods, getDefaultGoodsDetails } from "@/data/goods";
+import { defaultTermsAndConditions } from "@/data/terms-and-conditions";
+import {
+  createInvoiceAction,
+  getNextPiNumber,
+} from "@/features/invoices/actions/create-invoice";
 import { exportInvoicePdfAction } from "@/features/invoices/actions/export-invoice-pdf";
 import { InvoiceForm } from "@/features/invoices/components/invoice-form";
 import { InvoicePreview } from "@/features/invoices/components/invoice-preview";
@@ -13,42 +16,45 @@ import {
   toInvoiceDocumentInput,
 } from "@/features/invoices/utils/build-invoice-document";
 import { downloadPdfFromBase64 } from "@/features/invoices/utils/download-pdf";
-import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { useSession } from "@/lib/auth-client";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { DownloadIcon, SaveIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import type { CreateInvoiceInput } from "../schemas/invoice.schema";
+import {
+  createInvoiceSchema,
+  type CreateInvoiceInput,
+  type InvoiceFormValues,
+} from "../schemas/invoice.schema";
 
-interface InvoiceGeneratorProps {
-  initValues?: Partial<CreateInvoiceInput>;
-  canSaveDraft: boolean;
+export interface InvoiceGeneratorProps {
+  customers: Array<{
+    id: string;
+    name: string;
+    address: string;
+    email?: string;
+    phone?: string;
+  }>;
 }
 
-export function InvoiceGenerator({
-  initValues,
-  canSaveDraft,
-}: InvoiceGeneratorProps) {
-  const methods = useForm<CreateInvoiceInput>({
+export function InvoiceGenerator({ customers }: InvoiceGeneratorProps) {
+  const router = useRouter();
+  const { data } = useSession();
+  const canSaveDraft = Boolean(data);
+  const methods = useForm<InvoiceFormValues, undefined, CreateInvoiceInput>({
+    resolver: zodResolver(createInvoiceSchema),
     defaultValues: {
-      piNumber: "MMF/001/26",
+      piNumber: "",
       issueDate: new Date().toISOString().split("T")[0],
       currency: "USD",
-      buyer: buyerProfile,
-      notes: defaultNotes,
-      termsAndConditions: defaultTermsAndConditions,
-      lineItems: [
-        {
-          description:
-            '35% Cotton 65% Polyester TC\nConstruction: 45x45/90x60\nWidth: 55/56"',
-          style: "Buyer: MAX DUBAI - B27MCSFEWB250B",
-          color: "Navy",
-          quantity: 1958,
-          unitPrice: 0.7,
-          totalPrice: 1370.6,
-        },
-      ],
-      ...initValues,
+      deliveryDate: undefined,
+      customerId: "",
+      buyer: { name: "", address: "" },
+      notes: getDefaultGoodsDetails("USD"),
+      termsAndConditions: [...defaultTermsAndConditions],
+      lineItems: defaultGoods,
     },
     mode: "onChange" as const,
   });
@@ -57,19 +63,42 @@ export function InvoiceGenerator({
     handleSubmit,
     control,
     getValues,
-    formState: { isSubmitting, isDirty },
+    setValue,
+    formState: { isSubmitting },
   } = methods;
+  const [piNumberStatus, setPiNumberStatus] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
+  const numberRequestStarted = useRef(false);
+
+  const generatePiNumber = useCallback(async (): Promise<void> => {
+    setPiNumberStatus("loading");
+    try {
+      const piNumber = await getNextPiNumber();
+      setValue("piNumber", piNumber, {
+        shouldDirty: false,
+        shouldValidate: true,
+      });
+      setPiNumberStatus("ready");
+    } catch {
+      setPiNumberStatus("error");
+      toast.error("Couldn’t generate an invoice number", {
+        description: "Please retry before saving or exporting this invoice.",
+      });
+    }
+  }, [setValue]);
+
+  useEffect(() => {
+    if (numberRequestStarted.current) return;
+    numberRequestStarted.current = true;
+    void generatePiNumber();
+  }, [generatePiNumber]);
 
   const watchedValues = useWatch({ control });
   const previewData = useMemo(
     () => buildInvoiceDocument(toInvoiceDocumentInput(watchedValues)),
     [watchedValues],
   );
-
-  useUnsavedChanges(isDirty, (event) => {
-    event.preventDefault();
-    event.returnValue = "";
-  });
 
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "saved" | "error"
@@ -99,6 +128,9 @@ export function InvoiceGenerator({
           });
         }
         setTimeout(() => setSaveStatus("idle"), 1500);
+
+        router.refresh();
+        router.push("/dashboard/invoices");
       } else {
         setSaveStatus("error");
         toast.error("Couldn’t save draft", { description: result.message });
@@ -129,6 +161,7 @@ export function InvoiceGenerator({
         setExportStatus("error");
         toast.error("PDF export failed", { description: result.message });
         setTimeout(() => setExportStatus("idle"), 2000);
+
         return;
       }
 
@@ -142,7 +175,10 @@ export function InvoiceGenerator({
           ? "The PDF is downloaded and the invoice is saved to your account."
           : "Your PDF is ready to share.",
       });
+
       setExportStatus("idle");
+      router.refresh();
+      router.push("/dashboard/invoices");
     } catch {
       setExportStatus("error");
       toast.error("PDF export failed", { description: "Please try again." });
@@ -153,21 +189,29 @@ export function InvoiceGenerator({
   return (
     <div className="grid min-h-[calc(100vh-13rem)] grid-cols-1 items-start gap-5 lg:grid-cols-2">
       <div className="min-w-0">
-        <Card className="overflow-hidden rounded-2xl border-border/70 shadow-sm">
+        <Card className="rounded-2xl border-border/70 shadow-sm">
           <CardContent className="p-4 sm:p-6">
             <FormProvider {...methods}>
               <form
                 onSubmit={handleSubmit(onSave)}
                 className="flex flex-col gap-6"
               >
-                <InvoiceForm />
+                <InvoiceForm
+                  customers={customers}
+                  piNumberStatus={piNumberStatus}
+                  onRetryPiNumber={() => void generatePiNumber()}
+                />
                 <div className="sticky bottom-0 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border/70 bg-card/95 px-4 pb-2 pt-4 backdrop-blur sm:-mx-6 sm:px-6">
                   {canSaveDraft ? (
                     <Button
                       type="submit"
                       variant="outline"
                       size="sm"
-                      disabled={isSubmitting || saveStatus === "saving"}
+                      disabled={
+                        piNumberStatus !== "ready" ||
+                        isSubmitting ||
+                        saveStatus === "saving"
+                      }
                     >
                       <SaveIcon data-icon="inline-start" />
                       {saveStatus === "saving"
@@ -181,7 +225,9 @@ export function InvoiceGenerator({
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={exportStatus === "exporting"}
+                    disabled={
+                      piNumberStatus !== "ready" || exportStatus === "exporting"
+                    }
                     onClick={onExportPdf}
                   >
                     <DownloadIcon data-icon="inline-start" />

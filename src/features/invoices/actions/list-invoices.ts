@@ -1,16 +1,28 @@
 "use server";
 
 import mongoose from "mongoose";
+import { z } from "zod";
 
+import type {
+  InvoiceDocumentData,
+  InvoiceDocumentNotes,
+  LegacyInvoiceDocumentNotes,
+} from "@/features/invoices/types";
 import { buildInvoiceDocument } from "@/features/invoices/utils/build-invoice-document";
-import type { InvoiceDocumentData, InvoiceDocumentNotes } from "@/features/invoices/types";
+import {
+  isInvoiceCurrency,
+  type InvoiceCurrency,
+} from "@/config/bank-accounts";
 import { requireUser } from "@/lib/auth/require-user";
-import { connectToDatabase } from "@/lib/db/mongoose";
 import { InvoiceModel } from "@/lib/db/models";
+import { connectToDatabase } from "@/lib/db/mongoose";
 import type { ActionResult } from "@/lib/validations/action-result";
 
 interface RawLineItem {
-  description: string;
+  fabric?: string;
+  construction?: string;
+  width?: string;
+  description?: string;
   style: string;
   color: string;
   quantity: number;
@@ -20,14 +32,16 @@ interface RawLineItem {
 
 interface RawInvoice {
   _id: mongoose.Types.ObjectId;
+  buyerId: mongoose.Types.ObjectId;
   piNumber: string;
   issueDate: Date;
+  deliveryDate?: Date;
   status: string;
   currency: string;
   buyer: { name: string; address: string; destinationCountry?: string };
   seller?: InvoiceDocumentData["seller"];
   lineItems: RawLineItem[];
-  notes?: Partial<InvoiceDocumentNotes>;
+  notes?: InvoiceDocumentNotes | LegacyInvoiceDocumentNotes;
   termsAndConditions?: string[];
   totalAmount: number;
   totalQuantity?: number;
@@ -36,11 +50,13 @@ interface RawInvoice {
 
 export interface InvoiceListItem {
   id: string;
+  customerId: string;
   invoiceNumber: string;
   issueDate: string;
-  status: "draft" | "ready" | "exported" | "archived";
+  deliveryDate?: string;
+  status: "draft" | "exported";
   buyerName: string;
-  currency: string;
+  currency: InvoiceCurrency;
   totalQuantity: number;
   totalUnitPrice: number;
   totalAmount: number;
@@ -55,17 +71,19 @@ export interface PaginatedInvoices {
   totalPages: number;
 }
 
-interface ListInvoicesInput {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  status?: "all" | "draft" | "ready" | "exported" | "archived";
-  sort?: string;
-}
+const listInvoicesInputSchema = z.object({
+  page: z.number().int().positive().optional(),
+  pageSize: z.number().int().positive().max(100).optional(),
+  search: z.string().trim().max(100).optional(),
+  status: z.enum(["all", "draft", "exported"]).optional(),
+  sort: z.enum(["newest", "oldest", "highest", "lowest"]).optional(),
+});
+
+export type ListInvoicesInput = z.infer<typeof listInvoicesInputSchema>;
 
 interface InvoiceQueryFilter {
   ownerId: mongoose.Types.ObjectId;
-  status?: "draft" | "ready" | "exported" | "archived";
+  status?: "draft" | "exported";
   $or?: Array<{ piNumber?: RegExp; "buyer.name"?: RegExp }>;
 }
 
@@ -73,42 +91,60 @@ export async function listInvoicesAction(
   input: ListInvoicesInput = {},
 ): Promise<ActionResult<PaginatedInvoices>> {
   try {
+    const validatedInput = listInvoicesInputSchema.parse(input);
     const user = await requireUser();
     await connectToDatabase();
 
-    const page = Math.max(1, input.page ?? 1);
-    const pageSize = Math.min(100, Math.max(1, input.pageSize ?? 10));
-    const skip = (page - 1) * pageSize;
+    const requestedPage = validatedInput.page ?? 1;
+    const pageSize = validatedInput.pageSize ?? 10;
     const ownerId = new mongoose.Types.ObjectId(user.id);
     const filter: InvoiceQueryFilter = { ownerId };
 
-    if (input.status && input.status !== "all") filter.status = input.status;
-    if (input.search) {
-      const escapedSearch = input.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (validatedInput.status && validatedInput.status !== "all") {
+      filter.status = validatedInput.status;
+    }
+    if (validatedInput.search) {
+      const escapedSearch = validatedInput.search.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&",
+      );
       const searchRegex = new RegExp(escapedSearch, "i");
       filter.$or = [{ piNumber: searchRegex }, { "buyer.name": searchRegex }];
     }
 
     const sort: Record<string, 1 | -1> = { updatedAt: -1 };
-    if (input.sort === "oldest") sort.updatedAt = 1;
-    if (input.sort === "highest") sort.totalAmount = -1;
-    if (input.sort === "lowest") sort.totalAmount = 1;
+    if (validatedInput.sort === "oldest") sort.updatedAt = 1;
+    if (validatedInput.sort === "highest") sort.totalAmount = -1;
+    if (validatedInput.sort === "lowest") sort.totalAmount = 1;
 
-    const [rawItems, total] = await Promise.all([
-      InvoiceModel.find(filter)
-        .sort(sort)
-        .skip(skip)
-        .limit(pageSize)
-        .lean<RawInvoice[]>(),
-      InvoiceModel.countDocuments(filter),
-    ]);
+    const pageResult = await InvoiceModel.paginate<RawInvoice>(filter, {
+      page: requestedPage,
+      limit: pageSize,
+      sort,
+      lean: true,
+    });
+    const totalPages = pageResult.totalPages;
+    const page = totalPages ? Math.min(pageResult.page ?? 1, totalPages) : 1;
+    const rawItems =
+      page === pageResult.page
+        ? pageResult.docs
+        : (
+            await InvoiceModel.paginate<RawInvoice>(filter, {
+              page,
+              limit: pageSize,
+              sort,
+              lean: true,
+            })
+          ).docs;
 
     const items: InvoiceListItem[] = rawItems.map((item) => {
       const issueDate = item.issueDate.toISOString();
+      const deliveryDate = item.deliveryDate?.toISOString();
       const preview = buildInvoiceDocument({
         piNumber: item.piNumber,
         issueDate,
-        currency: item.currency ?? "USD",
+        deliveryDate: item.deliveryDate,
+        currency: isInvoiceCurrency(item.currency) ? item.currency : "USD",
         seller: item.seller,
         buyer: item.buyer,
         lineItems: item.lineItems,
@@ -118,8 +154,10 @@ export async function listInvoicesAction(
 
       return {
         id: String(item._id),
+        customerId: String(item.buyerId),
         invoiceNumber: item.piNumber,
         issueDate,
+        ...(deliveryDate ? { deliveryDate } : {}),
         status: (item.status ?? "draft") as InvoiceListItem["status"],
         buyerName: item.buyer.name,
         currency: preview.currency,
@@ -134,10 +172,10 @@ export async function listInvoicesAction(
       ok: true,
       data: {
         items,
-        total,
+        total: pageResult.totalDocs,
         page,
         pageSize,
-        totalPages: Math.ceil(total / pageSize),
+        totalPages,
       },
       message: "Invoices loaded.",
     };

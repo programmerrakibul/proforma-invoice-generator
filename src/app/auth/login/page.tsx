@@ -1,17 +1,22 @@
 import { AuthPage } from "@/features/auth/components/auth-page";
 import { LoginForm } from "@/features/auth/components/login-form";
 import { getSafeAuthRedirect } from "@/features/auth/utils/auth-redirect";
-import { getCurrentUser } from "@/lib/auth/get-current-user";
-import { redirect as navigate } from "next/navigation";
+import type { JSX } from "react";
+
+type SearchParamValue = string | string[] | undefined;
 
 interface LoginPageProps {
-  searchParams: Promise<{ redirect?: string }>;
+  searchParams: Promise<Record<string, SearchParamValue>>;
 }
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { redirect } = await searchParams;
-  const destination = getSafeAuthRedirect(redirect ?? "/invoices");
-  if (await getCurrentUser()) navigate(destination);
+export default async function LoginPage({
+  searchParams,
+}: LoginPageProps): Promise<JSX.Element> {
+  const params = await searchParams;
+  const redirect = Array.isArray(params.redirect)
+    ? params.redirect[0]
+    : params.redirect;
+  const destination = getSafeAuthRedirect(redirect ?? "/dashboard/invoices");
 
   return (
     <AuthPage

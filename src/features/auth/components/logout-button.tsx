@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { createAuthClient } from "better-auth/client";
+import { signOut } from "@/lib/auth-client";
 import { LoaderCircle, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,8 +11,6 @@ interface LogoutButtonProps {
   compact?: boolean;
   onLoggedOut?: () => void;
 }
-
-const authClient = createAuthClient();
 
 export function LogoutButton({
   compact = false,
@@ -25,7 +23,7 @@ export function LogoutButton({
     setIsLoggingOut(true);
 
     try {
-      const result = await authClient.signOut();
+      const result = await signOut();
 
       if (result.error) {
         throw new Error(result.error.message ?? "Unable to log out.");
@@ -53,7 +51,9 @@ export function LogoutButton({
       title={compact ? "Log out" : undefined}
       disabled={isLoggingOut}
       onClick={handleLogout}
-      className={compact ? "rounded-full" : "w-full justify-center rounded-full"}
+      className={
+        compact ? "rounded-full" : "w-full justify-center rounded-full"
+      }
     >
       {isLoggingOut ? (
         <LoaderCircle className="animate-spin" aria-hidden="true" />
