@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { ErrorState } from "@/components/shared/error-state";
 
 export default function Error({
   error,
@@ -12,9 +12,11 @@ export default function Error({
   const message = (error as Error)?.message || "Something went wrong!";
 
   return (
-    <div>
-      <h2>{message}</h2>
-      <Button onClick={() => retry()}>Try again</Button>
-    </div>
+    <ErrorState
+      title={(error as Error)?.name || "Error"}
+      description={message}
+      onRetry={retry}
+      className="min-h-dvh w-full"
+    />
   );
 }
