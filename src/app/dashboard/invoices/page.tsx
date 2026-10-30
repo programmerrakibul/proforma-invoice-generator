@@ -3,15 +3,15 @@ import { ListToolbar } from "@/components/shared/list-toolbar";
 import { buttonVariants } from "@/components/ui/button";
 import { listInvoicesAction } from "@/features/invoices/actions/list-invoices";
 import { InvoiceListTable } from "@/features/invoices/components/invoice-list-table";
-import { FilePlus2 } from "lucide-react";
-import Link from "next/link";
-import { connection } from "next/server";
 import {
   readEnumSearchParam,
   readPositiveInteger,
   readSearchParam,
   type SearchParamsRecord,
 } from "@/lib/utils/list-query";
+import { FilePlus2 } from "lucide-react";
+import Link from "next/link";
+import { connection } from "next/server";
 
 type InvoiceStatusFilter = "all" | "draft" | "exported";
 type InvoiceSort = "newest" | "oldest" | "highest" | "lowest";
@@ -38,8 +38,6 @@ export default async function InvoicesPage({
   );
   const query = { search, status, sort };
   const result = await listInvoicesAction({ page, pageSize: 12, ...query });
-
-
 
   return (
     <section className="min-w-0 py-6 sm:py-10 lg:py-14">
