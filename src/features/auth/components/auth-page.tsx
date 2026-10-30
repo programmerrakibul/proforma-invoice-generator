@@ -1,6 +1,5 @@
 import {
   ArrowLeft,
-  ArrowUpRight,
   Check,
   FileText,
   ShieldCheck,
@@ -13,9 +12,6 @@ interface AuthPageProps {
   eyebrow: string;
   title: string;
   description: string;
-  footerText: string;
-  footerHref: string;
-  footerLinkText: string;
   children: ReactNode;
 }
 
@@ -29,9 +25,6 @@ export function AuthPage({
   eyebrow,
   title,
   description,
-  footerText,
-  footerHref,
-  footerLinkText,
   children,
 }: AuthPageProps) {
   return (
@@ -96,19 +89,6 @@ export function AuthPage({
             </p>
           </div>
           {children}
-          <p className="mt-7 text-center text-sm text-muted-foreground">
-            {footerText}{" "}
-            <Link
-              href={footerHref}
-              className="font-semibold text-primary transition-colors hover:text-primary/80"
-            >
-              {footerLinkText}
-              <ArrowUpRight className="ml-1 inline size-3.5" />
-            </Link>
-          </p>
-          <p className="mt-10 text-center text-xs text-muted-foreground">
-            By continuing, you agree to keep your account details secure.
-          </p>
         </section>
       </div>
     </main>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { setIsSidebarOpen } from "@/features/invoices/store/invoice-ui.slice";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { RootState } from "@/store/index";
-import { ChevronRight, FileText, LayoutDashboard, Users } from "lucide-react";
+import { FileText, LayoutDashboard, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
@@ -41,26 +41,6 @@ export function AppSidebar() {
       ].join(" ")}
       aria-label="Main navigation"
     >
-      <div className="flex h-12 items-center justify-between px-4 border-b border-border">
-        <div className="flex items-center gap-2">
-          <span className=" font-bold text-ink tracking-tight text-xs md:text-sm">
-            M.M
-          </span>
-          <span className=" font-bold text-ink tracking-tight text-xs md:text-sm">
-            FABRICS
-          </span>
-        </div>
-        {isTablet && !isSidebarOpen && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => dispatch(setIsSidebarOpen(true))}
-            aria-label="Open navigation"
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        )}
-      </div>
       <nav className="flex-1 flex flex-col gap-1 px-2 pt-4">
         {NAVIGATION.map((item) => {
           const Icon = item.icon;

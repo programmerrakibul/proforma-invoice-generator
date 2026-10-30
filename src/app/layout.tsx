@@ -1,4 +1,3 @@
-import { SiteHeader } from "@/components/layout/site-header";
 import { Providers } from "@/components/providers";
 import { cn } from "@/lib/utils";
 import { StoreProvider } from "@/store/provider";
@@ -46,10 +45,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <Providers>
-          <StoreProvider>
-            <SiteHeader />
-            {children}
-          </StoreProvider>
+          <StoreProvider>{children}</StoreProvider>
         </Providers>
       </body>
     </html>
