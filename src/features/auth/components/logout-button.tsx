@@ -31,7 +31,7 @@ export function LogoutButton({
 
       onLoggedOut?.();
       toast.success("You have logged out.");
-      router.replace("/");
+      router.replace("/auth/login");
       router.refresh();
     } catch (error: unknown) {
       toast.error(
@@ -45,7 +45,7 @@ export function LogoutButton({
   return (
     <Button
       type="button"
-      variant={compact ? "ghost" : "outline"}
+      variant={"destructive"}
       size={compact ? "icon" : "default"}
       aria-label={compact ? "Log out" : undefined}
       title={compact ? "Log out" : undefined}

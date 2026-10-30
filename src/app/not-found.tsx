@@ -1,6 +1,6 @@
 import Container from "@/components/shared/container";
 import { buttonVariants } from "@/components/ui/button";
-import { ArrowRight, FileQuestion } from "lucide-react";
+import { ArrowRight, FileQuestion, LayoutDashboardIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function NotFound() {
@@ -22,12 +22,26 @@ export default function NotFound() {
             familiar place and continue working on your invoices.
           </p>
           <div className="mt-8 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
-            <Link href="/" className={buttonVariants({ className: "h-10 rounded-full px-5" })}>
-              Home
+            <Link
+              href="/auth/login"
+              className={buttonVariants({
+                className: "rounded-full px-5",
+                size: "lg",
+              })}
+            >
+              <span>Login</span>
               <ArrowRight data-icon="inline-end" />
             </Link>
-            <Link href="/dashboard/invoices/new" className={buttonVariants({ variant: "secondary", className: "h-10 rounded-full px-5" })}>
-              Create invoice
+            <Link
+              href="/dashboard/invoices"
+              className={buttonVariants({
+                variant: "secondary",
+                className: "rounded-full px-5",
+                size: "lg",
+              })}
+            >
+              <LayoutDashboardIcon />
+              <span>Dashboard</span>
             </Link>
           </div>
         </div>

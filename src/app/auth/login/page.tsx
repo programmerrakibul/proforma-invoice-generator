@@ -23,9 +23,6 @@ export default async function LoginPage({
       eyebrow="Welcome back"
       title="Sign in to your workspace"
       description="Pick up where you left off and keep every invoice moving."
-      footerText="New to M.M FABRICS?"
-      footerHref="/auth/register"
-      footerLinkText="Create an account"
     >
       <LoginForm redirectTo={destination} />
     </AuthPage>

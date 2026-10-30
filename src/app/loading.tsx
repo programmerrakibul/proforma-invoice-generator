@@ -66,7 +66,10 @@ export default function GlobalLoading() {
             <Skeleton className="h-12 rounded-xl" />
             <Skeleton className="h-12 rounded-xl" />
           </div>
-          <div className="mt-5 flex items-center justify-center gap-2" aria-hidden="true">
+          <div
+            className="mt-5 flex items-center justify-center gap-2"
+            aria-hidden="true"
+          >
             <span className="size-1.5 rounded-full bg-primary motion-safe:animate-pulse motion-reduce:animate-none" />
             <span className="size-1.5 rounded-full bg-primary/70 motion-safe:animate-pulse motion-reduce:animate-none motion-safe:[animation-delay:150ms]" />
             <span className="size-1.5 rounded-full bg-primary/40 motion-safe:animate-pulse motion-reduce:animate-none motion-safe:[animation-delay:300ms]" />

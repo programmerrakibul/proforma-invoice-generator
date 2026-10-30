@@ -1,8 +1,8 @@
 "use client";
 
 import logoImage from "@/assets/logo.png";
-import { buttonVariants } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -16,21 +16,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { companyProfile } from "@/data/company";
 import { LogoutButton } from "@/features/auth/components/logout-button";
 import { useSession } from "@/lib/auth-client";
-import { ArrowUpRight, LayoutDashboard, ReceiptText } from "lucide-react";
+import { ArrowUpRight, PlusIcon, ReceiptText } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import Container from "../shared/container";
 import { Spinner } from "../ui/spinner";
 import { MobileNavigation } from "./mobile-navigation";
-
-const NAVIGATION = [
-  { href: "/", label: "Home" },
-  { href: "/#features", label: "Features" },
-  { href: "/#how-it-works", label: "How it works" },
-];
 
 export function SiteHeader() {
   const { data, isPending } = useSession();
@@ -63,25 +58,11 @@ export function SiteHeader() {
             />
           </span>
           <span className="truncate text-[11px] font-semibold tracking-[0.12em] sm:text-sm sm:tracking-[0.16em]">
-            M.M FABRICS
+            {companyProfile.companyName}
           </span>
         </Link>
-        <nav
-          className="hidden items-center gap-4 xl:gap-5 lg:flex"
-          aria-label="Main navigation"
-        >
-          {NAVIGATION.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="whitespace-nowrap text-xs text-muted-foreground transition-colors hover:text-foreground xl:text-sm"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
         <div className="flex items-center justify-end gap-1.5 sm:gap-2 lg:col-start-3">
-          <div className="lg:hidden">
+          <div className="md:hidden">
             <MobileNavigation />
           </div>
           {isPending ? (
@@ -116,12 +97,12 @@ export function SiteHeader() {
                   </CardHeader>
                   <CardContent className="flex flex-col gap-1 px-2 pb-2">
                     <Link
-                      href="/dashboard"
+                      href="/dashboard/invoices/new"
                       onClick={() => setAccountMenuOpen(false)}
                       className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground transition-colors hover:bg-muted"
                     >
-                      <LayoutDashboard aria-hidden="true" />
-                      Dashboard
+                      <PlusIcon aria-hidden="true" />
+                      Create Invoice
                     </Link>
                     <Link
                       href="/dashboard/invoices"
