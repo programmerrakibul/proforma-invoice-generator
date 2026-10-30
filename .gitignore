@@ -33,6 +33,7 @@ dev.log
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -41,4 +42,3 @@ dev.log
 *.tsbuildinfo
 next-env.d.ts
 
-.vercel
