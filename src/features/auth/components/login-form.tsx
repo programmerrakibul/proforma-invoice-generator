@@ -11,7 +11,7 @@ import { signIn } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -19,7 +19,11 @@ interface LoginFormProps {
   redirectTo: string;
 }
 
-export function LoginForm({ redirectTo = "/dashboard/invoices" }: LoginFormProps) {
+export function LoginForm({
+  redirectTo = "/dashboard/invoices",
+}: LoginFormProps) {
+  const [isRedirecting, startTransition] = useTransition();
+
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
@@ -30,6 +34,7 @@ export function LoginForm({ redirectTo = "/dashboard/invoices" }: LoginFormProps
     resolver: zodResolver(loginSchema),
     mode: "onBlur",
   });
+  const isLoading = isSubmitting || isRedirecting;
 
   const onSubmit = async (values: LoginFormValues): Promise<void> => {
     setServerError(null);
@@ -49,8 +54,10 @@ export function LoginForm({ redirectTo = "/dashboard/invoices" }: LoginFormProps
         description: "You are signed in and ready to go.",
       });
 
-      router.replace(redirectTo);
-      router.refresh();
+      startTransition(() => {
+        router.replace(redirectTo);
+        router.refresh();
+      });
     } catch (error: unknown) {
       setServerError(
         error instanceof Error
@@ -78,6 +85,7 @@ export function LoginForm({ redirectTo = "/dashboard/invoices" }: LoginFormProps
         type="email"
         autoComplete="email"
         placeholder="you@company.com"
+        disabled={isLoading}
         error={errors.email?.message}
         {...register("email")}
       />
@@ -88,19 +96,20 @@ export function LoginForm({ redirectTo = "/dashboard/invoices" }: LoginFormProps
         type="password"
         autoComplete="current-password"
         placeholder="Enter your password"
+        disabled={isLoading}
         error={errors.password?.message}
         {...register("password")}
       />
 
       <Button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isLoading}
         className="mt-1 h-11 w-full rounded-xl text-sm font-semibold shadow-md shadow-primary/15"
       >
-        {isSubmitting ? (
+        {isLoading ? (
           <>
             <LoaderCircle className="animate-spin" data-icon="inline-start" />{" "}
-            Signing in…
+            {isRedirecting ? "Redirecting…" : "Signing in…"}
           </>
         ) : (
           <>
