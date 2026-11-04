@@ -35,7 +35,7 @@ export function LogoutButton({
       router.refresh();
     } catch (error: unknown) {
       toast.error(
-        error instanceof Error ? error.message : "Unable to log out.",
+        error instanceof Error ? error.message : "Unable to log out."
       );
     } finally {
       setIsLoggingOut(false);

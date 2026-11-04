@@ -19,12 +19,12 @@ export default async function CustomersPage({
   const sort = readEnumSearchParam(
     params.sort,
     ["name", "oldest", "newest"],
-    "newest",
+    "newest"
   );
   const filter = readEnumSearchParam(
     params.filter,
     ["email", "phone", "all"],
-    "all",
+    "all"
   );
   const page = readPositiveInteger(params.page);
   const query: {

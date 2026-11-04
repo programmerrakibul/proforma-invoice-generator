@@ -46,7 +46,7 @@ export function LoginForm({
       if (result.error) {
         throw new Error(
           result.error.message ??
-            "Check your email and password, then try again.",
+            "Check your email and password, then try again."
         );
       }
 
@@ -62,7 +62,7 @@ export function LoginForm({
       setServerError(
         error instanceof Error
           ? error.message
-          : "We couldn’t sign you in. Please try again.",
+          : "We couldn’t sign you in. Please try again."
       );
     }
   };

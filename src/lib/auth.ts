@@ -1,5 +1,5 @@
-import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "@better-auth/mongo-adapter";
+import { betterAuth } from "better-auth";
 import { MongoClient } from "mongodb";
 
 /**
@@ -28,6 +28,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
+    disableSignUp: true,
   },
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days

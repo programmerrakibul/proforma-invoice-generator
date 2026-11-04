@@ -40,7 +40,7 @@ export const invoiceLineItemSchema = z.object({
         /^\d+(?:\.\d+)?$/.test(value) &&
         Number(value) >= 40 &&
         Number(value) <= 80,
-      "Width must be a number from 40 to 80 inches.",
+      "Width must be a number from 40 to 80 inches."
     ),
   style: z
     .string()
@@ -76,7 +76,7 @@ export const createInvoiceSchema = z.object({
     .min(1, "Issue date is required.")
     .refine(
       (value) => !Number.isNaN(Date.parse(value)),
-      "Enter a valid issue date.",
+      "Enter a valid issue date."
     ),
   deliveryDate: z.coerce.date<string | Date>().optional(),
   currency: z.enum(INVOICE_CURRENCIES).default("USD"),
@@ -102,7 +102,7 @@ export const createInvoiceSchema = z.object({
         .string()
         .trim()
         .min(1, "Terms cannot be empty.")
-        .max(1000, "Each term must be 1000 characters or fewer."),
+        .max(1000, "Each term must be 1000 characters or fewer.")
     )
     .max(30, "Use 30 terms or fewer."),
 });

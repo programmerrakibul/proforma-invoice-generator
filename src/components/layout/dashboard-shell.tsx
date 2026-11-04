@@ -13,7 +13,7 @@ interface DashboardShellProps {
 
 export function DashboardShell({ children }: DashboardShellProps) {
   const isSidebarOpen = useSelector(
-    (state: RootState) => state.invoiceUi.isSidebarOpen,
+    (state: RootState) => state.invoiceUi.isSidebarOpen
   );
 
   return (
@@ -23,7 +23,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
       <main
         className={cn(
           "min-h-[calc(100vh-4rem)] lg:pl-60",
-          isSidebarOpen ? "md:pl-60" : "md:pl-16",
+          isSidebarOpen ? "md:pl-60" : "md:pl-16"
         )}
       >
         {children}

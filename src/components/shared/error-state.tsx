@@ -18,7 +18,7 @@ export function ErrorState({
     <div
       className={cn(
         "flex flex-col items-center justify-center h-64 gap-3 text-center px-4",
-        className,
+        className
       )}
     >
       <h2 className="text-sm font-heading font-medium text-destructive">

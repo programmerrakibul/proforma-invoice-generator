@@ -1,7 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export function ConfirmDialog({
   open,
@@ -28,7 +35,11 @@ export function ConfirmDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+          >
             {cancelLabel}
           </Button>
           <Button

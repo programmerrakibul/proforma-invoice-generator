@@ -25,7 +25,7 @@ const NAVIGATION = [
 
 export function AppSidebar() {
   const isSidebarOpen = useSelector(
-    (state: RootState) => state.invoiceUi.isSidebarOpen,
+    (state: RootState) => state.invoiceUi.isSidebarOpen
   );
   const dispatch = useDispatch();
   const pathname = usePathname();

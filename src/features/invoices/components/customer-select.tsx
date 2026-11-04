@@ -34,7 +34,7 @@ const CustomerSelect = ({ customers }: CustomerSelectProps) => {
           {...register("customerId", {
             onChange: (event) => {
               const customer = customers.find(
-                (item) => item.id === event.target.value,
+                (item) => item.id === event.target.value
               );
               if (customer) {
                 setValue("buyer.name", customer.name, {
@@ -45,7 +45,7 @@ const CustomerSelect = ({ customers }: CustomerSelectProps) => {
                 });
                 const notes = getValues("notes");
                 const destinationIndex = notes.findIndex(
-                  (note) => note.key === "goodsDeliveryDestination",
+                  (note) => note.key === "goodsDeliveryDestination"
                 );
                 if (destinationIndex >= 0) {
                   setValue(`notes.${destinationIndex}.value`, customer.name, {
@@ -54,13 +54,22 @@ const CustomerSelect = ({ customers }: CustomerSelectProps) => {
                   });
                 } else {
                   const destination = getDefaultGoodsDetails(
-                    getValues("currency") ?? "USD",
+                    getValues("currency") ?? "USD"
                   ).find((note) => note.key === "goodsDeliveryDestination");
                   if (destination) {
                     setValue(
                       "notes",
-                      [...notes, { ...destination, value: customer.name }],
-                      { shouldDirty: true, shouldValidate: true },
+                      [
+                        ...notes,
+                        {
+                          ...destination,
+                          value: customer.name,
+                        },
+                      ],
+                      {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      }
                     );
                   }
                 }

@@ -51,11 +51,11 @@ export function ColorSuggestInput({
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const matches = hasTyped
     ? colorOptions.filter((color) =>
-        color.toLocaleLowerCase().includes(normalizedQuery),
+        color.toLocaleLowerCase().includes(normalizedQuery)
       )
     : colorOptions;
   const exactMatch = colorOptions.some(
-    (color) => color.toLocaleLowerCase() === normalizedQuery,
+    (color) => color.toLocaleLowerCase() === normalizedQuery
   );
 
   useEffect(() => {

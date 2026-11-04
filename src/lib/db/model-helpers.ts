@@ -6,7 +6,7 @@ import mongoose from "mongoose";
  */
 export function getModel<T>(
   name: string,
-  schema: mongoose.Schema<T>,
+  schema: mongoose.Schema<T>
 ): mongoose.Model<T> {
   const existing = mongoose.models[name];
   if (existing) {

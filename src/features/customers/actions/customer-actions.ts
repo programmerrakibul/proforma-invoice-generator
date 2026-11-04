@@ -49,7 +49,7 @@ const querySchema = z.object({
 export type CustomerListQuery = z.input<typeof querySchema>;
 
 export async function createCustomerAction(
-  input: CreateCustomerInput,
+  input: CreateCustomerInput
 ): Promise<ActionResult<{ customerId: string }>> {
   try {
     const values = createCustomerSchema.parse(input);
@@ -73,13 +73,13 @@ export async function createCustomerAction(
 
 export async function updateCustomerAction(
   customerId: string,
-  input: CreateCustomerInput,
+  input: CreateCustomerInput
 ): Promise<ActionResult<{ customerId: string }>> {
   const parsed = createCustomerSchema.safeParse(input);
   if (!parsed.success) {
     return zodErrorToActionResult(
       parsed.error,
-      "Please fix the customer details.",
+      "Please fix the customer details."
     );
   }
 
@@ -96,7 +96,7 @@ export async function updateCustomerAction(
         email: parsed.data.email ?? "",
         phone: parsed.data.phone ?? "",
       },
-      { new: true, runValidators: true },
+      { new: true, runValidators: true }
     );
 
     if (!customer) {
@@ -118,7 +118,7 @@ export async function updateCustomerAction(
 }
 
 export async function listCustomersAction(
-  input: CustomerListQuery = {},
+  input: CustomerListQuery = {}
 ): Promise<ActionResult<CustomerPageResult>> {
   try {
     const values = querySchema.parse(input);
@@ -128,7 +128,7 @@ export async function listCustomersAction(
     if (values.search) {
       const regex = new RegExp(
         values.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-        "i",
+        "i"
       );
 
       const fields: Array<"name" | "address" | "email" | "phone"> =

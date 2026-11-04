@@ -23,7 +23,7 @@ import { ColorSuggestInput } from "./color-suggest-input";
 import FabricSuggestInput from "./fabric-suggest-input";
 
 const widthOptions: string[] = Array.from({ length: 41 }, (_, index) =>
-  String(index + 40),
+  String(index + 40)
 );
 
 export function InvoiceLineItems() {
@@ -66,7 +66,7 @@ export function InvoiceLineItems() {
         Number.isFinite(item.quantity) &&
         item.quantity >= 1 &&
         Number.isFinite(item.unitPrice) &&
-        item.unitPrice > 0,
+        item.unitPrice > 0
     );
 
   return (
@@ -157,7 +157,7 @@ export function InvoiceLineItems() {
                 <Input
                   id={`lineItems.${index}.construction`}
                   aria-invalid={Boolean(
-                    errors.lineItems?.[index]?.construction,
+                    errors.lineItems?.[index]?.construction
                   )}
                   {...register(`lineItems.${index}.construction`)}
                   placeholder="e.g. 20x20/108x58"

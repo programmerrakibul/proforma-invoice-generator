@@ -1,9 +1,9 @@
 import "server-only";
 
+import { getDefaultGoodsDetails } from "@/data/goods";
 import type { CreateInvoiceInput } from "@/features/invoices/schemas/invoice.schema";
 import { DEFAULT_SELLER } from "@/features/invoices/utils/build-invoice-document";
 import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
-import { getDefaultGoodsDetails } from "@/data/goods";
 import {
   CustomerModel,
   ensureGeneratedPiNumberIndex,
@@ -18,16 +18,20 @@ export async function persistInvoice(
   ownerId: string,
   input: CreateInvoiceInput,
   status: PersistedInvoiceStatus,
-  invoiceId?: string,
+  invoiceId?: string
 ): Promise<string> {
   await connectToDatabase();
+
   if (isGeneratedPiNumber(input.piNumber)) {
     await ensureGeneratedPiNumberIndex();
   }
+
   const existingInvoice = invoiceId
     ? await InvoiceModel.findOne({ _id: invoiceId, ownerId }).select("piNumber")
     : null;
+
   if (invoiceId && !existingInvoice) throw new Error("Invoice not found.");
+
   if (
     !isGeneratedPiNumber(input.piNumber) &&
     (!existingInvoice || existingInvoice.piNumber !== input.piNumber)
@@ -39,21 +43,24 @@ export async function persistInvoice(
   const customer = await CustomerModel.findOne({
     _id: input.customerId,
   }).lean();
+
   if (!customer) throw new Error("Customer not found.");
+
   const totalQuantity = totals.lineItems.reduce(
     (sum, item) => sum + item.quantity,
-    0,
+    0
   );
   const notes = input.notes.map((note) => ({ ...note }));
   const destinationIndex = notes.findIndex(
-    (note) => note.key === "goodsDeliveryDestination",
+    (note) => note.key === "goodsDeliveryDestination"
   );
   if (destinationIndex >= 0) {
     notes[destinationIndex].value = customer.name;
   } else {
     const destination = getDefaultGoodsDetails(input.currency).find(
-      (note) => note.key === "goodsDeliveryDestination",
+      (note) => note.key === "goodsDeliveryDestination"
     );
+
     if (destination) {
       notes.unshift({ ...destination, value: customer.name });
     }
@@ -95,7 +102,7 @@ export async function persistInvoice(
         $set: invoiceValues,
         ...(input.deliveryDate ? {} : { $unset: { deliveryDate: "" } }),
       },
-      { new: true, runValidators: true },
+      { new: true, runValidators: true }
     );
     if (!updatedInvoice) throw new Error("Invoice not found.");
     return String(updatedInvoice._id);

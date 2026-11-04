@@ -10,12 +10,12 @@ import { useDispatch, useSelector } from "react-redux";
 
 export function MobileNav() {
   const isSidebarOpen = useSelector(
-    (state: RootState) => state.invoiceUi.isSidebarOpen,
+    (state: RootState) => state.invoiceUi.isSidebarOpen
   );
   const dispatch = useDispatch();
   const isMobile = useMediaQuery("(max-width: 767px)");
   const isTabletCollapsed = useMediaQuery(
-    "(min-width: 768px) and (max-width: 1023px)",
+    "(min-width: 768px) and (max-width: 1023px)"
   );
 
   if (!isMobile && !isTabletCollapsed) return null;

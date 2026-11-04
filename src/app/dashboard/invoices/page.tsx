@@ -29,12 +29,12 @@ export default async function InvoicesPage({
   const status: InvoiceStatusFilter = readEnumSearchParam(
     params.status,
     ["all", "draft", "exported"],
-    "all",
+    "all"
   );
   const sort: InvoiceSort = readEnumSearchParam(
     params.sort,
     ["newest", "oldest", "highest", "lowest"],
-    "newest",
+    "newest"
   );
   const query = { search, status, sort };
   const result = await listInvoicesAction({ page, pageSize: 12, ...query });

@@ -9,7 +9,7 @@ const customerSchema = new mongoose.Schema(
     email: { type: String, trim: true, lowercase: true },
     phone: { type: String, trim: true },
   },
-  { timestamps: true, collection: "customer" },
+  { timestamps: true, collection: "customer" }
 );
 customerSchema.set("toJSON", { virtuals: true, versionKey: false });
 customerSchema.set("toObject", { virtuals: true, versionKey: false });
@@ -18,6 +18,6 @@ customerSchema.plugin(mongoosePaginate);
 
 export const CustomerModel = getModel(
   "Customer",
-  customerSchema,
+  customerSchema
 ) as PaginateModel<InferSchemaType<typeof customerSchema>>;
 export type CustomerDocument = InferSchemaType<typeof customerSchema>;

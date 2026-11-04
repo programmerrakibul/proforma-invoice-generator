@@ -1,11 +1,8 @@
 "use client";
 
-import { INVOICE_CURRENCIES, isInvoiceCurrency } from "@/config/bank-accounts";
-import { getBankAccountDetails, getPaymentTerms } from "@/data/bank-accounts";
-import { defaultTermsAndConditions } from "@/data/terms-and-conditions";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
@@ -26,8 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { InvoiceNotesAndTerms } from "@/features/invoices/components/invoice-notes-and-terms";
+import { INVOICE_CURRENCIES, isInvoiceCurrency } from "@/config/bank-accounts";
+import { getBankAccountDetails, getPaymentTerms } from "@/data/bank-accounts";
+import { defaultTermsAndConditions } from "@/data/terms-and-conditions";
 import { InvoiceLineItems } from "@/features/invoices/components/invoice-line-items";
+import { InvoiceNotesAndTerms } from "@/features/invoices/components/invoice-notes-and-terms";
 import type { InvoiceFormValues } from "@/features/invoices/schemas/invoice.schema";
 import { format } from "date-fns";
 import { Building2, CalendarDays, Hash } from "lucide-react";
@@ -36,8 +36,6 @@ import { Controller, useFormContext, useWatch } from "react-hook-form";
 import CustomerSelect from "./customer-select";
 
 export interface InvoiceFormProps {
-  piNumberStatus: "loading" | "ready" | "error";
-  onRetryPiNumber: () => void;
   customers: Array<{
     id: string;
     name: string;
@@ -55,7 +53,7 @@ function getLocalDate(value?: string | Date): Date | undefined {
       : new Date(
           value.getUTCFullYear(),
           value.getUTCMonth(),
-          value.getUTCDate(),
+          value.getUTCDate()
         );
   }
   const parsed = new Date(value);
@@ -64,15 +62,11 @@ function getLocalDate(value?: string | Date): Date | undefined {
     : new Date(
         parsed.getUTCFullYear(),
         parsed.getUTCMonth(),
-        parsed.getUTCDate(),
+        parsed.getUTCDate()
       );
 }
 
-export function InvoiceForm({
-  customers,
-  piNumberStatus,
-  onRetryPiNumber,
-}: InvoiceFormProps) {
+export function InvoiceForm({ customers }: InvoiceFormProps) {
   const {
     control,
     getValues,
@@ -89,13 +83,13 @@ export function InvoiceForm({
     previousCurrency.current = currency;
     const notes = getValues("notes");
     const bankNoteIndex = notes.findIndex(
-      (note) => note.key === "advisingBank",
+      (note) => note.key === "advisingBank"
     );
     if (bankNoteIndex >= 0) {
       setValue(
         `notes.${bankNoteIndex}.value`,
         getBankAccountDetails(currency),
-        { shouldDirty: true, shouldValidate: true },
+        { shouldDirty: true, shouldValidate: true }
       );
     }
     const paymentNoteIndex = notes.findIndex((note) => note.key === "payment");
@@ -140,24 +134,8 @@ export function InvoiceForm({
                 id="piNumber"
                 readOnly
                 aria-invalid={Boolean(errors.piNumber)}
-                placeholder={
-                  piNumberStatus === "loading"
-                    ? "Generating invoice number…"
-                    : "Invoice number unavailable"
-                }
                 {...register("piNumber")}
               />
-              {piNumberStatus === "error" ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="self-start"
-                  onClick={onRetryPiNumber}
-                >
-                  Retry number generation
-                </Button>
-              ) : null}
               {errors.piNumber?.message ? (
                 <p className="text-xs text-destructive">
                   {errors.piNumber.message}
@@ -258,7 +236,7 @@ export function InvoiceForm({
                           selected={selectedDate}
                           onSelect={(date) =>
                             field.onChange(
-                              date ? format(date, "yyyy-MM-dd") : undefined,
+                              date ? format(date, "yyyy-MM-dd") : undefined
                             )
                           }
                         />
