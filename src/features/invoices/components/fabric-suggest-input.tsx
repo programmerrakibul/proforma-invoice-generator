@@ -12,7 +12,7 @@ interface FabricSuggestInputProps {
 }
 
 const fabricOptions: string[] = Array.from(
-  new Set(fabrics.map((item) => item.fabric)),
+  new Set(fabrics.map((item) => item.fabric))
 );
 
 function FabricSuggestInput({
@@ -30,11 +30,11 @@ function FabricSuggestInput({
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const matches = hasTyped
     ? fabricOptions.filter((fabric) =>
-        fabric.toLocaleLowerCase().includes(normalizedQuery),
+        fabric.toLocaleLowerCase().includes(normalizedQuery)
       )
     : fabricOptions;
   const exactMatch = fabricOptions.some(
-    (fabric) => fabric.toLocaleLowerCase() === normalizedQuery,
+    (fabric) => fabric.toLocaleLowerCase() === normalizedQuery
   );
 
   useEffect(() => {

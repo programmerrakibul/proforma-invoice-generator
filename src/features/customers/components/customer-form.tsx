@@ -62,7 +62,7 @@ export function CustomerForm({ customer, onSaved }: CustomerFormProps) {
       router.refresh();
     } catch (error: unknown) {
       toast.error(
-        error instanceof Error ? error.message : "Unable to save customer.",
+        error instanceof Error ? error.message : "Unable to save customer."
       );
     } finally {
       setSaving(false);

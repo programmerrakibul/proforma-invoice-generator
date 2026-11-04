@@ -64,7 +64,7 @@ export function MobileNavigation() {
               >
                 {item.label}
               </Link>
-            ),
+            )
           )}
         </nav>
         <div className="mt-auto border-t border-border p-4">

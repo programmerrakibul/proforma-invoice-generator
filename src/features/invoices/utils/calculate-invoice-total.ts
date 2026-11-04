@@ -54,7 +54,7 @@ function roundToCents(scaled: number, totalDecimals: number): number {
  */
 export function calculateLineItemTotal(
   quantity: number,
-  unitPrice: number,
+  unitPrice: number
 ): number {
   const q = scaleDecimal(quantity);
   const p = scaleDecimal(unitPrice);
@@ -89,7 +89,7 @@ export function calculateInvoiceTotals<
   });
 
   const subtotal = roundMoney(
-    lineTotals.reduce((sum, item) => sum + item.totalAmount, 0),
+    lineTotals.reduce((sum, item) => sum + item.totalAmount, 0)
   );
   const totalAmount = roundMoney(subtotal);
 

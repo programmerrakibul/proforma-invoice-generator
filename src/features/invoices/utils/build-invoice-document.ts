@@ -49,7 +49,7 @@ function getLegacyDescriptionParts(description?: string): {
 } {
   const lines = description?.split(/\r?\n/) ?? [];
   const constructionLine = lines.find((line) =>
-    /^construction\s*:/i.test(line.trim()),
+    /^construction\s*:/i.test(line.trim())
   );
   const widthLine = lines.find((line) => /^width\s*:/i.test(line.trim()));
 
@@ -81,7 +81,7 @@ export function formatInvoiceDate(value?: string | Date): string {
 function normalizeInvoiceNotes(
   notes: InvoiceDocumentNotesInput | LegacyInvoiceDocumentNotes | undefined,
   currency: InvoiceCurrency,
-  buyerName: string,
+  buyerName: string
 ): InvoiceDocumentNotes {
   const defaultNotes = getDefaultGoodsDetails(currency);
   const legacyNotes = Array.isArray(notes) ? undefined : notes;
@@ -105,13 +105,13 @@ function normalizeInvoiceNotes(
       });
 
   const destination = normalizedNotes.find(
-    (note) => note.key === "goodsDeliveryDestination",
+    (note) => note.key === "goodsDeliveryDestination"
   );
   if (destination) {
     destination.value = buyerName;
   } else {
     const defaultDestination = defaultNotes.find(
-      (note) => note.key === "goodsDeliveryDestination",
+      (note) => note.key === "goodsDeliveryDestination"
     );
     if (defaultDestination) {
       normalizedNotes.unshift({ ...defaultDestination, value: buyerName });
@@ -172,24 +172,24 @@ export function toInvoiceDocumentInput(values: {
 }
 
 export function buildInvoiceDocument(
-  input: InvoiceDocumentInput,
+  input: InvoiceDocumentInput
 ): InvoiceDocumentData {
   const { lineItems, subtotal, totalAmount } = calculateInvoiceTotals(
-    input.lineItems ?? [],
+    input.lineItems ?? []
   );
 
   const totalQuantity = lineItems.reduce(
     (sum, item) => sum + (item.quantity ?? 0),
-    0,
+    0
   );
   const totalUnitPrice = roundMoney(
-    lineItems.reduce((sum, item) => sum + (item.unitPrice ?? 0), 0),
+    lineItems.reduce((sum, item) => sum + (item.unitPrice ?? 0), 0)
   );
 
   return {
     piNumber: input.piNumber?.trim() || "MMF-0000-000",
     issueDateLabel: formatInvoiceDate(
-      typeof input.issueDate === "string" ? input.issueDate : undefined,
+      typeof input.issueDate === "string" ? input.issueDate : undefined
     ),
     deliveryDateLabel: formatInvoiceDate(input.deliveryDate),
     currency: input.currency ?? "USD",
@@ -228,7 +228,7 @@ export function buildInvoiceDocument(
     notes: normalizeInvoiceNotes(
       input.notes,
       input.currency ?? "USD",
-      input.buyer?.name ?? buyerProfile.name,
+      input.buyer?.name ?? buyerProfile.name
     ),
     termsAndConditions:
       input.currency === "BDT"
@@ -236,7 +236,7 @@ export function buildInvoiceDocument(
         : (input.termsAndConditions ?? defaultTermsAndConditions).map((term) =>
             term === "Payment to be made on maturity date in US Dollar."
               ? "Payment to be made on maturity date in the invoice currency."
-              : term,
+              : term
           ),
   };
 }

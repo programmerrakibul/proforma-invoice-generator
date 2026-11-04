@@ -190,7 +190,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
       <section
         className={cn(
           "mb-2 grid gap-8 text-[7.5pt] leading-snug",
-          data.termsAndConditions.length > 0 ? "grid-cols-2" : "grid-cols-1",
+          data.termsAndConditions.length > 0 ? "grid-cols-2" : "grid-cols-1"
         )}
       >
         <div>

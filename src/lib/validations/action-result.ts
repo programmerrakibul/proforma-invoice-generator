@@ -15,7 +15,7 @@ export type ActionResult<T> =
  */
 export function zodErrorToActionResult<T>(
   error: ZodError,
-  message = "Validation failed",
+  message = "Validation failed"
 ): ActionResult<T> {
   const fieldErrors: Record<string, string[]> = {};
 

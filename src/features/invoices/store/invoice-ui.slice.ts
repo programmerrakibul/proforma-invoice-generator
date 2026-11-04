@@ -37,7 +37,7 @@ export const invoiceUiSlice = createSlice({
     },
     setActiveMobilePanel: (
       state,
-      action: PayloadAction<"form" | "preview">,
+      action: PayloadAction<"form" | "preview">
     ) => {
       state.activeMobilePanel = action.payload;
     },

@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  ResponsiveDataTable,
+  type DataTableColumn,
+} from "@/components/shared/responsive-data-table";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -19,17 +23,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  ResponsiveDataTable,
-  type DataTableColumn,
-} from "@/components/shared/responsive-data-table";
 import { deleteInvoiceAction } from "@/features/invoices/actions/delete-invoice";
 import { exportSavedInvoicePdfAction } from "@/features/invoices/actions/export-invoice-pdf";
 import type { InvoiceListItem } from "@/features/invoices/actions/list-invoices";
 import { InvoicePreview } from "@/features/invoices/components/invoice-preview";
 import { downloadPdfFromBase64 } from "@/features/invoices/utils/download-pdf";
 import { formatInvoiceMoney } from "@/features/invoices/utils/format-invoice-money";
-import { Download, Eye, LoaderCircle, Trash2 } from "lucide-react";
+import { Download, Eye, LoaderCircle, PencilIcon, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -64,14 +65,14 @@ export function InvoiceListTable({
 }: InvoiceListTableProps) {
   const router = useRouter();
   const [previewInvoice, setPreviewInvoice] = useState<InvoiceListItem | null>(
-    null,
+    null
   );
   const [deleteInvoice, setDeleteInvoice] = useState<InvoiceListItem | null>(
-    null,
+    null
   );
   const [isDeleting, setIsDeleting] = useState(false);
   const [exportingInvoiceId, setExportingInvoiceId] = useState<string | null>(
-    null,
+    null
   );
 
   const handleDelete = async (): Promise<void> => {
@@ -80,7 +81,9 @@ export function InvoiceListTable({
     const result = await deleteInvoiceAction(deleteInvoice.id);
     setIsDeleting(false);
     if (!result.ok) {
-      toast.error("Couldn’t delete invoice", { description: result.message });
+      toast.error("Couldn’t delete invoice", {
+        description: result.message,
+      });
       return;
     }
     toast.success("Invoice deleted");
@@ -94,7 +97,9 @@ export function InvoiceListTable({
     try {
       const result = await exportSavedInvoicePdfAction(invoice.id);
       if (!result.ok) {
-        toast.error("Couldn’t export invoice", { description: result.message });
+        toast.error("Couldn’t export invoice", {
+          description: result.message,
+        });
         return;
       }
 
@@ -176,6 +181,16 @@ export function InvoiceListTable({
       align: "right",
       render: (invoice) => (
         <div className="flex justify-end gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Update ${invoice.invoiceNumber}`}
+            render={<Link href={`/dashboard/invoices/edit/${invoice.id}`} />}
+            nativeButton={false}
+          >
+            <PencilIcon />
+          </Button>
           <Button
             type="button"
             variant="ghost"

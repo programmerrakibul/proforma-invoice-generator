@@ -1,6 +1,6 @@
 export function downloadPdfFromBase64(
   pdfBase64: string,
-  fileName: string,
+  fileName: string
 ): void {
   const binary = atob(pdfBase64);
   const bytes = new Uint8Array(binary.length);

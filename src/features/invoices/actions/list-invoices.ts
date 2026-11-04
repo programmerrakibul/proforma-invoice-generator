@@ -88,7 +88,7 @@ interface InvoiceQueryFilter {
 }
 
 export async function listInvoicesAction(
-  input: ListInvoicesInput = {},
+  input: ListInvoicesInput = {}
 ): Promise<ActionResult<PaginatedInvoices>> {
   try {
     const validatedInput = listInvoicesInputSchema.parse(input);
@@ -106,7 +106,7 @@ export async function listInvoicesAction(
     if (validatedInput.search) {
       const escapedSearch = validatedInput.search.replace(
         /[.*+?^${}()|[\]\\]/g,
-        "\\$&",
+        "\\$&"
       );
       const searchRegex = new RegExp(escapedSearch, "i");
       filter.$or = [{ piNumber: searchRegex }, { "buyer.name": searchRegex }];

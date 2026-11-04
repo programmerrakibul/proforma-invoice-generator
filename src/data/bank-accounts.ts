@@ -39,7 +39,7 @@ export function getBankAccountDetails(currency: InvoiceCurrency): string {
     .map(([key, value]) => `${formatBankField(key)}: ${value}`)
     .reduce(
       (details, field) => `${details}${details ? " | " : ""}${field}`,
-      account.bankName,
+      account.bankName
     );
 }
 

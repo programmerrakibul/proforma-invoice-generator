@@ -38,13 +38,14 @@ export async function getNextPiNumber(): Promise<string> {
 
 export async function createInvoiceAction(
   input: InvoiceFormValues,
-  invoiceId?: string,
+  invoiceId?: string
 ): Promise<ActionResult<{ invoiceId: string; persisted: true }>> {
   const parsed = createInvoiceSchema.safeParse(input);
+
   if (!parsed.success) {
     return zodErrorToActionResult<{ invoiceId: string; persisted: true }>(
       parsed.error,
-      "Please fix the highlighted fields.",
+      "Please fix the highlighted fields."
     );
   }
 
@@ -61,7 +62,7 @@ export async function createInvoiceAction(
       user.id,
       parsed.data,
       "draft",
-      invoiceId,
+      invoiceId
     );
 
     revalidatePath("/dashboard/invoices");

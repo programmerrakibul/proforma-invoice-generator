@@ -60,7 +60,9 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
     .font("Helvetica-Bold")
     .fontSize(19)
     .fillColor(GREEN)
-    .text(data.seller.companyName, x + 54, PAGE_MARGIN_TOP + 2, { width: 220 });
+    .text(data.seller.companyName, x + 54, PAGE_MARGIN_TOP + 2, {
+      width: 220,
+    });
   doc
     .font("Helvetica-Bold")
     .fontSize(7.5)
@@ -186,13 +188,13 @@ function drawTableHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
 function drawTableRow(
   doc: PdfDoc,
   values: string[],
-  options: { bold?: boolean; total?: boolean } = {},
+  options: { bold?: boolean; total?: boolean } = {}
 ): void {
   const widths = columnWidths(doc);
   const font = options.bold ? "Helvetica-Bold" : "Helvetica";
   doc.font(font).fontSize(7.5);
   const heights = values.map((value, index) =>
-    doc.heightOfString(value || " ", { width: widths[index] - 12 }),
+    doc.heightOfString(value || " ", { width: widths[index] - 12 })
   );
   const height = Math.max(32, ...heights) + 12;
   ensureSpace(doc, height + 1);
@@ -249,7 +251,7 @@ function drawNumberedList(
   doc: PdfDoc,
   lines: string[],
   x: number,
-  width: number,
+  width: number
 ): number {
   let y = doc.y;
   lines.forEach((line, index) => {
@@ -267,7 +269,7 @@ function drawNumberedList(
 function numberedListHeight(
   doc: PdfDoc,
   lines: string[],
-  width: number,
+  width: number
 ): number {
   doc.font("Helvetica").fontSize(7.5);
   return lines.reduce((height, line, index) => {
@@ -276,7 +278,7 @@ function numberedListHeight(
       height +
       Math.max(
         11,
-        doc.heightOfString(text, { width: width - 12, lineGap: 1 }) + 1,
+        doc.heightOfString(text, { width: width - 12, lineGap: 1 }) + 1
       ) +
       2
     );
@@ -287,7 +289,7 @@ function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
   const notes = data.notes.flatMap((note) =>
     note.label.trim() && note.value.trim()
       ? [`${note.label}: ${note.value}`]
-      : [],
+      : []
   );
   const gap = 25;
   const columnWidth = (contentWidth(doc) - gap) / 2;
@@ -297,7 +299,7 @@ function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
   const listHeight = showTerms
     ? Math.max(
         numberedListHeight(doc, notes, columnWidth),
-        numberedListHeight(doc, terms, columnWidth),
+        numberedListHeight(doc, terms, columnWidth)
       )
     : numberedListHeight(doc, notes, notesWidth);
   ensureSpace(doc, listHeight + FOOTER_HEIGHT + 8);
@@ -324,7 +326,7 @@ function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
       doc,
       terms,
       PAGE_MARGIN_X + columnWidth + gap,
-      columnWidth,
+      columnWidth
     );
     doc.y = Math.max(notesY, termsY) + 8;
   } else {
@@ -388,7 +390,7 @@ function drawLastPageFooter(doc: PdfDoc): void {
     "Prepared by M.M Fabrics · Bangladesh",
     PAGE_MARGIN_X + width / 2,
     ruleY + 10,
-    { width: width / 2, align: "right" },
+    { width: width / 2, align: "right" }
   );
 }
 
@@ -403,7 +405,7 @@ function renderInvoice(doc: PdfDoc, data: InvoiceDocumentData): void {
       new Intl.NumberFormat("en-US").format(item.quantity),
       money(item.unitPrice, data.currency),
       money(item.totalAmount, data.currency),
-    ]),
+    ])
   );
   drawTableRow(
     doc,
@@ -415,7 +417,7 @@ function renderInvoice(doc: PdfDoc, data: InvoiceDocumentData): void {
       money(data.totalUnitPrice, data.currency),
       money(data.totalAmount, data.currency),
     ],
-    { bold: true, total: true },
+    { bold: true, total: true }
   );
   drawSayTotal(doc, data);
   drawNotesAndTerms(doc, data);
@@ -423,7 +425,7 @@ function renderInvoice(doc: PdfDoc, data: InvoiceDocumentData): void {
 }
 
 export async function generateInvoicePdfBuffer(
-  data: InvoiceDocumentData,
+  data: InvoiceDocumentData
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({

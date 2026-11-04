@@ -67,7 +67,7 @@ const lineItemSchema = new mongoose.Schema<LineItem>(
     unitPrice: { type: Number, required: true, min: 0 },
     totalAmount: { type: Number, required: true, min: 0 },
   },
-  { _id: true },
+  { _id: true }
 );
 
 const invoiceGoodsDetailSchema = new mongoose.Schema<InvoiceGoodsDetail>(
@@ -76,7 +76,7 @@ const invoiceGoodsDetailSchema = new mongoose.Schema<InvoiceGoodsDetail>(
     label: { type: String, required: true, trim: true, maxlength: 100 },
     value: { type: String, required: true, trim: true, maxlength: 2000 },
   },
-  { _id: false },
+  { _id: false }
 );
 
 const invoiceSchema = new mongoose.Schema<Invoice>(
@@ -131,7 +131,7 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
     notes: { type: [invoiceGoodsDetailSchema], default: [] },
     termsAndConditions: [{ type: String, trim: true, maxlength: 1000 }],
   },
-  { timestamps: true, collection: "invoice" },
+  { timestamps: true, collection: "invoice" }
 );
 
 invoiceSchema.index({ ownerId: 1, updatedAt: -1 });
@@ -143,7 +143,7 @@ invoiceSchema.index(
     unique: true,
     partialFilterExpression: { piNumberVersion: 2 },
     name: "unique_generated_pi_number",
-  },
+  }
 );
 
 invoiceSchema.set("toJSON", {
@@ -174,7 +174,7 @@ export async function ensureGeneratedPiNumberIndex(): Promise<void> {
         unique: true,
         partialFilterExpression: { piNumberVersion: 2 },
         name: "unique_generated_pi_number",
-      },
+      }
     );
   }
 

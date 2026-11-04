@@ -1,9 +1,14 @@
 import Container from "@/components/shared/container";
 import { getCustomersForInvoiceAction } from "@/features/customers/actions/customer-actions";
+import { getNextPiNumber } from "@/features/invoices/actions/create-invoice";
 import { InvoiceGenerator } from "@/features/invoices/components/invoice-generator";
 
 export default async function NewInvoicePage() {
-  const result = await getCustomersForInvoiceAction();
+  const [result, piNumber] = await Promise.all([
+    getCustomersForInvoiceAction(),
+    getNextPiNumber(),
+  ]);
+
   return (
     <section className="min-h-screen bg-muted/25">
       <Container className="flex h-full flex-col py-6 lg:py-8">
@@ -19,7 +24,11 @@ export default async function NewInvoicePage() {
           </p>
         </div>
         <div className="min-h-[calc(100vh-13rem)]">
-          <InvoiceGenerator customers={result.ok ? result.data : []} />
+          <InvoiceGenerator
+            update={false}
+            customers={result.ok ? result.data : []}
+            piNumber={piNumber}
+          />
         </div>
       </Container>
     </section>

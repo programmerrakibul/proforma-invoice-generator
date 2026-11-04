@@ -178,9 +178,12 @@ export function InvoiceNotesAndTerms({ currency }: InvoiceNotesAndTermsProps) {
                             setValue(
                               "termsAndConditions",
                               terms.filter(
-                                (_, termIndex) => termIndex !== index,
+                                (_, termIndex) => termIndex !== index
                               ),
-                              { shouldDirty: true, shouldValidate: true },
+                              {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              }
                             )
                           }
                         >

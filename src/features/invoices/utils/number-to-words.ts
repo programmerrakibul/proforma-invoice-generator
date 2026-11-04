@@ -97,7 +97,7 @@ const MINOR_CURRENCY_UNITS: Record<InvoiceCurrency, string> = {
 
 export function numberToWords(
   amount: number,
-  currency: InvoiceCurrency = "USD",
+  currency: InvoiceCurrency = "USD"
 ): string {
   const rounded = Math.round(amount * 100) / 100;
   const whole = Math.floor(rounded);

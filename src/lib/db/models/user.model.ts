@@ -44,7 +44,7 @@ const userSchema = new mongoose.Schema<User>(
       logoUrl: { type: String, default: "" },
     },
   },
-  { timestamps: true, collection: "user" },
+  { timestamps: true, collection: "user" }
 );
 
 userSchema.set("toJSON", {

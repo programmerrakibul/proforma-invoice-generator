@@ -8,7 +8,7 @@ import { InvoiceModel } from "@/lib/db/models";
 import { ActionResult } from "@/lib/validations/action-result";
 
 export async function deleteInvoiceAction(
-  invoiceId: string,
+  invoiceId: string
 ): Promise<ActionResult<{ invoiceId: string }>> {
   "use server";
 

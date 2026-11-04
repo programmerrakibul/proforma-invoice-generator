@@ -3,77 +3,69 @@
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
 
-import { connectToDatabase } from "@/lib/db/mongoose";
-import { requireUser } from "@/lib/auth/require-user";
-import {
-  CustomerModel,
-  ensureGeneratedPiNumberIndex,
-  InvoiceModel,
-} from "@/lib/db/models";
-import {
-  ActionResult,
-  zodErrorToActionResult,
-} from "@/lib/validations/action-result";
+import { getDefaultGoodsDetails } from "@/data/goods";
 import {
   createInvoiceSchema,
   type InvoiceFormValues,
 } from "@/features/invoices/schemas/invoice.schema";
-import { getDefaultGoodsDetails } from "@/data/goods";
 import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
-import { isGeneratedPiNumber } from "@/lib/pi-number-format";
+import { requireUser } from "@/lib/auth/require-user";
+import { CustomerModel, InvoiceModel } from "@/lib/db/models";
+import { connectToDatabase } from "@/lib/db/mongoose";
+import {
+  ActionResult,
+  zodErrorToActionResult,
+} from "@/lib/validations/action-result";
 
 export async function updateInvoiceAction(
   invoiceId: string,
-  input: InvoiceFormValues,
+  input: InvoiceFormValues
 ): Promise<ActionResult<{ invoiceId: string }>> {
   "use server";
 
   try {
     const user = await requireUser();
     const validated = createInvoiceSchema.parse(input);
+    const query = {
+      _id: invoiceId,
+      ownerId: user.id,
+      piNumber: validated.piNumber,
+    };
 
     await connectToDatabase();
 
     // Ownership enforced: query by _id and ownerId together.
-    const existing = await InvoiceModel.findOne({
-      _id: invoiceId,
-      ownerId: user.id,
-    });
+    const existing = await InvoiceModel.exists(query);
+
     if (!existing) {
       return {
         ok: false,
         message: "Invoice not found or you do not own it.",
       };
     }
-    if (
-      !isGeneratedPiNumber(validated.piNumber) &&
-      existing.piNumber !== validated.piNumber
-    ) {
-      return {
-        ok: false,
-        message: "Generate a new invoice number before updating this invoice.",
-      };
-    }
-    if (isGeneratedPiNumber(validated.piNumber)) {
-      await ensureGeneratedPiNumberIndex();
-    }
+
     const customer = await CustomerModel.findOne({
       _id: validated.customerId,
-    });
+    })
+      .select("-__v -email -phone")
+      .lean();
+
     if (!customer) return { ok: false, message: "Customer not found." };
 
     const { lineItems, subtotal, totalAmount } = calculateInvoiceTotals(
-      validated.lineItems,
+      validated.lineItems
     );
+
     const notes = validated.notes.map((note) => ({ ...note }));
     const destinationIndex = notes.findIndex(
-      (note) => note.key === "goodsDeliveryDestination",
+      (note) => note.key === "goodsDeliveryDestination"
     );
+
     if (destinationIndex >= 0) {
       notes[destinationIndex].value = customer.name;
     } else {
       const destination = getDefaultGoodsDetails(validated.currency).find(
-        (note) => note.key === "goodsDeliveryDestination",
+        (note) => note.key === "goodsDeliveryDestination"
       );
       if (destination) {
         notes.unshift({ ...destination, value: customer.name });
@@ -81,13 +73,9 @@ export async function updateInvoiceAction(
     }
 
     await InvoiceModel.updateOne(
-      { _id: invoiceId, ownerId: user.id },
+      { _id: invoiceId, ownerId: user.id, piNumber: validated.piNumber },
       {
         $set: {
-          piNumber: validated.piNumber,
-          ...(isGeneratedPiNumber(validated.piNumber)
-            ? { piNumberVersion: 2 }
-            : {}),
           issueDate: new Date(validated.issueDate),
           currency: validated.currency,
           ...(validated.deliveryDate
@@ -108,7 +96,7 @@ export async function updateInvoiceAction(
           subtotal,
           totalQuantity: lineItems.reduce(
             (sum, item) => sum + item.quantity,
-            0,
+            0
           ),
           totalAmount,
           notes,
@@ -117,11 +105,10 @@ export async function updateInvoiceAction(
         },
         ...(validated.deliveryDate ? {} : { $unset: { deliveryDate: "" } }),
       },
-      { runValidators: true },
+      { runValidators: true }
     );
 
     revalidatePath("/dashboard/invoices");
-    revalidatePath(`/dashboard/invoices/${invoiceId}`);
 
     return {
       ok: true,
@@ -132,7 +119,7 @@ export async function updateInvoiceAction(
     if (error instanceof ZodError) {
       return zodErrorToActionResult<{ invoiceId: string }>(
         error,
-        "Please fix the highlighted fields.",
+        "Please fix the highlighted fields."
       );
     }
     return { ok: false, message: "Failed to update invoice." };

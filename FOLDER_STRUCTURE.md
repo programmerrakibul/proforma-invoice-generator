@@ -11,16 +11,15 @@ src/
 ├── app/
 │   ├── globals.css
 │   ├── loading.tsx              # Global branded loading fallback
+│   ├── error.tsx              # Global branded error fallback
 │   ├── layout.tsx              # Root layout (session-aware shared header, providers, fonts, metadata)
 │   ├── page.tsx                # Landing page
 │   ├── auth/
 │   │   ├── loading.tsx         # Shared loading UI for sign-in and registration
-│   │   ├── login/page.tsx      # Sign-in page (Better Auth email/password; server-resolved redirect)
-│   │   └── register/page.tsx   # Sign-up page (Better Auth email/password; server-resolved redirect)
+│   │   └── login/page.tsx      # Sign-in page (Better Auth email/password; server-resolved redirect)
 │   ├── api/
 │   │   └── auth/[...all]/route.ts  # Better Auth Next.js handler (toNextJsHandler)
 │   └── dashboard/  # Protected dashboard base path
-│       ├── page.tsx          # Redirects to invoice workspace
 │       ├── layout.tsx        # Authenticated dashboard shell
 │       ├── invoices/
 │       │   ├── page.tsx      # Invoice list with shared filtering and pagination
@@ -62,8 +61,7 @@ src/
 │   │   │   ├── auth-field.tsx      # Shared labeled auth input and error state
 │   │   │   ├── auth-page.tsx       # Shared premium auth page frame with back navigation
 │   │   │   ├── login-form.tsx      # Validated Better Auth sign-in flow
-│   │   │   ├── logout-button.tsx   # Better Auth sign-out action
-│   │   │   └── register-form.tsx   # Validated Better Auth registration flow
+│   │   │   └── logout-button.tsx   # Better Auth sign-out action
 │   │   ├── schemas/
 │   │   │   └── auth.schema.ts      # Shared Zod schemas and auth form types
 │   │   └── utils/
@@ -130,8 +128,7 @@ src/
 │   │   └── action-result.ts      # Typed ActionResult + ZodError serializer
 │   └── utils.ts                  # cn() utility
 ├── hooks/
-│   ├── use-media-query.ts          # Client media query hook
-│   └── use-unsaved-changes.ts      # beforeunload unsaved-changes guard
+│   └── use-media-query.ts          # Client media query hook
 ├── store/
 │   ├── index.ts                    # Redux Toolkit store (invoiceUi slice only)
 │   └── provider.tsx                # Redux Provider client component

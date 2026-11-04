@@ -9,7 +9,7 @@ const Container = ({
     <div
       className={cn(
         "container mx-auto px-5 md:px-7 py-2.5 w-full overflow-hidden",
-        className,
+        className
       )}
       {...props}
     >

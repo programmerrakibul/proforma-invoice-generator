@@ -19,7 +19,7 @@ async function hasSessionCookie(request: NextRequest): Promise<boolean> {
 }
 
 export async function proxy(
-  request: NextRequest,
+  request: NextRequest
 ): Promise<NextResponse<unknown>> {
   const isAuthenticated = await hasSessionCookie(request);
   const pathname = request.nextUrl.pathname;
@@ -28,7 +28,7 @@ export async function proxy(
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set(
       "redirect",
-      `${pathname}${request.nextUrl.search}`,
+      `${pathname}${request.nextUrl.search}`
     );
     return NextResponse.redirect(loginUrl);
   }

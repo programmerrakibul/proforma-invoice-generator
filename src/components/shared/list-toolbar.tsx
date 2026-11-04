@@ -39,7 +39,7 @@ export function ListToolbar({
     () => () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     },
-    [],
+    []
   );
 
   return (
@@ -63,7 +63,7 @@ export function ListToolbar({
             if (timerRef.current) clearTimeout(timerRef.current);
             timerRef.current = setTimeout(
               () => formRef.current?.requestSubmit(),
-              350,
+              350
             );
           }}
           placeholder={searchPlaceholder}
