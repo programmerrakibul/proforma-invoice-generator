@@ -309,6 +309,7 @@ function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
     .fontSize(10)
     .fillColor(GREEN)
     .text("Shipment & banking", PAGE_MARGIN_X, top, { width: columnWidth });
+
   if (showTerms) {
     doc
       .font("Helvetica-Bold")
