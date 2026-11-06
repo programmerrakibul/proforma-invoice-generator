@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/table";
 import type { InvoiceDocumentData } from "@/features/invoices/types";
 import { formatInvoiceMoney } from "@/features/invoices/utils/format-invoice-money";
-import Image from "next/image";
 import { cn } from "cn";
+import Image from "next/image";
 
 interface InvoicePreviewProps {
   data: InvoiceDocumentData;
@@ -201,9 +201,12 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
             {data.notes
               .filter((note) => note.label.trim() && note.value.trim())
               .map((note, index) => (
-                <li key={`${note.key}-${index}`} className="text-[#657770]">
-                  <strong className="text-[#253b36]">{note.label}:</strong>{" "}
-                  {note.value}
+                <li
+                  key={`${note.key}-${index}`}
+                  className="text-[#657770] space-x-1"
+                >
+                  <strong className="text-[#253b36]">{note.label}:</strong>
+                  <span className="whitespace-pre-line">{note.value}</span>
                 </li>
               ))}
           </ol>

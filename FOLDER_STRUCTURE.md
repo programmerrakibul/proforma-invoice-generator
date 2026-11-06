@@ -24,6 +24,7 @@ src/
 │       ├── invoices/
 │       │   ├── page.tsx      # Invoice list with shared filtering and pagination
 │       │   └── new/page.tsx  # Customer-backed invoice studio
+│       │   └── edit/page.tsx  # Invoice update studio
 │       └── customers/
 │           └── page.tsx      # Customer list with modal create/edit and pagination
 ├── assets/
@@ -47,7 +48,6 @@ src/
 │   │   ├── error-state.tsx     # Error state placeholder
 │   │   └── loading-state.tsx   # Loading state placeholder
 │   └── ui/                     # shadcn/ui components (button, input, select, etc.)
-│       └── password-input.tsx  # Reusable password input with show/hide control
 ├── data/
 │   ├── buyer.ts                # Default buyer / consignee details
 │   ├── company.ts              # M.M FABRICS seller profile

@@ -141,6 +141,7 @@ All invoice mutations go through Next.js Server Actions:
 | ------------------------ | ------------------------------------------------- | -------- | -------------------------- |
 | `createInvoiceAction`    | `features/invoices/actions/create-invoice.ts`     | Required | Derived from session       |
 | `updateInvoiceAction`    | `features/invoices/actions/update-invoice.ts`     | Required | Query by `_id` + `ownerId` |
+| `getInvoiceByIdAction`   | `features/invoices/actions/get-invoice-by-id.ts`  | Required | Query by `_id` + `ownerId` |
 | `deleteInvoiceAction`    | `features/invoices/actions/delete-invoice.ts`     | Required | Query by `_id` + `ownerId` |
 | `listInvoicesAction`     | `features/invoices/actions/list-invoices.ts`      | Required | Filter by `ownerId`        |
 | `exportInvoicePdfAction` | `features/invoices/actions/export-invoice-pdf.ts` | Required | Session owner              |

@@ -1,8 +1,8 @@
 import type { InvoiceCurrency } from "@/config/bank-accounts";
 
 export const bankAccounts = {
-  "NRBC BANK LIMITED": {
-    bankName: "NRBC BANK LIMITED",
+  "NRBC BANK PLC": {
+    bankName: "NRBC BANK PLC",
     branchName: "Kamarpara Sub Branch",
     accountNumber: "5209-33300000609",
     swiftCode: "NRBBBDDH",
@@ -21,7 +21,7 @@ export const bankAccounts = {
 export const bankAccountByCurrency: Readonly<
   Record<InvoiceCurrency, keyof typeof bankAccounts>
 > = {
-  USD: "NRBC BANK LIMITED",
+  USD: "NRBC BANK PLC",
   BDT: "BRAC Bank PLC",
 };
 
@@ -38,7 +38,7 @@ export function getBankAccountDetails(currency: InvoiceCurrency): string {
     .filter(([key]) => key !== "bankName")
     .map(([key, value]) => `${formatBankField(key)}: ${value}`)
     .reduce(
-      (details, field) => `${details}${details ? " | " : ""}${field}`,
+      (details, field) => `${details}${details ? "\n" : ""}${field}`,
       account.bankName
     );
 }
