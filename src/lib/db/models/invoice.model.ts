@@ -1,22 +1,27 @@
-import { getModel } from "@/lib/db/model-helpers";
 import {
   INVOICE_CURRENCIES,
   type InvoiceCurrency,
 } from "@/config/bank-accounts";
 import type { InvoiceGoodsDetail } from "@/data/goods";
+import { getModel } from "@/lib/db/model-helpers";
 import mongoose, { type InferSchemaType, type PaginateModel } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
+
+export interface FabricLineItem {
+  _id?: mongoose.Types.ObjectId;
+  style: string;
+  color: string;
+  quantity: number;
+  unitPrice: number;
+  totalAmount: number;
+}
 
 export interface LineItem {
   _id?: mongoose.Types.ObjectId;
   fabric: string;
   construction: string;
   width: string;
-  style: string;
-  color: string;
-  quantity: number;
-  unitPrice: number;
-  totalAmount: number;
+  fabricLineItems: FabricLineItem[];
 }
 
 export interface Seller {
@@ -56,16 +61,25 @@ export interface Invoice {
   updatedAt: Date;
 }
 
-const lineItemSchema = new mongoose.Schema<LineItem>(
+const fabricLineItemSchema = new mongoose.Schema<FabricLineItem>(
   {
-    fabric: { type: String, required: true, trim: true },
-    construction: { type: String, required: true, trim: true },
-    width: { type: String, required: true, trim: true },
     style: { type: String, required: true, trim: true },
     color: { type: String, required: true, trim: true },
     quantity: { type: Number, required: true, min: 0 },
     unitPrice: { type: Number, required: true, min: 0 },
     totalAmount: { type: Number, required: true, min: 0 },
+  },
+  {
+    _id: true,
+  }
+);
+
+const lineItemSchema = new mongoose.Schema<LineItem>(
+  {
+    fabric: { type: String, required: true, trim: true },
+    construction: { type: String, required: true, trim: true },
+    width: { type: String, required: true, trim: true },
+    fabricLineItems: [fabricLineItemSchema],
   },
   { _id: true }
 );
