@@ -162,7 +162,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
                             "whitespace-pre-line px-3 py-2 align-top font-medium text-[#253b36]",
                             {
                               "align-middle h-full": length > 1,
-                            }
+                            },
                           )}
                         >
                           {item.description}
@@ -170,7 +170,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
                       )}
                       <TableCell
                         className={cn(
-                          "whitespace-pre-line px-3 py-2 align-middle text-[#253b36]"
+                          "whitespace-pre-line px-3 py-2 align-middle text-[#253b36]",
                         )}
                       >
                         {fItem.style}
@@ -222,7 +222,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
       <section
         className={cn(
           "mb-2 grid gap-8 text-[7.5pt] leading-snug",
-          data.termsAndConditions.length > 0 ? "grid-cols-2" : "grid-cols-1"
+          data.termsAndConditions.length > 0 ? "grid-cols-2" : "grid-cols-1",
         )}
       >
         <div>

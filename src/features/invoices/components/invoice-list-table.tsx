@@ -65,14 +65,14 @@ export function InvoiceListTable({
 }: InvoiceListTableProps) {
   const router = useRouter();
   const [previewInvoice, setPreviewInvoice] = useState<InvoiceListItem | null>(
-    null
+    null,
   );
   const [deleteInvoice, setDeleteInvoice] = useState<InvoiceListItem | null>(
-    null
+    null,
   );
   const [isDeleting, setIsDeleting] = useState(false);
   const [exportingInvoiceId, setExportingInvoiceId] = useState<string | null>(
-    null
+    null,
   );
 
   const handleDelete = async (): Promise<void> => {

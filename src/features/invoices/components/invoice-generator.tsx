@@ -48,7 +48,7 @@ export type InvoiceGeneratorProps =
     };
 
 const buildDefaultInvoiceValues = (
-  props: InvoiceGeneratorProps
+  props: InvoiceGeneratorProps,
 ): CreateInvoiceInput => {
   if (props.update) {
     return {
@@ -107,7 +107,7 @@ export function InvoiceGenerator(props: InvoiceGeneratorProps) {
 
   const previewData = useMemo(
     () => buildInvoiceDocument(toInvoiceDocumentInput(watchedValues)),
-    [watchedValues]
+    [watchedValues],
   );
 
   const [saveStatus, setSaveStatus] = useState<
@@ -145,7 +145,7 @@ export function InvoiceGenerator(props: InvoiceGeneratorProps) {
         setSaveStatus("error");
         toast.error(
           `Couldn’t ${update ? "update the invoice" : "save draft"}`,
-          { description: result.message }
+          { description: result.message },
         );
         setTimeout(() => setSaveStatus("idle"), 2000);
       }
@@ -174,7 +174,7 @@ export function InvoiceGenerator(props: InvoiceGeneratorProps) {
     try {
       const result = await exportInvoicePdfAction(
         getValues(),
-        persistedInvoiceId
+        persistedInvoiceId,
       );
 
       if (!result.ok) {

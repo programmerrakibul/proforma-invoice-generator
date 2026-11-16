@@ -68,7 +68,7 @@ const defaultGoodsDetailValues: Readonly<
 };
 
 export function getDefaultGoodsDetails(
-  currency: InvoiceCurrency
+  currency: InvoiceCurrency,
 ): InvoiceGoodsDetail[] {
   return defaultGoodsDetailFields.map((field) => ({
     ...field,

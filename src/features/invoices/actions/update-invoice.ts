@@ -18,7 +18,7 @@ import {
 
 export async function updateInvoiceAction(
   invoiceId: string,
-  input: InvoiceFormValues
+  input: InvoiceFormValues,
 ): Promise<ActionResult<{ invoiceId: string }>> {
   "use server";
 
@@ -26,7 +26,7 @@ export async function updateInvoiceAction(
     const user = await requireUser();
     const validated = createInvoiceSchema.parse(input);
 
-    console.log(validated)
+    console.log(validated);
 
     const query = {
       _id: invoiceId,
@@ -56,14 +56,14 @@ export async function updateInvoiceAction(
 
     const notes = validated.notes;
     const destinationIndex = notes.findIndex(
-      (note) => note.key === "goodsDeliveryDestination"
+      (note) => note.key === "goodsDeliveryDestination",
     );
 
     if (destinationIndex >= 0) {
       notes[destinationIndex].value = customer.name;
     } else {
       const destination = getDefaultGoodsDetails(validated.currency).find(
-        (note) => note.key === "goodsDeliveryDestination"
+        (note) => note.key === "goodsDeliveryDestination",
       );
       if (destination) {
         notes.unshift({ ...destination, value: customer.name });
@@ -88,14 +88,14 @@ export async function updateInvoiceAction(
             width: item.width,
             fabricLineItems: item.fabricLineItems.map(
               (
-                fItem: InvoiceFormValues["lineItems"][number]["fabricLineItems"][number]
+                fItem: InvoiceFormValues["lineItems"][number]["fabricLineItems"][number],
               ) => ({
                 style: fItem.style,
                 color: fItem.color,
                 quantity: fItem.quantity,
                 unitPrice: fItem.unitPrice,
                 totalAmount: fItem.totalAmount,
-              })
+              }),
             ),
           })),
           totalQuantity: validated.totalQuantity,
@@ -108,7 +108,7 @@ export async function updateInvoiceAction(
         },
         ...(validated.deliveryDate ? {} : { $unset: { deliveryDate: "" } }),
       },
-      { runValidators: true }
+      { runValidators: true },
     );
 
     revalidatePath("/dashboard/invoices");
@@ -122,7 +122,7 @@ export async function updateInvoiceAction(
     if (error instanceof ZodError) {
       return zodErrorToActionResult<{ invoiceId: string }>(
         error,
-        "Please fix the highlighted fields."
+        "Please fix the highlighted fields.",
       );
     }
     return { ok: false, message: "Failed to update invoice." };

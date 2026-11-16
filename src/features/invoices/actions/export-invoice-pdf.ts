@@ -27,7 +27,7 @@ function toSafeFileName(piNumber: string): string {
 
 export async function exportInvoicePdfAction(
   input: InvoiceFormValues,
-  invoiceId?: string
+  invoiceId?: string,
 ): Promise<
   ActionResult<{
     fileName: string;
@@ -40,7 +40,7 @@ export async function exportInvoicePdfAction(
     const user = await requireUser();
     const validated = createInvoiceSchema.parse(input);
     const documentData = buildInvoiceDocument(
-      toInvoiceDocumentInput(validated)
+      toInvoiceDocumentInput(validated),
     );
     const pdfBuffer = await generateInvoicePdfBuffer(documentData);
     const fileName = `${toSafeFileName(documentData.piNumber)}.pdf`;
@@ -52,7 +52,7 @@ export async function exportInvoicePdfAction(
         user.id,
         validated,
         "exported",
-        invoiceId
+        invoiceId,
       );
       persisted = true;
       revalidatePath("/dashboard/invoices");
@@ -117,15 +117,15 @@ export async function exportSavedInvoicePdfAction(invoiceId: string): Promise<
       hsoCode: invoice.hsoCode,
       totalAmount: invoice.totalAmount,
       totalUnitPrice: invoice.totalUnitPrice,
-      totalQuantity: invoice.totalQuantity
+      totalQuantity: invoice.totalQuantity,
     });
     const pdfBuffer = await generateInvoicePdfBuffer(documentData);
     const updateResult = await InvoiceModel.updateOne(
       { _id: invoice._id, ownerId: user.id },
       { $set: { status: "exported" } },
-      { runValidators: true }
+      { runValidators: true },
     );
-    
+
     if (updateResult.matchedCount !== 1) {
       return { ok: false, message: "Invoice not found." };
     }

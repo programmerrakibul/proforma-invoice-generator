@@ -59,7 +59,7 @@ function getLocalDate(value?: string | Date): Date | undefined {
       : new Date(
           value.getUTCFullYear(),
           value.getUTCMonth(),
-          value.getUTCDate()
+          value.getUTCDate(),
         );
   }
   const parsed = new Date(value);
@@ -68,7 +68,7 @@ function getLocalDate(value?: string | Date): Date | undefined {
     : new Date(
         parsed.getUTCFullYear(),
         parsed.getUTCMonth(),
-        parsed.getUTCDate()
+        parsed.getUTCDate(),
       );
 }
 
@@ -89,13 +89,13 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
     previousCurrency.current = currency;
     const notes = getValues("notes");
     const bankNoteIndex = notes.findIndex(
-      (note) => note.key === "advisingBank"
+      (note) => note.key === "advisingBank",
     );
     if (bankNoteIndex >= 0) {
       setValue(
         `notes.${bankNoteIndex}.value`,
         getBankAccountDetails(currency),
-        { shouldDirty: true, shouldValidate: true }
+        { shouldDirty: true, shouldValidate: true },
       );
     }
     const paymentNoteIndex = notes.findIndex((note) => note.key === "payment");
@@ -275,7 +275,7 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
                           selected={selectedDate}
                           onSelect={(date) =>
                             field.onChange(
-                              date ? format(date, "yyyy-MM-dd") : undefined
+                              date ? format(date, "yyyy-MM-dd") : undefined,
                             )
                           }
                         />

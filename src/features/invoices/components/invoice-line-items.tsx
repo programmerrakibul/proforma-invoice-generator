@@ -25,7 +25,7 @@ import FabricSuggestInput from "./fabric-suggest-input";
 import InvoiceFabricLineItems from "./invoice-fabric-line-items";
 
 const widthOptions: string[] = Array.from({ length: 41 }, (_, index) =>
-  String(index + 40)
+  String(index + 40),
 );
 
 export function InvoiceLineItems() {
@@ -92,7 +92,7 @@ export function InvoiceLineItems() {
         item.construction.trim().length > 0 &&
         Number(item.width) >= 40 &&
         Number(item.width) <= 80 &&
-        item.fabricLineItems.length > 0
+        item.fabricLineItems.length > 0,
     );
 
   return (
@@ -193,7 +193,7 @@ export function InvoiceLineItems() {
                 <Input
                   id={`lineItems.${index}.construction`}
                   aria-invalid={Boolean(
-                    errors.lineItems?.[index]?.construction
+                    errors.lineItems?.[index]?.construction,
                   )}
                   {...register(`lineItems.${index}.construction`)}
                   placeholder="e.g. 20x20/108x58"

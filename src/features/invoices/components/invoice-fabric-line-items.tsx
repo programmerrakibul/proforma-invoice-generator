@@ -131,7 +131,9 @@ const InvoiceFabricLineItems = ({ index, onReady }: Props) => {
                   onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
                     const quantity = e.target.valueAsNumber;
                     const total = parseFloat(
-                      (getValues(`${basePath}.unitPrice`) * quantity).toFixed(2)
+                      (getValues(`${basePath}.unitPrice`) * quantity).toFixed(
+                        2,
+                      ),
                     );
 
                     setValue(`${basePath}.quantity`, quantity, {
@@ -142,7 +144,7 @@ const InvoiceFabricLineItems = ({ index, onReady }: Props) => {
                     setValue(`${basePath}.totalAmount`, total);
                     setValue(
                       "totalQuantity",
-                      getValues("totalQuantity") + quantity
+                      getValues("totalQuantity") + quantity,
                     );
                   },
                 })}
@@ -171,7 +173,7 @@ const InvoiceFabricLineItems = ({ index, onReady }: Props) => {
                   onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
                     const price = e.target.valueAsNumber;
                     const total = parseFloat(
-                      (getValues(`${basePath}.quantity`) * price).toFixed(2)
+                      (getValues(`${basePath}.quantity`) * price).toFixed(2),
                     );
 
                     setValue(`${basePath}.unitPrice`, price, {
@@ -182,13 +184,13 @@ const InvoiceFabricLineItems = ({ index, onReady }: Props) => {
                     setValue(
                       "totalUnitPrice",
                       parseFloat(
-                        (getValues("totalUnitPrice") + price).toFixed(2)
-                      )
+                        (getValues("totalUnitPrice") + price).toFixed(2),
+                      ),
                     );
                     setValue(`${basePath}.totalAmount`, total);
                     setValue(
                       "totalAmount",
-                      parseFloat((getValues("totalAmount") + total).toFixed(2))
+                      parseFloat((getValues("totalAmount") + total).toFixed(2)),
                     );
                   },
                 })}

@@ -17,7 +17,7 @@ export async function persistInvoice(
   ownerId: string,
   input: CreateInvoiceInput,
   status: PersistedInvoiceStatus,
-  invoiceId?: string
+  invoiceId?: string,
 ): Promise<string> {
   await connectToDatabase();
 
@@ -46,14 +46,14 @@ export async function persistInvoice(
 
   const notes = input.notes;
   const destinationIndex = notes.findIndex(
-    (note) => note.key === "goodsDeliveryDestination"
+    (note) => note.key === "goodsDeliveryDestination",
   );
 
   if (destinationIndex >= 0) {
     notes[destinationIndex].value = customer.name;
   } else {
     const destination = getDefaultGoodsDetails(input.currency).find(
-      (note) => note.key === "goodsDeliveryDestination"
+      (note) => note.key === "goodsDeliveryDestination",
     );
 
     if (destination) {
@@ -83,7 +83,7 @@ export async function persistInvoice(
         $set: invoiceValues,
         ...(input.deliveryDate ? {} : { $unset: { deliveryDate: "" } }),
       },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!updatedInvoice) throw new Error("Invoice not found.");
