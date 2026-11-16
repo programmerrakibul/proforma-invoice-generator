@@ -8,7 +8,6 @@ import { defaultTermsAndConditions } from "@/data/terms-and-conditions";
 import { createInvoiceAction } from "@/features/invoices/actions/create-invoice";
 import { exportInvoicePdfAction } from "@/features/invoices/actions/export-invoice-pdf";
 import { InvoiceForm } from "@/features/invoices/components/invoice-form";
-import { InvoicePreview } from "@/features/invoices/components/invoice-preview";
 import {
   buildInvoiceDocument,
   toInvoiceDocumentInput,
@@ -26,6 +25,7 @@ import {
   type CreateInvoiceInput,
   type InvoiceFormValues,
 } from "../schemas/invoice.schema";
+import { InvoicePreview } from "./invoice-preview";
 
 type TCustomers = Array<{
   id: string;
@@ -61,6 +61,10 @@ const buildDefaultInvoiceValues = (
       notes: props.invoice.notes,
       termsAndConditions: props.invoice.termsAndConditions,
       lineItems: props.invoice.lineItems,
+      hsoCode: props.invoice.hsoCode,
+      totalAmount: props.invoice.totalAmount,
+      totalUnitPrice: props.invoice.totalUnitPrice,
+      totalQuantity: props.invoice.totalQuantity,
     };
   } else {
     return {
@@ -73,6 +77,10 @@ const buildDefaultInvoiceValues = (
       notes: getDefaultGoodsDetails("USD"),
       termsAndConditions: [...defaultTermsAndConditions],
       lineItems: defaultGoods,
+      hsoCode: "",
+      totalAmount: 1370.6,
+      totalUnitPrice: 0.7,
+      totalQuantity: 1958,
     };
   }
 };
@@ -94,6 +102,9 @@ export function InvoiceGenerator(props: InvoiceGeneratorProps) {
   } = methods;
 
   const watchedValues = useWatch({ control });
+
+  // console.log(watchedValues);
+
   const previewData = useMemo(
     () => buildInvoiceDocument(toInvoiceDocumentInput(watchedValues)),
     [watchedValues]
@@ -109,8 +120,9 @@ export function InvoiceGenerator(props: InvoiceGeneratorProps) {
     string | undefined
   >();
 
-  const onSave = async (values: CreateInvoiceInput): Promise<void> => {
+  const onSave = async (values: CreateInvoiceInput) => {
     setSaveStatus("saving");
+
     try {
       const result = update
         ? await updateInvoiceAction(props.invoice._id, values)

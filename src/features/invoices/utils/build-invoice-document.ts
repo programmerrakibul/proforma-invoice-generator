@@ -1,9 +1,9 @@
+import type { InvoiceCurrency } from "@/config/bank-accounts";
+import { getBankAccountDetails } from "@/data/bank-accounts";
 import { buyerProfile } from "@/data/buyer";
 import { companyProfile } from "@/data/company";
-import { getBankAccountDetails } from "@/data/bank-accounts";
 import { getDefaultGoodsDetails } from "@/data/goods";
 import { defaultTermsAndConditions } from "@/data/terms-and-conditions";
-import type { InvoiceCurrency } from "@/config/bank-accounts";
 import type {
   InvoiceDocumentData,
   InvoiceDocumentNotes,
@@ -11,10 +11,6 @@ import type {
   InvoiceDocumentSeller,
   LegacyInvoiceDocumentNotes,
 } from "@/features/invoices/types";
-import {
-  calculateInvoiceTotals,
-  roundMoney,
-} from "@/features/invoices/utils/calculate-invoice-total";
 import { numberToWords } from "@/features/invoices/utils/number-to-words";
 
 export interface InvoiceDocumentInput {
@@ -24,18 +20,29 @@ export interface InvoiceDocumentInput {
   currency?: InvoiceCurrency;
   seller?: Partial<InvoiceDocumentData["seller"]>;
   buyer?: Partial<InvoiceDocumentData["buyer"]>;
+  hsoCode?: string;
   notes?: InvoiceDocumentNotesInput | LegacyInvoiceDocumentNotes;
   termsAndConditions?: string[];
-  lineItems?: Array<{
-    fabric?: string;
-    construction?: string;
-    width?: string;
-    description?: string;
-    style?: string;
-    color?: string;
-    quantity?: number | null;
-    unitPrice?: number | null;
-  }>;
+  lineItems?:
+    | Array<{
+        fabric?: string;
+        construction?: string;
+        width?: string;
+        description?: string;
+        fabricLineItems?:
+          | Array<{
+              style?: string;
+              color?: string;
+              quantity?: number;
+              unitPrice?: number;
+              totalAmount?: number;
+            }>
+          | undefined;
+      }>
+    | undefined;
+  totalAmount?: number;
+  totalUnitPrice?: number;
+  totalQuantity?: number;
 }
 
 export const DEFAULT_SELLER: InvoiceDocumentSeller = { ...companyProfile };
@@ -121,29 +128,9 @@ function normalizeInvoiceNotes(
   return normalizedNotes;
 }
 
-export function toInvoiceDocumentInput(values: {
-  piNumber?: string;
-  issueDate?: string;
-  deliveryDate?: string | Date;
-  currency?: InvoiceCurrency;
-  seller?: Partial<InvoiceDocumentData["seller"]>;
-  buyer?: Partial<InvoiceDocumentData["buyer"]>;
-  notes?: InvoiceDocumentNotesInput | LegacyInvoiceDocumentNotes;
-  termsAndConditions?: string[];
-  lineItems?: Array<
-    | {
-        fabric?: string;
-        construction?: string;
-        width?: string;
-        description?: string;
-        style?: string;
-        color?: string;
-        quantity?: number | null;
-        unitPrice?: number | null;
-      }
-    | undefined
-  >;
-}): InvoiceDocumentInput {
+export function toInvoiceDocumentInput(
+  values: InvoiceDocumentInput
+): InvoiceDocumentInput {
   return {
     piNumber: values.piNumber,
     issueDate: values.issueDate,
@@ -152,53 +139,42 @@ export function toInvoiceDocumentInput(values: {
     seller: values.seller,
     buyer: values.buyer,
     notes: values.notes,
+    hsoCode: values.hsoCode,
     termsAndConditions: values.termsAndConditions,
-    lineItems: (values.lineItems ?? [])
-      .filter((item): item is NonNullable<typeof item> => item !== undefined)
-      .map((item) => {
-        const legacyParts = getLegacyDescriptionParts(item.description);
-        return {
-          fabric: item.fabric ?? legacyParts.fabric,
-          construction: item.construction ?? legacyParts.construction,
-          width: item.width ?? legacyParts.width,
-          description: item.description,
-          style: item.style,
-          color: item.color,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-        };
-      }),
+    totalAmount: values.totalAmount,
+    totalUnitPrice: values.totalUnitPrice,
+    totalQuantity: values.totalQuantity,
+    lineItems: (values.lineItems ?? []).map((item) => {
+      const legacyParts = getLegacyDescriptionParts(item.description);
+
+      return {
+        fabric: item.fabric ?? legacyParts.fabric,
+        construction: item.construction ?? legacyParts.construction,
+        width: item.width ?? legacyParts.width,
+        description: item.description,
+        fabricLineItems: item.fabricLineItems,
+      };
+    }),
   };
 }
 
 export function buildInvoiceDocument(
   input: InvoiceDocumentInput
 ): InvoiceDocumentData {
-  const { lineItems, subtotal, totalAmount } = calculateInvoiceTotals(
-    input.lineItems ?? []
-  );
-
-  const totalQuantity = lineItems.reduce(
-    (sum, item) => sum + (item.quantity ?? 0),
-    0
-  );
-  const totalUnitPrice = roundMoney(
-    lineItems.reduce((sum, item) => sum + (item.unitPrice ?? 0), 0)
-  );
-
   return {
     piNumber: input.piNumber?.trim() || "MMF-0000-000",
     issueDateLabel: formatInvoiceDate(
       typeof input.issueDate === "string" ? input.issueDate : undefined
     ),
     deliveryDateLabel: formatInvoiceDate(input.deliveryDate),
+    hsoCode: input.hsoCode ?? "—",
     currency: input.currency ?? "USD",
     seller: { ...DEFAULT_SELLER, ...input.seller },
     buyer: {
       name: input.buyer?.name ?? buyerProfile.name,
       address: input.buyer?.address ?? buyerProfile.address,
     },
-    lineItems: lineItems.map((item) => {
+    lineItems: (input.lineItems ?? []).map((item) => {
       const fabric = item.fabric ?? "";
       const construction = item.construction ?? "";
       const width = item.width ?? "";
@@ -213,18 +189,19 @@ export function buildInvoiceDocument(
         construction,
         width,
         description,
-        style: item.style ?? "",
-        color: item.color ?? "",
-        quantity: item.quantity ?? 0,
-        unitPrice: item.unitPrice ?? 0,
-        totalAmount: item.totalAmount,
+        fabricLineItems: (item.fabricLineItems ?? []).map((item) => ({
+          style: item.style ?? "",
+          color: item.color ?? "",
+          quantity: item.quantity ?? 0,
+          unitPrice: item.unitPrice ?? 0,
+          totalAmount: item.totalAmount ?? 0,
+        })),
       };
     }),
-    subtotal,
-    totalUnitPrice,
-    totalAmount,
-    totalQuantity,
-    sayTotal: numberToWords(totalAmount, input.currency ?? "USD"),
+    totalAmount: input.totalAmount ?? 0,
+    totalUnitPrice: input.totalUnitPrice ?? 0,
+    totalQuantity: input.totalQuantity ?? 0,
+    sayTotal: numberToWords(input.totalAmount ?? 0, input.currency ?? "USD"),
     notes: normalizeInvoiceNotes(
       input.notes,
       input.currency ?? "USD",

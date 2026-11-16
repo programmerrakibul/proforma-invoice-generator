@@ -48,13 +48,14 @@ export interface Invoice {
   deliveryDate?: Date;
   currency: InvoiceCurrency;
   status: "draft" | "exported";
+  hsoCode: string;
   seller: Seller;
   buyerId: mongoose.Types.ObjectId;
   buyer: Buyer;
   lineItems: LineItem[];
-  subtotal: number;
   totalQuantity: number;
   totalAmount: number;
+  totalUnitPrice: number;
   notes: InvoiceNotes;
   termsAndConditions: string[];
   createdAt: Date;
@@ -121,6 +122,11 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
       default: "draft",
       index: true,
     },
+    hsoCode: {
+      type: String,
+      trim: true,
+      required: true,
+    },
     seller: {
       companyName: { type: String, required: true, trim: true },
       address: { type: String, required: true, trim: true },
@@ -139,9 +145,9 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
       address: { type: String, required: true, trim: true },
     },
     lineItems: [lineItemSchema],
-    subtotal: { type: Number, default: 0, min: 0 },
     totalQuantity: { type: Number, default: 0, min: 0 },
     totalAmount: { type: Number, default: 0, min: 0 },
+    totalUnitPrice: { type: Number, default: 0, min: 0 },
     notes: { type: [invoiceGoodsDetailSchema], default: [] },
     termsAndConditions: [{ type: String, trim: true, maxlength: 1000 }],
   },

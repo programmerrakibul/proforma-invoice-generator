@@ -132,11 +132,13 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
     .text(data.buyer.address, x, doc.y + 3, { width: half });
   const metaX = x + half + 18;
   const metaWidth = width - half - 18;
-  const rows: Array<[string, string]> = [["Date", data.issueDateLabel || "—"]];
+  const rows: Array<[string, string, string]> = [
+    ["Date", data.issueDateLabel || "—", "HSO Code"],
+  ];
   if (data.deliveryDateLabel) {
-    rows.push(["Delivery date", data.deliveryDateLabel]);
+    rows.push(["Delivery date", data.deliveryDateLabel, "HSO Code"]);
   }
-  rows.push(["Currency", data.currency]);
+  rows.push(["Currency", data.currency, data.hsoCode]);
   rows.forEach(([label, value], index) => {
     const y = buyerY + 10 + index * 19;
     doc
@@ -398,16 +400,20 @@ function drawLastPageFooter(doc: PdfDoc): void {
 function renderInvoice(doc: PdfDoc, data: InvoiceDocumentData): void {
   drawHeader(doc, data);
   drawTableHeader(doc, data);
-  data.lineItems.forEach((item) =>
-    drawTableRow(doc, [
-      item.description,
-      item.style,
-      item.color,
-      new Intl.NumberFormat("en-US").format(item.quantity),
-      money(item.unitPrice, data.currency),
-      money(item.totalAmount, data.currency),
-    ])
-  );
+
+  data.lineItems.forEach((item) => {
+    item.fabricLineItems.forEach((fabricItem, index) => {
+      drawTableRow(doc, [
+        index === 0 ? item.description : "",
+        fabricItem.style,
+        fabricItem.color,
+        new Intl.NumberFormat("en-US").format(fabricItem.quantity),
+        money(fabricItem.unitPrice, data.currency),
+        money(fabricItem.totalAmount, data.currency),
+      ]);
+    });
+  });
+
   drawTableRow(
     doc,
     [

@@ -114,6 +114,10 @@ export async function exportSavedInvoicePdfAction(invoiceId: string): Promise<
       lineItems: invoice.lineItems,
       notes: invoice.notes,
       termsAndConditions: invoice.termsAndConditions,
+      hsoCode: invoice.hsoCode,
+      totalAmount: invoice.totalAmount,
+      totalUnitPrice: invoice.totalUnitPrice,
+      totalQuantity: invoice.totalQuantity
     });
     const pdfBuffer = await generateInvoicePdfBuffer(documentData);
     const updateResult = await InvoiceModel.updateOne(
@@ -121,6 +125,7 @@ export async function exportSavedInvoicePdfAction(invoiceId: string): Promise<
       { $set: { status: "exported" } },
       { runValidators: true }
     );
+    
     if (updateResult.matchedCount !== 1) {
       return { ok: false, message: "Invoice not found." };
     }

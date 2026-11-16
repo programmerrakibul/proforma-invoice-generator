@@ -8,7 +8,6 @@ import {
   createInvoiceSchema,
   type InvoiceFormValues,
 } from "@/features/invoices/schemas/invoice.schema";
-import { calculateInvoiceTotals } from "@/features/invoices/utils/calculate-invoice-total";
 import { requireUser } from "@/lib/auth/require-user";
 import { CustomerModel, InvoiceModel } from "@/lib/db/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
@@ -26,6 +25,9 @@ export async function updateInvoiceAction(
   try {
     const user = await requireUser();
     const validated = createInvoiceSchema.parse(input);
+
+    console.log(validated)
+
     const query = {
       _id: invoiceId,
       ownerId: user.id,
@@ -52,11 +54,7 @@ export async function updateInvoiceAction(
 
     if (!customer) return { ok: false, message: "Customer not found." };
 
-    const { lineItems, subtotal, totalAmount } = calculateInvoiceTotals(
-      validated.lineItems
-    );
-
-    const notes = validated.notes.map((note) => ({ ...note }));
+    const notes = validated.notes;
     const destinationIndex = notes.findIndex(
       (note) => note.key === "goodsDeliveryDestination"
     );
@@ -76,6 +74,7 @@ export async function updateInvoiceAction(
       { _id: invoiceId, ownerId: user.id, piNumber: validated.piNumber },
       {
         $set: {
+          ...validated,
           issueDate: new Date(validated.issueDate),
           currency: validated.currency,
           ...(validated.deliveryDate
@@ -83,22 +82,26 @@ export async function updateInvoiceAction(
             : {}),
           buyerId: customer._id,
           buyer: { name: customer.name, address: customer.address },
-          lineItems: lineItems.map((item) => ({
+          lineItems: validated.lineItems.map((item) => ({
             fabric: item.fabric,
             construction: item.construction,
             width: item.width,
-            style: item.style,
-            color: item.color,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            totalAmount: item.totalAmount,
+            fabricLineItems: item.fabricLineItems.map(
+              (
+                fItem: InvoiceFormValues["lineItems"][number]["fabricLineItems"][number]
+              ) => ({
+                style: fItem.style,
+                color: fItem.color,
+                quantity: fItem.quantity,
+                unitPrice: fItem.unitPrice,
+                totalAmount: fItem.totalAmount,
+              })
+            ),
           })),
-          subtotal,
-          totalQuantity: lineItems.reduce(
-            (sum, item) => sum + item.quantity,
-            0
-          ),
-          totalAmount,
+          totalQuantity: validated.totalQuantity,
+          totalAmount: validated.totalAmount,
+          totalUnitPrice: validated.totalUnitPrice,
+          hsoCode: validated.hsoCode,
           notes,
           termsAndConditions:
             validated.currency === "BDT" ? [] : validated.termsAndConditions,

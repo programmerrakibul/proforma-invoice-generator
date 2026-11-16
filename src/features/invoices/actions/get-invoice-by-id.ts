@@ -26,10 +26,15 @@ export const getInvoiceByIdAction = async (invoiceId: string) => {
       _id: invoice._id.toString(),
       ownerId: invoice.ownerId.toString(),
       buyerId: invoice.buyerId.toString(),
-      lineItems: invoice.lineItems.map((item) => {
-        const { totalAmount, ...rest } = item;
-
-        return { ...rest, totalPrice: totalAmount, _id: item._id?.toString() };
+      lineItems: invoice.lineItems.map((lineItem) => {
+        return {
+          ...lineItem,
+          _id: lineItem._id?.toString(),
+          fabricLineItems: lineItem.fabricLineItems.map((item) => ({
+            ...item,
+            _id: item._id?.toString(),
+          })),
+        };
       }),
     };
 

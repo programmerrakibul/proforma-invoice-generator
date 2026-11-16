@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { INVOICE_CURRENCIES } from "@/config/bank-accounts";
+import { z } from "zod";
 
 const invoiceNoteSchema = z.object({
   key: z
@@ -16,6 +16,28 @@ const invoiceNoteSchema = z.object({
     .string()
     .trim()
     .max(2000, "A goods field value must be 2000 characters or fewer."),
+});
+
+export const invoiceFabricLineItemSchema = z.object({
+  style: z
+    .string()
+    .trim()
+    .min(1, "Style is required.")
+    .max(150, "Style must be 150 characters or fewer."),
+  color: z
+    .string()
+    .trim()
+    .min(1, "Color is required.")
+    .max(50, "Color must be 50 characters or fewer."),
+  quantity: z.coerce
+    .number<number>()
+    .finite()
+    .min(1, "Quantity must be at least 1."),
+  unitPrice: z.coerce
+    .number<number>()
+    .finite()
+    .min(0.01, "Unit price must be greater than 0."),
+  totalAmount: z.coerce.number<number>().finite().min(0),
 });
 
 export const invoiceLineItemSchema = z.object({
@@ -42,25 +64,9 @@ export const invoiceLineItemSchema = z.object({
         Number(value) <= 80,
       "Width must be a number from 40 to 80 inches."
     ),
-  style: z
-    .string()
-    .trim()
-    .min(1, "Style is required.")
-    .max(150, "Style must be 150 characters or fewer."),
-  color: z
-    .string()
-    .trim()
-    .min(1, "Color is required.")
-    .max(50, "Color must be 50 characters or fewer."),
-  quantity: z.coerce
-    .number<number>()
-    .finite()
-    .min(1, "Quantity must be at least 1."),
-  unitPrice: z.coerce
-    .number<number>()
-    .finite()
-    .min(0.01, "Unit price must be greater than 0."),
-  totalPrice: z.coerce.number<number>().finite().min(0).default(0),
+  fabricLineItems: z
+    .array(invoiceFabricLineItemSchema)
+    .min(1, "Add at least one item!"),
 });
 
 export const createInvoiceSchema = z.object({
@@ -80,6 +86,7 @@ export const createInvoiceSchema = z.object({
     ),
   deliveryDate: z.coerce.date<string | Date>().optional(),
   currency: z.enum(INVOICE_CURRENCIES).default("USD"),
+  hsoCode: z.string().trim().min(1, "HSO Code is required!"),
   buyer: z.object({
     name: z
       .string()
@@ -105,9 +112,13 @@ export const createInvoiceSchema = z.object({
         .max(1000, "Each term must be 1000 characters or fewer.")
     )
     .max(30, "Use 30 terms or fewer."),
+  totalQuantity: z.coerce.number<number>().finite().min(0),
+  totalAmount: z.coerce.number<number>().finite().min(0),
+  totalUnitPrice: z.coerce.number<number>().finite().min(0),
 });
 
 export type InvoiceLineItem = z.infer<typeof invoiceLineItemSchema>;
+export type InvoiceFabricLineItem = z.infer<typeof invoiceFabricLineItemSchema>;
 export type InvoiceNotesInput = z.infer<typeof invoiceNoteSchema>;
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 export type InvoiceFormValues = z.input<typeof createInvoiceSchema>;
