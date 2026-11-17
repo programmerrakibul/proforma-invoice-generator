@@ -14,18 +14,20 @@ export interface InvoiceLineItemView {
   unit: string;
 }
 
+export interface InvoiceDocumentFabricLineItem {
+  style: string;
+  color: string;
+  quantity: number;
+  unitPrice: number;
+  totalAmount: number;
+}
+
 export interface InvoiceDocumentLineItem {
   fabric: string;
   construction: string;
   width: string;
   description: string;
-  fabricLineItems: Array<{
-    style: string;
-    color: string;
-    quantity: number;
-    unitPrice: number;
-    totalAmount: number;
-  }>;
+  fabricLineItems: InvoiceDocumentFabricLineItem[];
 }
 
 export interface InvoiceDocumentSeller {
