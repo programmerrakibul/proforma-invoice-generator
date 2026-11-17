@@ -3,16 +3,16 @@
 import mongoose from "mongoose";
 import { z } from "zod";
 
+import {
+  isInvoiceCurrency,
+  type InvoiceCurrency,
+} from "@/config/bank-accounts";
 import type {
   InvoiceDocumentData,
   InvoiceDocumentNotes,
   LegacyInvoiceDocumentNotes,
 } from "@/features/invoices/types";
 import { buildInvoiceDocument } from "@/features/invoices/utils/build-invoice-document";
-import {
-  isInvoiceCurrency,
-  type InvoiceCurrency,
-} from "@/config/bank-accounts";
 import { requireUser } from "@/lib/auth/require-user";
 import { InvoiceModel } from "@/lib/db/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
@@ -39,12 +39,14 @@ interface RawInvoice {
   status: string;
   currency: string;
   buyer: { name: string; address: string; destinationCountry?: string };
-  seller?: InvoiceDocumentData["seller"];
+  seller: InvoiceDocumentData["seller"];
   lineItems: RawLineItem[];
   notes?: InvoiceDocumentNotes | LegacyInvoiceDocumentNotes;
   termsAndConditions?: string[];
   totalAmount: number;
-  totalQuantity?: number;
+  totalQuantity: number;
+  totalUnitPrice: number;
+  hsoCode: string;
   updatedAt: Date;
 }
 
@@ -88,7 +90,7 @@ interface InvoiceQueryFilter {
 }
 
 export async function listInvoicesAction(
-  input: ListInvoicesInput = {}
+  input: ListInvoicesInput = {},
 ): Promise<ActionResult<PaginatedInvoices>> {
   try {
     const validatedInput = listInvoicesInputSchema.parse(input);
@@ -106,7 +108,7 @@ export async function listInvoicesAction(
     if (validatedInput.search) {
       const escapedSearch = validatedInput.search.replace(
         /[.*+?^${}()|[\]\\]/g,
-        "\\$&"
+        "\\$&",
       );
       const searchRegex = new RegExp(escapedSearch, "i");
       filter.$or = [{ piNumber: searchRegex }, { "buyer.name": searchRegex }];
@@ -123,6 +125,7 @@ export async function listInvoicesAction(
       sort,
       lean: true,
     });
+
     const totalPages = pageResult.totalPages;
     const page = totalPages ? Math.min(pageResult.page ?? 1, totalPages) : 1;
     const rawItems =
@@ -150,6 +153,10 @@ export async function listInvoicesAction(
         lineItems: item.lineItems,
         notes: item.notes,
         termsAndConditions: item.termsAndConditions,
+        totalQuantity: item.totalQuantity,
+        totalAmount: item.totalAmount,
+        totalUnitPrice: item.totalUnitPrice,
+        hsoCode: item.hsoCode,
       });
 
       return {

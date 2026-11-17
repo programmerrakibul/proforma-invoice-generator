@@ -1,15 +1,19 @@
 import type { InvoiceCurrency } from "@/config/bank-accounts";
 import { getBankAccountDetails, getPaymentTerms } from "@/data/bank-accounts";
 
-export interface InvoiceGood {
-  fabric: string;
-  construction: string;
-  width: string;
+export interface InvoiceFabricLineItem {
   style: string;
   color: string;
   quantity: number;
   unitPrice: number;
-  totalPrice: number;
+  totalAmount: number;
+}
+
+export interface InvoiceLineItem {
+  fabric: string;
+  construction: string;
+  width: string;
+  fabricLineItems: InvoiceFabricLineItem[];
 }
 
 export interface InvoiceGoodsDetail {
@@ -18,16 +22,20 @@ export interface InvoiceGoodsDetail {
   value: string;
 }
 
-export const defaultGoods: InvoiceGood[] = [
+export const defaultGoods: InvoiceLineItem[] = [
   {
     fabric: "35% Cotton 65% Polyester TC",
     construction: "45x45/90x60",
     width: "56",
-    style: "Buyer: MAX DUBAI - B27MCSFEWB250B",
-    color: "Navy",
-    quantity: 1958,
-    unitPrice: 0.7,
-    totalPrice: 1370.6,
+    fabricLineItems: [
+      {
+        style: "Buyer: MAX DUBAI - B27MCSFEWB250B",
+        color: "Navy",
+        quantity: 1958,
+        unitPrice: 0.7,
+        totalAmount: 1370.6,
+      },
+    ],
   },
 ];
 
@@ -60,7 +68,7 @@ const defaultGoodsDetailValues: Readonly<
 };
 
 export function getDefaultGoodsDetails(
-  currency: InvoiceCurrency
+  currency: InvoiceCurrency,
 ): InvoiceGoodsDetail[] {
   return defaultGoodsDetailFields.map((field) => ({
     ...field,

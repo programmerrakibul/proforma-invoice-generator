@@ -1,6 +1,9 @@
 import "server-only";
 
-import type { InvoiceDocumentData } from "@/features/invoices/types";
+import type {
+  InvoiceDocumentData,
+  InvoiceDocumentLineItem,
+} from "@/features/invoices/types";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import PDFDocument from "pdfkit";
@@ -75,7 +78,7 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
     .font("Helvetica-Bold")
     .fontSize(18)
     .fillColor(GREEN)
-    .text("PROFORMA INVOICE", x + width - 300, PAGE_MARGIN_TOP + 16, {
+    .text("PROFORMA INVOICE", x + width - 300, PAGE_MARGIN_TOP + 2, {
       width: 300,
       align: "right",
       characterSpacing: 0.6,
@@ -84,11 +87,11 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
     .font("Helvetica-Bold")
     .fontSize(9)
     .fillColor(DARK)
-    .text(`PI No. ${data.piNumber}`, x + width - 210, PAGE_MARGIN_TOP + 48, {
+    .text(`PI No. ${data.piNumber}`, x + width - 210, PAGE_MARGIN_TOP + 27, {
       width: 210,
       align: "right",
     });
-  const ruleY = PAGE_MARGIN_TOP + 82;
+  const ruleY = PAGE_MARGIN_TOP + 65;
   doc
     .moveTo(x, ruleY)
     .lineTo(x + width, ruleY)
@@ -130,13 +133,18 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
     .fontSize(8.5)
     .fillColor(MUTED)
     .text(data.buyer.address, x, doc.y + 3, { width: half });
+
   const metaX = x + half + 18;
   const metaWidth = width - half - 18;
   const rows: Array<[string, string]> = [["Date", data.issueDateLabel || "—"]];
+
   if (data.deliveryDateLabel) {
     rows.push(["Delivery date", data.deliveryDateLabel]);
   }
+
   rows.push(["Currency", data.currency]);
+  rows.push(["HSO Code", data.hsoCode || "—"]);
+
   rows.forEach(([label, value], index) => {
     const y = buyerY + 10 + index * 19;
     doc
@@ -152,6 +160,7 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
         align: "right",
       });
   });
+
   doc.y = Math.max(doc.y, buyerY + (data.deliveryDateLabel ? 81 : 62)) + 10;
 }
 
@@ -168,7 +177,7 @@ function drawTableHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
     `Unit price\n(${data.currency})`,
     `Total amount\n(${data.currency})`,
   ];
-  doc.roundedRect(x, y, contentWidth(doc), height, 7).fill(GREEN);
+  doc.rect(x, y, contentWidth(doc), height).fill(GREEN);
   let cursor = x;
   labels.forEach((label, index) => {
     doc
@@ -185,16 +194,142 @@ function drawTableHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
   doc.y = y + height;
 }
 
+function drawLineItemGroup(
+  doc: PdfDoc,
+  item: InvoiceDocumentLineItem,
+  currency: InvoiceDocumentData["currency"],
+): void {
+  const widths = columnWidths(doc);
+  const x = PAGE_MARGIN_X;
+  const contentW = contentWidth(doc);
+
+  // ------------------------------------------------------------------
+  // 1. Calculate individual row heights (description only affects first row)
+  // ------------------------------------------------------------------
+  const rowHeights: number[] = [];
+  const font = "Helvetica";
+  doc.font(font).fontSize(7.5);
+
+  item.fabricLineItems.forEach((fabricItem, index) => {
+    const values = [
+      index === 0 ? item.description : " ", // only first row carries the text for height calc
+      fabricItem.style,
+      fabricItem.color,
+      new Intl.NumberFormat("en-US").format(fabricItem.quantity),
+      money(fabricItem.unitPrice, currency),
+      money(fabricItem.totalAmount, currency),
+    ];
+
+    const heights = values.map((value, i) =>
+      doc.heightOfString(value || " ", { width: widths[i] - 12 }),
+    );
+    rowHeights.push(Math.max(32, ...heights) + 12);
+  });
+
+  const totalGroupHeight = rowHeights.reduce((sum, h) => sum + h, 0);
+  ensureSpace(doc, totalGroupHeight + 1);
+
+  const startY = doc.y;
+
+  // ------------------------------------------------------------------
+  // 2. Draw horizontal lines + vertical separators for the whole group
+  // ------------------------------------------------------------------
+  // Top line of the group
+  doc
+    .moveTo(x, startY)
+    .lineTo(x + contentW, startY)
+    .lineWidth(0.7)
+    .strokeColor(BORDER)
+    .stroke();
+
+  // Horizontal lines between fabric rows (except under the description column)
+  let y = startY;
+  for (let i = 0; i < rowHeights.length - 1; i++) {
+    y += rowHeights[i];
+    // line starts after the description column
+    doc
+      .moveTo(x + widths[0], y)
+      .lineTo(x + contentW, y)
+      .lineWidth(0.5)
+      .strokeColor(BORDER)
+      .stroke();
+  }
+
+  // Bottom line of the group
+  doc
+    .moveTo(x, startY + totalGroupHeight)
+    .lineTo(x + contentW, startY + totalGroupHeight)
+    .lineWidth(0.7)
+    .strokeColor(BORDER)
+    .stroke();
+
+  // ------------------------------------------------------------------
+  // 3. Draw the merged description cell (only once)
+  // ------------------------------------------------------------------
+  if (item.description) {
+    doc
+      .font("Helvetica")
+      .fontSize(7.5)
+      .fillColor(DARK)
+      .text(item.description, x + 6, startY + 7, {
+        width: widths[0] - 12,
+        height: totalGroupHeight - 10, // constrain to the full group height
+        align: "left",
+        lineGap: 1,
+      });
+  }
+
+  // ------------------------------------------------------------------
+  // 4. Draw the individual fabric rows (style / color / qty / prices)
+  // ------------------------------------------------------------------
+  y = startY;
+  item.fabricLineItems.forEach((fabricItem, index) => {
+    const rowH = rowHeights[index];
+    const values = [
+      "", // description already drawn
+      fabricItem.style,
+      fabricItem.color,
+      new Intl.NumberFormat("en-US").format(fabricItem.quantity),
+      money(fabricItem.unitPrice, currency),
+      money(fabricItem.totalAmount, currency),
+    ];
+
+    let cellX = x;
+    values.forEach((value, colIndex) => {
+      if (colIndex === 0) {
+        cellX += widths[0];
+        return; // skip description column
+      }
+
+      doc
+        .font("Helvetica")
+        .fontSize(7.5)
+        .fillColor(DARK)
+        .text(value || " ", cellX + 6, y + 7, {
+          width: widths[colIndex] - 12,
+          align: colIndex >= 3 ? "right" : "left",
+          lineGap: 1,
+        });
+
+      cellX += widths[colIndex];
+    });
+
+    y += rowH;
+  });
+
+  doc.y = startY + totalGroupHeight;
+}
+
 function drawTableRow(
   doc: PdfDoc,
   values: string[],
-  options: { bold?: boolean; total?: boolean } = {}
+  options: { bold?: boolean; total?: boolean } = {},
 ): void {
   const widths = columnWidths(doc);
   const font = options.bold ? "Helvetica-Bold" : "Helvetica";
   doc.font(font).fontSize(7.5);
   const heights = values.map((value, index) =>
-    doc.heightOfString(value || " ", { width: widths[index] - 12 })
+    doc.heightOfString(value || " ", { width: widths[index] - 12 }),
   );
   const height = Math.max(32, ...heights) + 12;
   ensureSpace(doc, height + 1);
@@ -224,10 +359,10 @@ function drawTableRow(
 }
 
 function drawSayTotal(doc: PdfDoc, data: InvoiceDocumentData): void {
-  const height = 36;
+  const height = 28;
   ensureSpace(doc, height + 26);
   const y = doc.y + 14;
-  doc.roundedRect(PAGE_MARGIN_X, y, contentWidth(doc), height, 6).fill(PALE);
+  doc.rect(PAGE_MARGIN_X, y, contentWidth(doc), height).fill(PALE);
   doc.rect(PAGE_MARGIN_X, y, 4, height).fill(GREEN);
   doc
     .font("Helvetica-Bold")
@@ -251,7 +386,7 @@ function drawNumberedList(
   doc: PdfDoc,
   lines: string[],
   x: number,
-  width: number
+  width: number,
 ): number {
   let y = doc.y;
   lines.forEach((line, index) => {
@@ -269,7 +404,7 @@ function drawNumberedList(
 function numberedListHeight(
   doc: PdfDoc,
   lines: string[],
-  width: number
+  width: number,
 ): number {
   doc.font("Helvetica").fontSize(7.5);
   return lines.reduce((height, line, index) => {
@@ -278,7 +413,7 @@ function numberedListHeight(
       height +
       Math.max(
         11,
-        doc.heightOfString(text, { width: width - 12, lineGap: 1 }) + 1
+        doc.heightOfString(text, { width: width - 12, lineGap: 1 }) + 1,
       ) +
       2
     );
@@ -289,7 +424,7 @@ function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
   const notes = data.notes.flatMap((note) =>
     note.label.trim() && note.value.trim()
       ? [`${note.label}: ${note.value}`]
-      : []
+      : [],
   );
   const gap = 25;
   const columnWidth = (contentWidth(doc) - gap) / 2;
@@ -299,7 +434,7 @@ function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
   const listHeight = showTerms
     ? Math.max(
         numberedListHeight(doc, notes, columnWidth),
-        numberedListHeight(doc, terms, columnWidth)
+        numberedListHeight(doc, terms, columnWidth),
       )
     : numberedListHeight(doc, notes, notesWidth);
   ensureSpace(doc, listHeight + FOOTER_HEIGHT + 8);
@@ -327,7 +462,7 @@ function drawNotesAndTerms(doc: PdfDoc, data: InvoiceDocumentData): void {
       doc,
       terms,
       PAGE_MARGIN_X + columnWidth + gap,
-      columnWidth
+      columnWidth,
     );
     doc.y = Math.max(notesY, termsY) + 8;
   } else {
@@ -391,23 +526,33 @@ function drawLastPageFooter(doc: PdfDoc): void {
     "Prepared by M.M Fabrics · Bangladesh",
     PAGE_MARGIN_X + width / 2,
     ruleY + 10,
-    { width: width / 2, align: "right" }
+    { width: width / 2, align: "right" },
   );
 }
 
 function renderInvoice(doc: PdfDoc, data: InvoiceDocumentData): void {
   drawHeader(doc, data);
   drawTableHeader(doc, data);
-  data.lineItems.forEach((item) =>
-    drawTableRow(doc, [
-      item.description,
-      item.style,
-      item.color,
-      new Intl.NumberFormat("en-US").format(item.quantity),
-      money(item.unitPrice, data.currency),
-      money(item.totalAmount, data.currency),
-    ])
-  );
+
+  data.lineItems.forEach((item) => {
+    if (item.fabricLineItems.length > 1) {
+      // true merged description
+      drawLineItemGroup(doc, item, data.currency);
+    } else if (item.fabricLineItems.length === 1) {
+      // single row – reuse the original simple drawer
+      const fabricItem = item.fabricLineItems[0];
+      drawTableRow(doc, [
+        item.description,
+        fabricItem.style,
+        fabricItem.color,
+        new Intl.NumberFormat("en-US").format(fabricItem.quantity),
+        money(fabricItem.unitPrice, data.currency),
+        money(fabricItem.totalAmount, data.currency),
+      ]);
+    }
+    // length === 0 → skip silently
+  });
+
   drawTableRow(
     doc,
     [
@@ -418,7 +563,7 @@ function renderInvoice(doc: PdfDoc, data: InvoiceDocumentData): void {
       money(data.totalUnitPrice, data.currency),
       money(data.totalAmount, data.currency),
     ],
-    { bold: true, total: true }
+    { bold: true, total: true },
   );
   drawSayTotal(doc, data);
   drawNotesAndTerms(doc, data);
@@ -426,7 +571,7 @@ function renderInvoice(doc: PdfDoc, data: InvoiceDocumentData): void {
 }
 
 export async function generateInvoicePdfBuffer(
-  data: InvoiceDocumentData
+  data: InvoiceDocumentData,
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({

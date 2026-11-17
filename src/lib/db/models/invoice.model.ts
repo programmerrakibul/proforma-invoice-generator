@@ -1,22 +1,27 @@
-import { getModel } from "@/lib/db/model-helpers";
 import {
   INVOICE_CURRENCIES,
   type InvoiceCurrency,
 } from "@/config/bank-accounts";
 import type { InvoiceGoodsDetail } from "@/data/goods";
+import { getModel } from "@/lib/db/model-helpers";
 import mongoose, { type InferSchemaType, type PaginateModel } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
+
+export interface FabricLineItem {
+  _id?: mongoose.Types.ObjectId;
+  style: string;
+  color: string;
+  quantity: number;
+  unitPrice: number;
+  totalAmount: number;
+}
 
 export interface LineItem {
   _id?: mongoose.Types.ObjectId;
   fabric: string;
   construction: string;
   width: string;
-  style: string;
-  color: string;
-  quantity: number;
-  unitPrice: number;
-  totalAmount: number;
+  fabricLineItems: FabricLineItem[];
 }
 
 export interface Seller {
@@ -43,31 +48,41 @@ export interface Invoice {
   deliveryDate?: Date;
   currency: InvoiceCurrency;
   status: "draft" | "exported";
+  hsoCode: string;
   seller: Seller;
   buyerId: mongoose.Types.ObjectId;
   buyer: Buyer;
   lineItems: LineItem[];
-  subtotal: number;
   totalQuantity: number;
   totalAmount: number;
+  totalUnitPrice: number;
   notes: InvoiceNotes;
   termsAndConditions: string[];
   createdAt: Date;
   updatedAt: Date;
 }
 
-const lineItemSchema = new mongoose.Schema<LineItem>(
+const fabricLineItemSchema = new mongoose.Schema<FabricLineItem>(
   {
-    fabric: { type: String, required: true, trim: true },
-    construction: { type: String, required: true, trim: true },
-    width: { type: String, required: true, trim: true },
     style: { type: String, required: true, trim: true },
     color: { type: String, required: true, trim: true },
     quantity: { type: Number, required: true, min: 0 },
     unitPrice: { type: Number, required: true, min: 0 },
     totalAmount: { type: Number, required: true, min: 0 },
   },
-  { _id: true }
+  {
+    _id: true,
+  },
+);
+
+const lineItemSchema = new mongoose.Schema<LineItem>(
+  {
+    fabric: { type: String, required: true, trim: true },
+    construction: { type: String, required: true, trim: true },
+    width: { type: String, required: true, trim: true },
+    fabricLineItems: [fabricLineItemSchema],
+  },
+  { _id: true },
 );
 
 const invoiceGoodsDetailSchema = new mongoose.Schema<InvoiceGoodsDetail>(
@@ -76,7 +91,7 @@ const invoiceGoodsDetailSchema = new mongoose.Schema<InvoiceGoodsDetail>(
     label: { type: String, required: true, trim: true, maxlength: 100 },
     value: { type: String, required: true, trim: true, maxlength: 2000 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const invoiceSchema = new mongoose.Schema<Invoice>(
@@ -107,6 +122,11 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
       default: "draft",
       index: true,
     },
+    hsoCode: {
+      type: String,
+      trim: true,
+      required: true,
+    },
     seller: {
       companyName: { type: String, required: true, trim: true },
       address: { type: String, required: true, trim: true },
@@ -125,13 +145,13 @@ const invoiceSchema = new mongoose.Schema<Invoice>(
       address: { type: String, required: true, trim: true },
     },
     lineItems: [lineItemSchema],
-    subtotal: { type: Number, default: 0, min: 0 },
     totalQuantity: { type: Number, default: 0, min: 0 },
     totalAmount: { type: Number, default: 0, min: 0 },
+    totalUnitPrice: { type: Number, default: 0, min: 0 },
     notes: { type: [invoiceGoodsDetailSchema], default: [] },
     termsAndConditions: [{ type: String, trim: true, maxlength: 1000 }],
   },
-  { timestamps: true, collection: "invoice" }
+  { timestamps: true, collection: "invoice" },
 );
 
 invoiceSchema.index({ ownerId: 1, updatedAt: -1 });
@@ -143,7 +163,7 @@ invoiceSchema.index(
     unique: true,
     partialFilterExpression: { piNumberVersion: 2 },
     name: "unique_generated_pi_number",
-  }
+  },
 );
 
 invoiceSchema.set("toJSON", {
@@ -174,7 +194,7 @@ export async function ensureGeneratedPiNumberIndex(): Promise<void> {
         unique: true,
         partialFilterExpression: { piNumberVersion: 2 },
         name: "unique_generated_pi_number",
-      }
+      },
     );
   }
 

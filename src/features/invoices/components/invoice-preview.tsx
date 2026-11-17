@@ -13,6 +13,7 @@ import type { InvoiceDocumentData } from "@/features/invoices/types";
 import { formatInvoiceMoney } from "@/features/invoices/utils/format-invoice-money";
 import { cn } from "cn";
 import Image from "next/image";
+import { Fragment } from "react";
 
 interface InvoicePreviewProps {
   data: InvoiceDocumentData;
@@ -36,7 +37,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
             priority
           />
           <div>
-            <h2 className="text-[20pt] font-extrabold tracking-[0.08em] text-[#164b3a]">
+            <h2 className="text-[20pt] font-extrabold tracking-[0.08em] text-[#164b3a] select-all">
               {data.seller.companyName}
             </h2>
             <p className="mt-0.5 text-[7.5pt] font-bold tracking-[0.2em] text-[#64766f]">
@@ -48,8 +49,9 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
           <h1 className="mt-1 text-[19pt] font-extrabold tracking-[0.06em] text-[#164b3a]">
             PROFORMA INVOICE
           </h1>
-          <p className="mt-1 text-[9pt] font-bold text-[#253b36]">
-            PI No. {data.piNumber}
+          <p className="mt-1 text-[9pt] font-bold text-[#253b36] space-x-1">
+            <span>PI No.</span>
+            <span className="select-all">{data.piNumber}</span>
           </p>
         </div>
       </header>
@@ -57,12 +59,13 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
       <Separator className="h-[1.2mm] rounded-full bg-[#164b3a]" />
 
       <section className="py-3 text-[8pt] leading-snug text-[#657770]">
-        <p>
-          <strong className="text-[#253b36]">Contact:</strong>{" "}
-          {data.seller.contactNumber}
+        <p className="space-x-1">
+          <strong className="text-[#253b36]">Contact:</strong>
+          <span className="select-all">{data.seller.contactNumber}</span>
         </p>
-        <p>
-          <strong className="text-[#253b36]">Email:</strong> {data.seller.email}
+        <p className="space-x-1">
+          <strong className="text-[#253b36]">Email:</strong>
+          <span className="select-all">{data.seller.email}</span>
         </p>
         <p>
           <strong className="text-[#253b36]">Address:</strong>{" "}
@@ -103,6 +106,10 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
             <dt>Currency</dt>
             <dd className="font-bold text-[#253b36]">{data.currency}</dd>
           </div>
+          <div className="flex justify-between gap-3">
+            <dt>HSO Code</dt>
+            <dd className="font-bold text-[#253b36]">{data.hsoCode || "—"}</dd>
+          </div>
         </dl>
       </section>
 
@@ -136,29 +143,54 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
           </TableHeader>
           <TableBody>
             {data.lineItems.map((item, index) => (
-              <TableRow
+              <Fragment
                 key={`${item.fabric}-${item.construction}-${item.width}-${index}`}
-                className="border-[#d4e1dc] hover:bg-transparent"
               >
-                <TableCell className="whitespace-pre-line px-3 py-2 align-top font-medium text-[#253b36]">
-                  {item.description}
-                </TableCell>
-                <TableCell className="whitespace-pre-line px-3 py-2 align-top text-[#253b36]">
-                  {item.style}
-                </TableCell>
-                <TableCell className="px-3 py-2 align-top text-[#253b36]">
-                  {item.color}
-                </TableCell>
-                <TableCell className="px-2 py-2 text-right align-top text-[#253b36]">
-                  {new Intl.NumberFormat("en-US").format(item.quantity)}
-                </TableCell>
-                <TableCell className="px-2 py-2 text-right align-top text-[#253b36]">
-                  {formatInvoiceMoney(item.unitPrice, data.currency)}
-                </TableCell>
-                <TableCell className="px-2 py-2 text-right align-top text-[#253b36]">
-                  {formatInvoiceMoney(item.totalAmount, data.currency)}
-                </TableCell>
-              </TableRow>
+                {item.fabricLineItems.map((fItem, i) => {
+                  const length = item.fabricLineItems.length;
+                  const canRender = length === 1 || (length > 1 && i === 0);
+
+                  return (
+                    <TableRow
+                      key={`${item.fabric}-${item.construction}-${item.width}-${index}&${i}`}
+                      className="border-[#d4e1dc] hover:bg-transparent"
+                    >
+                      {canRender && (
+                        <TableCell
+                          rowSpan={item.fabricLineItems.length || 1}
+                          className={cn(
+                            "whitespace-pre-line px-3 py-2 align-top font-medium text-[#253b36]",
+                            {
+                              "align-middle h-full": length > 1,
+                            },
+                          )}
+                        >
+                          {item.description}
+                        </TableCell>
+                      )}
+                      <TableCell
+                        className={cn(
+                          "whitespace-pre-line px-3 py-2 align-middle text-[#253b36]",
+                        )}
+                      >
+                        {fItem.style}
+                      </TableCell>
+                      <TableCell className="px-3 py-2 align-middle text-[#253b36]">
+                        {fItem.color}
+                      </TableCell>
+                      <TableCell className="px-2 py-2 text-right align-middle text-[#253b36]">
+                        {new Intl.NumberFormat("en-US").format(fItem.quantity)}
+                      </TableCell>
+                      <TableCell className="px-2 py-2 text-right align-middle text-[#253b36]">
+                        {formatInvoiceMoney(fItem.unitPrice, data.currency)}
+                      </TableCell>
+                      <TableCell className="px-2 py-2 text-right align-middle text-[#253b36]">
+                        {formatInvoiceMoney(fItem.totalAmount, data.currency)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </Fragment>
             ))}
           </TableBody>
           <TableFooter className="border-t-2 border-[#164b3a] bg-[#f1f7f4] text-[#164b3a]">
@@ -190,7 +222,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
       <section
         className={cn(
           "mb-2 grid gap-8 text-[7.5pt] leading-snug",
-          data.termsAndConditions.length > 0 ? "grid-cols-2" : "grid-cols-1"
+          data.termsAndConditions.length > 0 ? "grid-cols-2" : "grid-cols-1",
         )}
       >
         <div>

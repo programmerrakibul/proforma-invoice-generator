@@ -30,7 +30,13 @@ import { InvoiceLineItems } from "@/features/invoices/components/invoice-line-it
 import { InvoiceNotesAndTerms } from "@/features/invoices/components/invoice-notes-and-terms";
 import type { InvoiceFormValues } from "@/features/invoices/schemas/invoice.schema";
 import { format } from "date-fns";
-import { Building2, CalendarDays, Hash } from "lucide-react";
+import {
+  BarcodeIcon,
+  Building2,
+  CalendarDays,
+  CoinsIcon,
+  Hash,
+} from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import CustomerSelect from "./customer-select";
@@ -53,7 +59,7 @@ function getLocalDate(value?: string | Date): Date | undefined {
       : new Date(
           value.getUTCFullYear(),
           value.getUTCMonth(),
-          value.getUTCDate()
+          value.getUTCDate(),
         );
   }
   const parsed = new Date(value);
@@ -62,7 +68,7 @@ function getLocalDate(value?: string | Date): Date | undefined {
     : new Date(
         parsed.getUTCFullYear(),
         parsed.getUTCMonth(),
-        parsed.getUTCDate()
+        parsed.getUTCDate(),
       );
 }
 
@@ -83,13 +89,13 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
     previousCurrency.current = currency;
     const notes = getValues("notes");
     const bankNoteIndex = notes.findIndex(
-      (note) => note.key === "advisingBank"
+      (note) => note.key === "advisingBank",
     );
     if (bankNoteIndex >= 0) {
       setValue(
         `notes.${bankNoteIndex}.value`,
         getBankAccountDetails(currency),
-        { shouldDirty: true, shouldValidate: true }
+        { shouldDirty: true, shouldValidate: true },
       );
     }
     const paymentNoteIndex = notes.findIndex((note) => note.key === "payment");
@@ -125,10 +131,13 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
           </FieldDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6 p-5">
-          <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field data-invalid={Boolean(errors.piNumber)}>
+          <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-12">
+            <Field
+              data-invalid={Boolean(errors.piNumber)}
+              className="sm:col-span-6"
+            >
               <FieldLabel htmlFor="piNumber">
-                <Hash /> PI number
+                <Hash size={18} /> PI number
               </FieldLabel>
               <Input
                 id="piNumber"
@@ -142,9 +151,12 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
                 </p>
               ) : null}
             </Field>
-            <Field data-invalid={Boolean(errors.issueDate)}>
+            <Field
+              data-invalid={Boolean(errors.issueDate)}
+              className="sm:col-span-6"
+            >
               <FieldLabel htmlFor="issueDate">
-                <CalendarDays /> Issue date
+                <CalendarDays size={18} /> Issue date
               </FieldLabel>
               <Input
                 id="issueDate"
@@ -158,8 +170,32 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
                 </p>
               ) : null}
             </Field>
-            <Field data-invalid={Boolean(errors.currency)}>
-              <FieldLabel htmlFor="currency">Currency</FieldLabel>
+            <Field
+              data-invalid={Boolean(errors.hsoCode)}
+              className="sm:col-span-4"
+            >
+              <FieldLabel htmlFor="hsoCode">
+                <BarcodeIcon size={18} /> HSO Code
+              </FieldLabel>
+              <Input
+                id="hsoCode"
+                aria-invalid={Boolean(errors.hsoCode)}
+                placeholder="Enter a HSO Code for this invoice"
+                {...register("hsoCode")}
+              />
+              {errors.hsoCode?.message ? (
+                <p className="text-xs text-destructive">
+                  {errors.hsoCode.message}
+                </p>
+              ) : null}
+            </Field>
+            <Field
+              data-invalid={Boolean(errors.currency)}
+              className="sm:col-span-3"
+            >
+              <FieldLabel htmlFor="currency">
+                <CoinsIcon size={18} /> Currency
+              </FieldLabel>
               <Controller
                 control={control}
                 name="currency"
@@ -205,9 +241,12 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
               render={({ field }) => {
                 const selectedDate = getLocalDate(field.value);
                 return (
-                  <Field data-invalid={Boolean(errors.deliveryDate)}>
+                  <Field
+                    data-invalid={Boolean(errors.deliveryDate)}
+                    className="sm:col-span-5"
+                  >
                     <FieldLabel htmlFor="deliveryDate">
-                      <CalendarDays /> Delivery date
+                      <CalendarDays size={18} /> Delivery date
                     </FieldLabel>
                     <Popover>
                       <PopoverTrigger
@@ -236,7 +275,7 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
                           selected={selectedDate}
                           onSelect={(date) =>
                             field.onChange(
-                              date ? format(date, "yyyy-MM-dd") : undefined
+                              date ? format(date, "yyyy-MM-dd") : undefined,
                             )
                           }
                         />

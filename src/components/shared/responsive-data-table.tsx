@@ -79,7 +79,7 @@ export function ResponsiveDataTable<T>({
                       key={column.id}
                       className={cn(
                         column.align === "right" && "text-right",
-                        column.className
+                        column.className,
                       )}
                     >
                       {column.label}
@@ -95,7 +95,7 @@ export function ResponsiveDataTable<T>({
                         key={column.id}
                         className={cn(
                           column.align === "right" && "text-right",
-                          column.className
+                          column.className,
                         )}
                       >
                         {column.render(row)}
@@ -118,7 +118,7 @@ export function ResponsiveDataTable<T>({
                     className={cn(
                       "flex min-w-0 items-start justify-between gap-4 py-2",
                       index === 0 && "border-b pb-3",
-                      index === columns.length - 1 && "pt-3"
+                      index === columns.length - 1 && "pt-3",
                     )}
                   >
                     <span className="shrink-0 text-xs text-muted-foreground">

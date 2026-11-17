@@ -14,16 +14,20 @@ export interface InvoiceLineItemView {
   unit: string;
 }
 
-export interface InvoiceDocumentLineItem {
-  fabric: string;
-  construction: string;
-  width: string;
-  description: string;
+export interface InvoiceDocumentFabricLineItem {
   style: string;
   color: string;
   quantity: number;
   unitPrice: number;
   totalAmount: number;
+}
+
+export interface InvoiceDocumentLineItem {
+  fabric: string;
+  construction: string;
+  width: string;
+  description: string;
+  fabricLineItems: InvoiceDocumentFabricLineItem[];
 }
 
 export interface InvoiceDocumentSeller {
@@ -62,11 +66,11 @@ export interface InvoiceDocumentData {
   seller: InvoiceDocumentSeller;
   buyer: InvoiceDocumentBuyer;
   lineItems: InvoiceDocumentLineItem[];
-  subtotal: number;
-  totalUnitPrice: number;
   totalAmount: number;
+  totalUnitPrice: number;
   totalQuantity: number;
   sayTotal: string;
   notes: InvoiceDocumentNotes;
   termsAndConditions: string[];
+  hsoCode: string;
 }
