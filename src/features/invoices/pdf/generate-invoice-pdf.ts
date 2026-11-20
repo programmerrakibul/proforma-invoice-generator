@@ -143,7 +143,7 @@ function drawHeader(doc: PdfDoc, data: InvoiceDocumentData): void {
   }
 
   rows.push(["Currency", data.currency]);
-  rows.push(["HSO Code", data.hsoCode || "—"]);
+  rows.push(["HS Code", data.hsoCode || "—"]);
 
   rows.forEach(([label, value], index) => {
     const y = buyerY + 10 + index * 19;

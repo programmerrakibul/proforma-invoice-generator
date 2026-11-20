@@ -107,7 +107,7 @@ export function InvoicePreview({ data }: InvoicePreviewProps) {
             <dd className="font-bold text-[#253b36]">{data.currency}</dd>
           </div>
           <div className="flex justify-between gap-3">
-            <dt>HSO Code</dt>
+            <dt>HS Code</dt>
             <dd className="font-bold text-[#253b36]">{data.hsoCode || "—"}</dd>
           </div>
         </dl>
