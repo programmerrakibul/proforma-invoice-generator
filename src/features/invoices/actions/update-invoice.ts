@@ -15,6 +15,7 @@ import {
   ActionResult,
   zodErrorToActionResult,
 } from "@/lib/validations/action-result";
+import { calculateInvoiceTotals } from "../utils/calculate-invoice-total";
 
 export async function updateInvoiceAction(
   invoiceId: string,
@@ -25,8 +26,6 @@ export async function updateInvoiceAction(
   try {
     const user = await requireUser();
     const validated = createInvoiceSchema.parse(input);
-
-    console.log(validated);
 
     const query = {
       _id: invoiceId,
@@ -70,6 +69,9 @@ export async function updateInvoiceAction(
       }
     }
 
+    const { lineItems, totalQuantity, totalUnitPrice, totalAmount } =
+      calculateInvoiceTotals(validated.lineItems);
+
     await InvoiceModel.updateOne(
       { _id: invoiceId, ownerId: user.id, piNumber: validated.piNumber },
       {
@@ -82,25 +84,10 @@ export async function updateInvoiceAction(
             : {}),
           buyerId: customer._id,
           buyer: { name: customer.name, address: customer.address },
-          lineItems: validated.lineItems.map((item) => ({
-            fabric: item.fabric,
-            construction: item.construction,
-            width: item.width,
-            fabricLineItems: item.fabricLineItems.map(
-              (
-                fItem: InvoiceFormValues["lineItems"][number]["fabricLineItems"][number],
-              ) => ({
-                style: fItem.style,
-                color: fItem.color,
-                quantity: fItem.quantity,
-                unitPrice: fItem.unitPrice,
-                totalAmount: fItem.totalAmount,
-              }),
-            ),
-          })),
-          totalQuantity: validated.totalQuantity,
-          totalAmount: validated.totalAmount,
-          totalUnitPrice: validated.totalUnitPrice,
+          lineItems,
+          totalQuantity,
+          totalUnitPrice,
+          totalAmount,
           hsoCode: validated.hsoCode,
           notes,
           termsAndConditions:

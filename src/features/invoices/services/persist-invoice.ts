@@ -10,6 +10,7 @@ import {
 } from "@/lib/db/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
 import { isGeneratedPiNumber } from "@/lib/pi-number-format";
+import { calculateInvoiceTotals } from "../utils/calculate-invoice-total";
 
 export type PersistedInvoiceStatus = "draft" | "exported";
 
@@ -61,6 +62,9 @@ export async function persistInvoice(
     }
   }
 
+  const { lineItems, totalQuantity, totalUnitPrice, totalAmount } =
+    calculateInvoiceTotals(input.lineItems);
+
   const invoiceValues = {
     ...input,
     ownerId,
@@ -74,6 +78,10 @@ export async function persistInvoice(
     notes,
     termsAndConditions:
       input.currency === "BDT" ? [] : input.termsAndConditions,
+    lineItems,
+    totalQuantity,
+    totalUnitPrice,
+    totalAmount,
   };
 
   if (invoiceId) {
@@ -92,8 +100,6 @@ export async function persistInvoice(
   }
 
   const invoice = await InvoiceModel.create(invoiceValues);
-
-  console.log(invoice);
 
   return String(invoice._id);
 }

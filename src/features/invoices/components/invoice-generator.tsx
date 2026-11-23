@@ -78,9 +78,9 @@ const buildDefaultInvoiceValues = (
       termsAndConditions: [...defaultTermsAndConditions],
       lineItems: defaultGoods,
       hsoCode: "",
-      totalAmount: 1370.6,
-      totalUnitPrice: 0.7,
-      totalQuantity: 1958,
+      totalAmount: 0.0,
+      totalUnitPrice: 0.0,
+      totalQuantity: 0,
     };
   }
 };
@@ -102,8 +102,6 @@ export function InvoiceGenerator(props: InvoiceGeneratorProps) {
   } = methods;
 
   const watchedValues = useWatch({ control });
-
-  // console.log(watchedValues);
 
   const previewData = useMemo(
     () => buildInvoiceDocument(toInvoiceDocumentInput(watchedValues)),

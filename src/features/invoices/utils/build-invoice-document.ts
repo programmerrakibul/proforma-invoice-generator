@@ -12,6 +12,7 @@ import type {
   LegacyInvoiceDocumentNotes,
 } from "@/features/invoices/types";
 import { numberToWords } from "@/features/invoices/utils/number-to-words";
+import { calculateInvoiceTotals } from "./calculate-invoice-total";
 
 export interface InvoiceDocumentInput {
   piNumber?: string;
@@ -49,24 +50,24 @@ export const DEFAULT_SELLER: InvoiceDocumentSeller = { ...companyProfile };
 
 export const DEFAULT_TERMS: string[] = defaultTermsAndConditions;
 
-function getLegacyDescriptionParts(description?: string): {
-  fabric: string;
-  construction: string;
-  width: string;
-} {
-  const lines = description?.split(/\r?\n/) ?? [];
-  const constructionLine = lines.find((line) =>
-    /^construction\s*:/i.test(line.trim()),
-  );
-  const widthLine = lines.find((line) => /^width\s*:/i.test(line.trim()));
+// function getLegacyDescriptionParts(description?: string): {
+//   fabric: string;
+//   construction: string;
+//   width: string;
+// } {
+//   const lines = description?.split(/\r?\n/) ?? [];
+//   const constructionLine = lines.find((line) =>
+//     /^construction\s*:/i.test(line.trim()),
+//   );
+//   const widthLine = lines.find((line) => /^width\s*:/i.test(line.trim()));
 
-  return {
-    fabric: lines[0]?.trim() ?? "",
-    construction:
-      constructionLine?.replace(/^\s*construction\s*:\s*/i, "") ?? "",
-    width: widthLine?.replace(/^\s*width\s*:\s*/i, "") ?? "",
-  };
-}
+//   return {
+//     fabric: lines[0]?.trim() ?? "",
+//     construction:
+//       constructionLine?.replace(/^\s*construction\s*:\s*/i, "") ?? "",
+//     width: widthLine?.replace(/^\s*width\s*:\s*/i, "") ?? "",
+//   };
+// }
 
 function formatWidth(width: string): string {
   return /^\d+(?:\.\d+)?$/.test(width) ? `${width}\"` : width;
@@ -131,6 +132,9 @@ function normalizeInvoiceNotes(
 export function toInvoiceDocumentInput(
   values: InvoiceDocumentInput,
 ): InvoiceDocumentInput {
+  const { lineItems, totalQuantity, totalUnitPrice, totalAmount } =
+    calculateInvoiceTotals(values.lineItems);
+
   return {
     piNumber: values.piNumber,
     issueDate: values.issueDate,
@@ -141,20 +145,10 @@ export function toInvoiceDocumentInput(
     notes: values.notes,
     hsoCode: values.hsoCode,
     termsAndConditions: values.termsAndConditions,
-    totalAmount: values.totalAmount,
-    totalUnitPrice: values.totalUnitPrice,
-    totalQuantity: values.totalQuantity,
-    lineItems: (values.lineItems ?? []).map((item) => {
-      const legacyParts = getLegacyDescriptionParts(item.description);
-
-      return {
-        fabric: item.fabric ?? legacyParts.fabric,
-        construction: item.construction ?? legacyParts.construction,
-        width: item.width ?? legacyParts.width,
-        description: item.description,
-        fabricLineItems: item.fabricLineItems,
-      };
-    }),
+    lineItems,
+    totalQuantity,
+    totalUnitPrice,
+    totalAmount,
   };
 }
 
@@ -179,9 +173,9 @@ export function buildInvoiceDocument(
       const construction = item.construction ?? "";
       const width = item.width ?? "";
       const description = [
-        fabric,
-        `Construction: ${construction}`,
-        `Width: ${formatWidth(width)}`,
+        fabric || "—",
+        `Construction: ${construction || "—"}`,
+        `Width: ${formatWidth(width) || "—"}`,
       ].join("\n");
 
       return {
@@ -190,8 +184,8 @@ export function buildInvoiceDocument(
         width,
         description,
         fabricLineItems: (item.fabricLineItems ?? []).map((item) => ({
-          style: item.style ?? "",
-          color: item.color ?? "",
+          style: item.style ?? "—",
+          color: item.color ?? "—",
           quantity: item.quantity ?? 0,
           unitPrice: item.unitPrice ?? 0,
           totalAmount: item.totalAmount ?? 0,
