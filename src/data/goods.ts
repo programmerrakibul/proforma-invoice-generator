@@ -24,16 +24,16 @@ export interface InvoiceGoodsDetail {
 
 export const defaultGoods: InvoiceLineItem[] = [
   {
-    fabric: "35% Cotton 65% Polyester TC",
-    construction: "45x45/90x60",
-    width: "56",
+    fabric: "",
+    construction: "",
+    width: "",
     fabricLineItems: [
       {
-        style: "Buyer: MAX DUBAI - B27MCSFEWB250B",
-        color: "Navy",
-        quantity: 1958,
-        unitPrice: 0.7,
-        totalAmount: 1370.6,
+        style: "",
+        color: "",
+        quantity: 0,
+        unitPrice: 0.0,
+        totalAmount: 0.0,
       },
     ],
   },

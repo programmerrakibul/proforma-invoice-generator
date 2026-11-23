@@ -29,7 +29,6 @@ const InvoiceFabricLineItems = ({ index, onReady }: Props) => {
     register,
     setValue,
     formState: { errors },
-    getValues,
   } = useFormContext<InvoiceFormValues>();
 
   const fabricLineItems = useWatch({
@@ -128,25 +127,7 @@ const InvoiceFabricLineItems = ({ index, onReady }: Props) => {
                 min={1}
                 aria-invalid={Boolean(errorBase?.quantity)}
                 {...register(`${basePath}.quantity`, {
-                  onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                    const quantity = e.target.valueAsNumber;
-                    const total = parseFloat(
-                      (getValues(`${basePath}.unitPrice`) * quantity).toFixed(
-                        2,
-                      ),
-                    );
-
-                    setValue(`${basePath}.quantity`, quantity, {
-                      shouldValidate: true,
-                      shouldDirty: true,
-                    });
-
-                    setValue(`${basePath}.totalAmount`, total);
-                    setValue(
-                      "totalQuantity",
-                      getValues("totalQuantity") + quantity,
-                    );
-                  },
+                  valueAsNumber: true,
                 })}
                 placeholder="1"
               />
@@ -170,29 +151,7 @@ const InvoiceFabricLineItems = ({ index, onReady }: Props) => {
                 min={0}
                 aria-invalid={Boolean(errorBase?.unitPrice)}
                 {...register(`${basePath}.unitPrice`, {
-                  onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                    const price = e.target.valueAsNumber;
-                    const total = parseFloat(
-                      (getValues(`${basePath}.quantity`) * price).toFixed(2),
-                    );
-
-                    setValue(`${basePath}.unitPrice`, price, {
-                      shouldValidate: true,
-                      shouldDirty: true,
-                    });
-
-                    setValue(
-                      "totalUnitPrice",
-                      parseFloat(
-                        (getValues("totalUnitPrice") + price).toFixed(2),
-                      ),
-                    );
-                    setValue(`${basePath}.totalAmount`, total);
-                    setValue(
-                      "totalAmount",
-                      parseFloat((getValues("totalAmount") + total).toFixed(2)),
-                    );
-                  },
+                  valueAsNumber: true,
                 })}
                 placeholder="0.00"
               />

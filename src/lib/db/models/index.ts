@@ -1,4 +1,8 @@
-export { UserModel, type UserDocument } from "./user.model";
+export {
+  COMPANY_SINGLETON_KEY,
+  CompanyModel,
+  type CompanyDocument,
+} from "./company.model";
 export {
   ensureGeneratedPiNumberIndex,
   InvoiceModel,

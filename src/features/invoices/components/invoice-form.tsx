@@ -175,12 +175,12 @@ export function InvoiceForm({ customers }: InvoiceFormProps) {
               className="sm:col-span-4"
             >
               <FieldLabel htmlFor="hsoCode">
-                <BarcodeIcon size={18} /> HSO Code
+                <BarcodeIcon size={18} /> HS Code
               </FieldLabel>
               <Input
                 id="hsoCode"
                 aria-invalid={Boolean(errors.hsoCode)}
-                placeholder="Enter a HSO Code for this invoice"
+                placeholder="Enter a HS Code for this invoice"
                 {...register("hsoCode")}
               />
               {errors.hsoCode?.message ? (
