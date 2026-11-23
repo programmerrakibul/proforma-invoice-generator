@@ -28,9 +28,9 @@ interface CompanyFormProps {
 }
 
 const CompanyForm = ({ profileData }: CompanyFormProps) => {
-  const router = useRouter()
+  const router = useRouter();
 
-  console.log(profileData)
+  console.log(profileData);
 
   const {
     handleSubmit,
@@ -49,7 +49,7 @@ const CompanyForm = ({ profileData }: CompanyFormProps) => {
 
       if (!res.ok) throw res.message;
 
-      router.refresh()
+      router.refresh();
       toast(res.message || "Company Profile data updated successfully");
     } catch (error: unknown) {
       toast((error as Error).message || " Company Profile update failed");

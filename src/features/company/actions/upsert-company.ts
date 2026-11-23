@@ -26,7 +26,7 @@ export const upsertCompanyProfileAction = async (
     );
   }
 
-  console.log(sanitizedPayload)
+  console.log(sanitizedPayload);
 
   try {
     await connectToDatabase();
